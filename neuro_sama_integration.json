@@ -1,0 +1,9 @@
+{
+  "id": "neuro_sama_integration",
+  "name": "Neuro-Sama Integration",
+  "display_name": "Neuro-Sama",
+  "author": ["LuqDude"],
+  "description": "A mod that enables Neuro-Sama to play Balatro",
+  "prefix": "neuro_integration",
+  "main_file": "main.lua"
+}
