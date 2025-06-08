@@ -3,6 +3,8 @@ local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
 
 local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
 
+local config = ModCache.load("config.lua")
+
 local SelectDeck = setmetatable({}, { __index = NeuroAction })
 SelectDeck.__index = SelectDeck
 
@@ -47,9 +49,14 @@ function SelectDeck:_execute_action(state)
 end
 
 
-function SelectDeck:_get_decks()
-    -- TODO: get all deck options.
-    return {"Red Deck", "Yellow Deck"}
+function SelectDeck:_get_decks(allDecks)
+local deck_names = {}
+    for k, v in ipairs(G.P_CENTER_POOLS.Back) do
+        if (v.unlocked and table.any(config.ALLOWED_DECKS, function(deck) return deck == v.name end)) or allDecks then
+            deck_names[#deck_names+1] = v.name
+        end
+    end
+    return deck_names
 end
 
 return SelectDeck

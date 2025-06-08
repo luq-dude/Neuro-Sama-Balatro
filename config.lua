@@ -14,5 +14,21 @@ return {
     -- choose from this list.
     -- Note that if UNLOCK_ALL is false, on a brand new profile Neuro will only have the Red Deck available. If a deck
     -- is not unlocked but is in this list, the mod will not let Neuro use it.
-    ["ALLOWED_DECKS"] = { "Red Deck", "Blue Deck", "Yellow Deck", "Green Deck", "Black Deck" }
+    ["ALLOWED_DECKS"] = {
+        "Red Deck",       -- +1 discard every round
+        "Blue Deck",      -- +1 hand every round
+        "Yellow Deck",    -- Start with extra $10
+        "Green Deck",     -- $2 per remaining hand, $1 per remaining discard, Earn no Interest every round
+        "Black Deck",     -- +1 Joker slot, -1 hand every round
+        -- "Magic Deck",     -- Start run with the Crystal Ball voucher and 2 copies of The Fool
+        -- "Nebula Deck",    -- Start run with the Telescope voucher, -1 consumable slot
+        -- "Ghost Deck",     -- Spectral cards may appear in the shop, start with a Hex card
+        -- "Abandoned Deck", -- Start run with no face cards in your deck
+        -- "Checkered Deck", -- Start run with 26 Spades and 26 Hearts in deck
+        -- "Zodiac Deck",    -- Start run Tarot Merchant, Planet Merchant, and Overstock
+        -- "Painted Deck",   -- +2 hand size, -1 Joker slot
+        -- "Anaglyph Deck",  -- After defeating each Boss Blind, gain a Double Tag
+        -- "Plasma Deck",    -- Balance Chips and Mult when calculating score for played hand, X2 base Blind size
+        -- "Erratic Deck"    -- All Ranks and Suits in deck are randomised
+    }
 }
