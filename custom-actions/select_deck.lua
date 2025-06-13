@@ -3,7 +3,7 @@ local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
 
 local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
 
-local config = ModCache.load("config.lua")
+local ALLOWED_DECKS = SMODS.current_mod.config.ALLOWED_DECKS
 
 local SelectDeck = setmetatable({}, { __index = NeuroAction })
 SelectDeck.__index = SelectDeck
@@ -50,9 +50,9 @@ end
 
 
 function SelectDeck:_get_decks(allDecks)
-local deck_names = {}
+    local deck_names = {}
     for k, v in ipairs(G.P_CENTER_POOLS.Back) do
-        if (v.unlocked and table.any(config.ALLOWED_DECKS, function(deck) return deck == v.name end)) or allDecks then
+        if (v.unlocked and table.any(ALLOWED_DECKS, function(deck) return deck == v.name end)) or allDecks then
             deck_names[#deck_names+1] = v.name
         end
     end
