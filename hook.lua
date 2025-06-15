@@ -139,6 +139,7 @@ local function hook_main_menu()
                         func = function()
                             G.MAIN_MENU_UI:get_UIE_by_ID('main_menu_play'):click()
                             select_deck(2)
+                            hook_new_run(7)
                             return true
                         end
                     }))
@@ -147,6 +148,26 @@ local function hook_main_menu()
             end
         }))
     end
+end
+
+
+-- Should also get moved with above event or get moved into execute action of select deck with a delay so viewers can see selected deck
+function hook_new_run(delay)
+	sendDebugMessage("Hooking new run")
+	G.E_MANAGER:add_event(Event({
+		trigger = "after",
+		delay = delay or 5,
+		func = function()
+			local play_button = G.OVERLAY_MENU:get_UIE_by_ID("run_setup_seed") -- Make sure we are on the new run overlay (maybe remove for starting not in main menu)
+			if play_button then
+				G.FUNCS.start_run()
+				return true
+			else
+				sendDebugMessage("play button doesnt exist")
+				return true
+			end
+		end,
+	}))
 end
 
 
