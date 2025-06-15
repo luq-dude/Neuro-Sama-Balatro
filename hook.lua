@@ -56,16 +56,6 @@ local function open_profile_select(delay)
 end
 
 local function select_deck(delay)
-    -- now get her to pick a deck
-    -- to do this we need to get the final text description for each deck
-    -- and i got 0 idea how to do that
-
-    -- G.localization doesn't the final parsed strings, its missing all the localization arguments
-    -- smods also overwrites some of the localization data and i cant tell where to find the final arguments
-    -- for decks though the localization arguments seem to be determined when the deck ui is being loaded in
-    -- one solution would be just extract the text from the ui elements for each deck but thats a pain
-    -- another would be hook into the functions that generate the ui elements for the deck and have them
-    -- save the results somewhere
     G.E_MANAGER:add_event(Event({
         trigger = "after",
         delay = delay,
@@ -79,7 +69,6 @@ local function select_deck(delay)
     }
     ))
 end
-
 
 local function hook_main_menu()
     local main_menu = Game.main_menu
