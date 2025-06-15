@@ -1,7 +1,7 @@
 require "functions/misc_functions"
 
 local ALLOWED_DECKS = SMODS.current_mod.config.ALLOWED_DECKS
-
+local ALLOWED_STAKES = SMODS.current_mod.config.ALLOWED_DECKS
 
 local getText = {}
 
@@ -27,30 +27,83 @@ local function get_back_args(name, effect_config)
     elseif name == 'Erratic Deck' then
     end
 
-    return loc_args -- TODO: add support for modded decks
+    return loc_args
 end
 
-function getText:get_allowed_backs()
+function getText:get_back_descriptions()
     local backs = {}
-    for k, v in pairs(G.P_CENTER_POOLS.Back) do
-        if v.unlocked and table.any(ALLOWED_DECKS, function(deck) return deck == v.name end) then
+    for _, back in pairs(G.P_CENTER_POOLS.Back) do
+
+        local name
+        if back.loc_txt then
+            name = back.loc_txt.name
+        else
+            name = back.name
+        end
+
+        if back.unlocked and table.any(ALLOWED_DECKS, function(deck) return deck == name end) then
             
-            local loc_nodes = {}
-            local loc_args = get_back_args(v.name, v.config)
-            localize{type = 'descriptions', key = v.key, set = 'Back', nodes = loc_nodes, vars = loc_args}
+            local loc_args, loc_nodes = get_back_args(back.name, back.config), {}
+
+            local key_override
+            if back.loc_vars and type(back.loc_vars) == 'function' then
+            	local res = back:loc_vars() or {}
+            	loc_args = res.vars or {}
+            	key_override = res.key
+            end
+
+            localize{type = 'descriptions', key = key_override or back.key, set = 'Back', nodes = loc_nodes, vars = loc_args}
                         
             local description = ""
             for _, line in ipairs(loc_nodes) do
                 for _, v in ipairs(line) do
                     description = description .. v.config.text
                 end
-                description = description .. "     "
+                description = description .. "   "
             end
-            backs[v.name] = description
+
+            backs[name] = description
         end
     end
-    --sendDebugMessage("Allowed backs: \n" .. inspectDepth(backs))
     return backs
+end
+
+function getText:get_back_names(keys, allDecks)
+    local backs = {}
+    for _, back in pairs(G.P_CENTER_POOLS.Back) do
+
+        local name
+        if back.loc_txt then
+            name = back.loc_txt.name
+        else
+            name = back.name
+        end
+
+        if (back.unlocked and table.any(ALLOWED_DECKS, function(check) return check == name end)) or allDecks then
+            if keys then
+                backs[back.key] = name
+            else
+                backs[#backs+1] = name
+            end
+        end
+    end
+    return backs
+end
+
+function getText:get_stake_names(keys, allStakes)
+    local stakes = {}
+    for _, stake in pairs(G.P_CENTER_POOLS.Stake) do        
+        local name = localize{type = 'name_text', key = stake.key, set = 'Stake'}
+
+        if (stake.unlocked and table.any(ALLOWED_DECKS, function(check) return check == name end)) or allStakes then
+            if keys then
+                stakes[stake.key] = name
+            else
+                stakes[#stakes+1] = name
+            end
+        end
+    end
+    return stakes
 end
 
 return getText

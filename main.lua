@@ -4,9 +4,6 @@ assert(SMODS.load_file("game-sdk/sdk_string_consts.lua"))()
 
 ModCache = assert(SMODS.load_file("module_cache.lua"))()
 
-local get_text = assert(SMODS.load_file("get_text.lua"))()
-get_text:get_allowed_backs()
-
 -- unlike require(), SMODS.load_file() doesn't guarantee files will only get loaded once
 -- use ModCache.load() to get them loaded once
 -- theres definitely a way to get the sdk working with SMODS.load_file, but the entire sdk was written for require()

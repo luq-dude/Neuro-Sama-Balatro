@@ -1,9 +1,8 @@
 local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
+local GetText = ModCache.load("get_text.lua")
 
 local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
-
-local ALLOWED_DECKS = SMODS.current_mod.config.ALLOWED_DECKS
 
 local SelectDeck = setmetatable({}, { __index = NeuroAction })
 SelectDeck.__index = SelectDeck
@@ -18,45 +17,53 @@ function SelectDeck:_get_name()
 end
 
 function SelectDeck:_get_description()
-    return "Select a deck to start the game with."
+    local description = "Select a deck to start the game with."
+
+    for k, v in pairs(GetText:get_back_descriptions()) do
+        description = description .. "\n" .. k .. ": " .. v
+    end
+
+    return description
 end
 
 function SelectDeck:_get_schema()
     return JsonUtils.wrap_schema({
         deck = {
-            enum = self:_get_decks()
+            enum = GetText:get_back_names()
         }
     })
 end
 
 function SelectDeck:_validate_action(data, state)
-    local cell = data:get_string("deck")
-    if not cell then
+    local back = data:get_string("deck")
+    if not back then
         return ExecutionResult.failure(SDK_Strings.action_failed_missing_required_parameter("deck"))
     end
 
-    local cells = self:_get_decks()
-    if not table.any(cells, function(free_cell)
-            return free_cell == cell
+    local backs = GetText:get_back_names()
+    if not table.any(backs, function(free_cell)
+            return free_cell == back
         end) then
         return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("deck"))
     end
+    state["deck"] = back
     return ExecutionResult.success()
 end
 
 function SelectDeck:_execute_action(state)
-    --TODO: select the deck here
-end
-
-
-function SelectDeck:_get_decks(allDecks)
-    local deck_names = {}
+    local orderedDeckNames = {}
     for k, v in ipairs(G.P_CENTER_POOLS.Back) do
-        if (v.unlocked and table.any(ALLOWED_DECKS, function(deck) return deck == v.name end)) or allDecks then
-            deck_names[#deck_names+1] = v.name
+        orderedDeckNames[#orderedDeckNames+1] = v.name
+    end
+
+    local selectedDeckName = state["deck"]
+
+    for id, deck in pairs(GetText:get_back_names(false,true)) do
+        if deck == selectedDeckName then
+            local args = {to_val=orderedDeckNames[id], to_key=id}
+            G.FUNCS.change_viewed_back(args)
         end
     end
-    return deck_names
 end
 
 return SelectDeck
