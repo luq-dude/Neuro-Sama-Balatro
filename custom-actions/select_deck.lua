@@ -64,6 +64,19 @@ function SelectDeck:_execute_action(state)
             G.FUNCS.change_viewed_back(args)
         end
     end
+
+    -- TEMPORARY: start the run immediately as select_stake() is not implemented yet
+
+    --select_stake()
+    G.E_MANAGER:add_event(Event({
+		    trigger = "after",
+		    delay = 5,
+		    func = function()
+        G.FUNCS.start_run()
+        -- return false as otherwise crashes
+        return false
+		    end,
+	}))
 end
 
 return SelectDeck
