@@ -149,7 +149,6 @@ local function hook_main_menu()
     end
 end
 
-
 function Hook:hook_game()
     if not neuro_profile or neuro_profile < 1 or neuro_profile > 3 then
         neuro_profile = 3
