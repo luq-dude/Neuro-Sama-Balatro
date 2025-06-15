@@ -8,6 +8,18 @@ local ALLOWED_DECKS = SMODS.current_mod.config.ALLOWED_DECKS
 local SelectDeck = setmetatable({}, { __index = NeuroAction })
 SelectDeck.__index = SelectDeck
 
+local function start_new_run(delay)
+	G.E_MANAGER:add_event(Event({
+		trigger = "after",
+		delay = delay or 5,
+		func = function()
+            G.FUNCS.start_run()
+            -- return false as otherwise crashes
+            return false
+		end,
+	}))
+end
+
 function SelectDeck:new(actionWindow, state)
     local obj = NeuroAction.new(self, actionWindow)
     return obj
@@ -46,6 +58,7 @@ end
 
 function SelectDeck:_execute_action(state)
     --TODO: select the deck here
+    start_new_run(0.1)
 end
 
 
