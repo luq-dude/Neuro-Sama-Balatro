@@ -15,8 +15,8 @@ local json = ModCache.load("libs/json.lua")
 local WebsocketConnection = {}
 WebsocketConnection.__index = WebsocketConnection
 
-local RECONNECT_DELAY = SMODS.current_mod.config["RECONNECT_DELAY"] or 5
-local WS_URL = SMODS.current_mod.config["NEURO_SDK_WS_URL"]
+local RECONNECT_DELAY = NeuroConfig.RECONNECT_DELAY or 5
+local WS_URL = NeuroConfig.NEURO_SDK_WS_URL
 
 function WebsocketConnection:new()
     local self = setmetatable({}, WebsocketConnection)
