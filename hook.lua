@@ -61,8 +61,10 @@ local function select_deck(delay)
         delay = delay,
         func = function()
             local window = ActionWindow:new()
-            window:set_force(0.0, "Pick a deck", "", false)
-            window:add_action(SelectDeck:new(window, nil))
+            window:set_force(0.0, "Pick a deck", "The game has yet to start. " ..
+                "To start a new run, first select a deck. " ..
+                "Each deck has a different effect that changes how the game is played.", false)
+            window:add_action(SelectDeck:new(window))
             window:register()
             return true
         end

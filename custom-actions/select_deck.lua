@@ -9,6 +9,7 @@ SelectDeck.__index = SelectDeck
 
 function SelectDeck:new(actionWindow, state)
     local obj = NeuroAction.new(self, actionWindow)
+    obj.state = state
     return obj
 end
 
@@ -47,20 +48,20 @@ function SelectDeck:_validate_action(data, state)
         return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("deck"))
     end
     state["deck"] = back
-    return ExecutionResult.success()
+    return ExecutionResult.success(string.format("The game has started with the %s.", back))
 end
 
 function SelectDeck:_execute_action(state)
     local orderedDeckNames = {}
     for k, v in ipairs(G.P_CENTER_POOLS.Back) do
-        orderedDeckNames[#orderedDeckNames+1] = v.name
+        orderedDeckNames[#orderedDeckNames + 1] = v.name
     end
 
     local selectedDeckName = state["deck"]
 
-    for id, deck in pairs(GetText:get_back_names(false,true)) do
+    for id, deck in pairs(GetText:get_back_names(false, true)) do
         if deck == selectedDeckName then
-            local args = {to_val=orderedDeckNames[id], to_key=id}
+            local args = { to_val = orderedDeckNames[id], to_key = id }
             G.FUNCS.change_viewed_back(args)
         end
     end
@@ -69,14 +70,14 @@ function SelectDeck:_execute_action(state)
 
     --select_stake()
     G.E_MANAGER:add_event(Event({
-		    trigger = "after",
-		    delay = 5,
-		    func = function()
-        G.FUNCS.start_run()
-        -- return false as otherwise crashes
-        return false
-		    end,
-	}))
+        trigger = "after",
+        delay = 5,
+        func = function()
+            G.FUNCS.start_run()
+            -- return false as otherwise crashes
+            return false
+        end,
+    }))
 end
 
 return SelectDeck
