@@ -1,7 +1,7 @@
 require "functions/misc_functions"
 
-local ALLOWED_DECKS = SMODS.current_mod.config.ALLOWED_DECKS
-local ALLOWED_STAKES = SMODS.current_mod.config.ALLOWED_DECKS
+local ALLOWED_DECKS = NeuroConfig.ALLOWED_DECKS
+local ALLOWED_STAKES = NeuroConfig.ALLOWED_DECKS
 
 local getText = {}
 

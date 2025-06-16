@@ -3,7 +3,7 @@ return {
     ["NEURO_SDK_WS_URL"] = "ws://127.0.0.1:8000",
 
     -- Delay in seconds before attempting to reconnect
-    ["RECONNECT_DELAY"] = 2,
+    ["RECONNECT_DELAY"] = 5,
 
     -- The profile Neuro should use. If save data exists in this slot, we are going to assume it belongs to Neuro and
     -- continue the game from there if there's an active run. If there's no save data, we will create a new

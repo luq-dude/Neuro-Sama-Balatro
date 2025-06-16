@@ -5,8 +5,8 @@ local SelectDeck = ModCache.load("custom-actions/select_deck.lua")
 local Hook = {}
 Hook.__index = Hook
 
-local neuro_profile = SMODS.current_mod.config["PROFILE_SLOT"]
-local should_unlock = SMODS.current_mod.config.UNLOCK_ALL
+local neuro_profile = NeuroConfig.PROFILE_SLOT
+local should_unlock = NeuroConfig.UNLOCK_ALL
 
 local function load_profile(delay)
     G.E_MANAGER:add_event(Event({
