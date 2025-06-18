@@ -1,5 +1,6 @@
 local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
+local GetText = ModCache.load("get_text.lua")
 
 local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
 
@@ -27,10 +28,24 @@ function PlayCards:_get_schema()
 			type = "array",
             items = {
 				type = "string",
-				enum = self:_get_hand()
+				enum = GetText:get_hand_seals() -- TODO: change to editions --GetText:get_hand_editions()
 			},
 		}
     })
+end
+
+local function increment_card_table(table)
+    local selected_table = {}
+    for _, card in pairs(table) do
+        if selected_table[card] == nil then
+            sendDebugMessage("setting " .. card .. "to 1")
+            selected_table[card] = 1
+        else
+            sendDebugMessage("adding 1 to " .. card)
+            selected_table[card] = selected_table[card] + 1 -- should increment for each type of card in hand
+        end
+    end
+    return selected_table
 end
 
 function PlayCards:_validate_action(data, state)
@@ -53,7 +68,7 @@ function PlayCards:_validate_action(data, state)
 
     if #selected_hand > 5 then return ExecutionResult.failure("Cannot play more than 5 cards.") end
 
-	local hand = self:_get_hand() -- check hand to see if has selected more than are available
+	local hand = GetText:get_hand_enhancements() --TODO: change to editions later -- check hand to see if has selected more than are available
     local selected_amount = {}
     local hand_amount = {}
 
@@ -66,29 +81,11 @@ function PlayCards:_validate_action(data, state)
         end
     end
 
-    --TODO: dont repeate this code as much
-
     -- add one for each card that is in the hand
-    for _, card in pairs(hand) do
-        if hand_amount[card] == nil then
-            sendDebugMessage("setting " .. card .. "to 1 on hand")
-            hand_amount[card] = 1
-        else
-            sendDebugMessage("adding 1 to " .. card .. " on hand")
-            hand_amount[card] = hand_amount[card] + 1 -- should increment for each type of card in hand
-        end
-    end
+    hand_amount = increment_card_table(hand)
 
     -- add one for each card that is in the selected hand
-    for _, card in pairs(selected_hand) do
-        if selected_amount[card] == nil then
-            sendDebugMessage("setting " .. card .. "to 1")
-            selected_amount[card] = 1
-        else
-            sendDebugMessage("adding 1 to " .. card)
-            selected_amount[card] = selected_amount[card] + 1 -- should increment for each type of card in hand
-        end
-    end
+    selected_amount = increment_card_table(selected_hand)
 
     -- get if trying to play more cards than in hand
     for _, card in pairs(selected_hand) do
@@ -118,9 +115,10 @@ function PlayCards:_execute_action(state)
 
 
     local play_button = G.buttons:get_UIE_by_ID('play_button')
-    local hand_string = self:_get_hand()
+    local hand_string = GetText:get_hand_enhancements() -- TODO: change back to editions
     local hand = G.hand.cards
-    for location, card in pairs(selected_hand) do -- TODO: find way too include position of card in hand as right now it will do card 1-5
+
+    for location, card in pairs(selected_hand) do
         for index = 1, #hand_string, 1  do
             if card == hand_string[index] then
                 G.hand:add_to_highlighted(hand[index])
@@ -142,140 +140,6 @@ function PlayCards:_execute_action(state)
 
 	return true
 end
-
- -- foil var localize: G.P_CENTERS.e_foil.config.extra
-local function get_edition_args(name,card_config)
-    sendDebugMessage(tprint(card_config,1,2))
-    local loc_args = {}
-    if name == "foil" then loc_args = {card_config.config.extra} end -- returns 50 as foil adds 50 chips
-    -- if name == "foil" then loc_args = {localize{type = 'name_text', key = 'e_foil', set='G.P_CENTERS.e_foil.config.extra'}} end
-    return loc_args
-end
-
-function PlayCards:_get_hand() -- G.hand.cards  G.play.cards
-	local cards = {}
-	for pos, card in ipairs(G.hand.cards) do -- Can get editions with card.edition / enhancements with card.ability / seal with card.seal
-
-        local name = card.base.name
-
-        sendDebugMessage("card edition " .. tostring(card.config))
-
-        if card.edition then
-            local key_override
-            for _, v in pairs(G.P_CENTER_POOLS.Edition) do
-                local loc_args,loc_nodes = get_edition_args(card.edition.type,G.P_CENTERS[v.key]), {} -- idk why G.P_CENTERS contains the extra's details but it works
-                sendDebugMessage("original_key: " .. tostring(v.original_key) .. " edition type: " .. tostring(card.edition.type))
-                sendDebugMessage(tprint(v,1,2))
-                sendDebugMessage("v: " .. tostring(v) .. " v type " .. type(v))
-                if v.original_key ~= card.edition.type then goto continue end
-                if v.loc_vars and type(v.loc_vars) == 'function' then
-                    -- local res = v:loc_vars() or {}
-                    loc_args = v.vars or loc_args
-                    key_override = v.key
-                    sendDebugMessage("key: " .. v.key .. " vars " .. tprint(loc_args,1,2))
-                    -- sendDebugMessage("loc_vars: " .. v:loc_vars())
-
-                    localize{type = "descriptions", set = 'Edition',key= key_override or card.key, nodes = loc_nodes, vars = loc_args}
-                    sendDebugMessage("loc_vars " .. tostring(card.loc_vars) .. " type " .. type(card.loc_vars))
-                    -- sendDebugMessage("override " .. key_override)
-
-                    sendDebugMessage("loc_args " .. tostring(loc_args[1]) .. " loc_nodes " .. tostring(loc_nodes[1]))
-
-                    local description = ""
-                    sendDebugMessage("before loc_nodes for " .. tostring(table.get_keys(loc_nodes)))
-                    for _, line in ipairs(loc_nodes) do
-                        for _, v in ipairs(line) do
-                            sendDebugMessage("Text: " .. v.config.text)
-                            description = description .. v.config.text
-                        end
-                        description = description
-                    end
-
-                    name = name .. description
-                end
-            ::continue::
-            end
-
-        -- for _, desc in pairs(G.P_CENTERS.e_foil) do
-        --     if desc.loc_vars and type(desc.loc_vars) == 'function' then
-        --         local res = desc:loc_vars() or {}
-        --         loc_args = res.vars or {}
-        --         key_override = res.key
-        --     end
-        -- end
-
-
-        --TODO: change this to get from localize like select_deck
-
-        -- if card.ability.name == "Bonus Card" then
-        --     name = name .. " Enhancement: Bonus Card: +30 chips"
-        -- elseif card.ability.name == "Mult Card" then
-        --     name = name .. " Enhancement: Bonus Card: 	+4 Mult"
-        -- end
-
-        -- if edition == nil then
-        --     goto continue
-        -- end
-
-        -- -- this should probably be changed for modding support but good enough for vanilla
-        -- if card.edition.foil then
-        --     name = name .. " edition: Foil: +50 chips when scored."
-        -- elseif card.edition.holo then
-        --     name = name .. " edition: Holographic: +10 Mult when scored."
-        -- elseif card.edition.polychrome then
-        --     name = name .. " edition: Polychrome: X1.5 Mult when scored."
-        -- elseif card.edition == nil then
-        --     name = name
-        -- end
-        -- elseif card.edition.negative then -- this is unused in vanilla (according to the wiki)
-        --     name = " edition: Negative: +1 hand size"
-
-		cards[#cards+1] = name -- this will give to neuro as "{value} of {suit}"
-        end
-    end
-    return cards
-end
-
--- self.edition
--- chips: integer = 50,
--- foil: boolean = true,
--- holo: boolean = true,
--- mult: integer = 10,
--- negative: boolean = true,
--- polychrome: boolean = true,
--- type: string = 'foil'|'holo'|'negative'|'polychrome',
--- x_mult: number = 1.5,
-
--- self.ability
-
--- bonus: integer,
--- burnt_hand: integer = 0,
--- caino_xmult: integer = 1,
--- consumeable: unknown,
--- d_size: integer = 0,
--- effect: unknown,
--- extra: table,
--- extra_value: integer = 0,
--- forced_selection: nil,
--- h_dollars: integer = 0,
--- h_mult: integer = 0,
--- h_size: integer = 0,
--- h_x_mult: integer = 0,
--- hands_played_at_create: integer = 0|1,
--- invis_rounds: integer = 0,
--- loyalty_remaining: unknown,
--- mult: integer = 0,
--- name: unknown,
--- order: nil,
--- p_dollars: integer = 0,
--- perma_bonus: integer = 0,
--- set: unknown,
--- t_chips: integer = 0,
--- t_mult: integer = 0,
--- to_do_poker_hand: unknown,
--- type: string = '',
--- x_mult: integer = 1,
--- yorick_discards: unknown,
 
 
 return PlayCards
