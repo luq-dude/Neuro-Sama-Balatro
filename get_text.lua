@@ -152,7 +152,7 @@ function getText:get_hand_editions() -- G.hand.cards  G.play.cards
             ::continue::
             end
         end
-		cards[#cards+1] = name -- this will give to neuro as "{value} of {suit}"
+		cards[#cards+1] = name
     end
     return cards
 end
@@ -186,8 +186,14 @@ function getText:get_hand_enhancements()
             local key_override
             for _, v in pairs(G.P_CENTER_POOLS.Enhanced) do
                 local loc_args,loc_nodes = get_enhancements_args(card.ability.effect,G.P_CENTERS[v.key]), {}
-                if v.key ~= card.config.center_key then goto continue end -- go next loop if not the same as card
-                    key_override = v.key or card.config.center_key
+                if v.key ~= card.seal then goto continue end -- go next loop if not the same as card
+                    if v.loc_txt and type(v.loc_vars) == 'function' then -- not tested probably works though
+                        local res = v:loc_vars() or {}
+                        sendDebugMessage("res value: " .. tprint(res,1,2))
+                        loc_args = res.vars or {}
+                        key_override = v.key
+                    end
+                    key_override = v.key
 
                     localize{type = "descriptions", set = 'Enhanced',key= key_override or card.config.center_key, nodes = loc_nodes, vars = loc_args}  -- TODO: doesnt get + in mult card idk why
 
@@ -203,101 +209,83 @@ function getText:get_hand_enhancements()
             ::continue::
             end
         end
-		cards[#cards+1] = name -- this will give to neuro as "{value} of {suit}"
+		cards[#cards+1] = name
     end
     return cards
 end
 
 
-local function get_seals_args(name,card_config)
-    sendDebugMessage("card config: " .. tprint(card_config,1,2))
+local function get_seals_args(name)
+    sendDebugMessage("name: " .. name)
     local loc_args = {}
-    if name == "Gold Seal" then loc_args = {card_config.config.bonus}
-    elseif name == "Red Seal" then loc_args = {card_config.config.mult}
-    elseif name == "Blue Seal" then loc_args = {card_config.config.bonus}
-    elseif name == "Purple Seal" then loc_args = {card_config} end
+    if name == "Gold" then loc_args = {"gold_seal"}
+    elseif name == "Red" then loc_args = {"red_seal"}
+    elseif name == "Blue" then loc_args = {"blue_seal"}
+    elseif name == "Purple" then loc_args = {"purple_seal"} end
+    return loc_args
 end
 
 -- these are stuff like Bonus card and mult Card
 function getText:get_hand_seals()
     local cards = {}
 
-    -- for key, value in pairs(SMODS.Seal) do
-    --     sendDebugMessage("center pools key: " .. tostring(key) .. " value: " .. tprint(value,1,2))
-    -- end
-
-    for key, value in pairs(G.P_CENTER_POOLS.Seal) do
-        sendDebugMessage("center pools key: " .. tostring(key) .. " value: " .. tprint(value,1,2))
-    end
+    local seals = {"gold_seal","red_seal","blue_seal","purple_seal"} -- bad but I can't find a way to get them :'(
 
 	for pos, card in ipairs(G.hand.cards) do
 
         local name = card.base.name
 
-        -- for key, value in pairs(G.P_CENTERS) do
-        --     sendDebugMessage("key: " .. tostring(key) .. " value: " .. tprint(value,1,2))
-        -- end
-
-
         if card.ability.seal then
-            -- sendDebugMessage("seal: " .. SMODS.Seal.)
+            local key_override = nil
+            for _, v in pairs(G.P_CENTER_POOLS.Seal) do
+                sendDebugMessage("v key: " .. v.key)
+                -- if v.key == "seel_blu" then
+                --     test_args = v
+                --     sendDebugMessage("setting test args")
+                -- end
+                sendDebugMessage(tprint(v,1,2))
+                local loc_args,loc_nodes,loc_set = get_seals_args(card.seal), {}, 'Other'
+                if v.key ~= card.seal then goto continue end -- go next loop if not the same as card
+                    if v.loc_txt and type(v.loc_vars) == 'function' then -- this is for modded seals
+                        local res = v:loc_vars() or {}
+                        sendDebugMessage("res value: " .. tprint(res,1,2))
+                        loc_args = res.vars or {}
+                        key_override = v.key
+                        loc_set = v.set
+                    else
+                        loc_args = get_seals_args(card.seal) -- this is for vanilla seals
+                        key_override = loc_args[1]
+                        loc_args = {}
+                        loc_set = 'Other' -- we need to do this because v.set would be Set which doesn't exist
+                    end
 
-            sendDebugMessage("card abilities: " .. tprint(card.ability))
-            sendDebugMessage("card config table: " .. tprint(card.ability.seal,1,2)) -- tprint(card.seal,1,2)
+                    -- key_override = v.key -- modded seals dont use loc_vars for key
+                    -- key_override = test_args.key
+
+                    -- loc_args = test_args.config
+                    -- local args_set = test_args.set -- "Other" on vanilla
+                    sendDebugMessage("loc_args: " .. tprint(loc_args,1,2) .. " Set: " .. loc_set .. " key: " .. tostring(key_override))
+                    -- key_override is nil ???
+                    localize{type = 'descriptions', set = loc_set or v.set, key= key_override or v.key, nodes = loc_nodes, vars = loc_args} --TODO: doesnt get for example modded
+
+                    sendDebugMessage("loc_nodes: " .. tprint(loc_nodes,1,2))
+
+                    local description = ""
+                    for _, line in ipairs(loc_nodes) do
+                        for _, word in ipairs(line) do
+                            sendDebugMessage("Text: " .. word.config.text)
+                            description = description .. word.config.text
+                        end
+                    end
+
+                    name = name .. description
+            ::continue::
+            end
         end
-
-        -- if card.seal then
-        --     local key_override
-        --     for _, v in pairs(G.P_CENTER_POOLS.Seal) do
-        --         sendDebugMessage("Seals: " .. tprint(v,5,5))
-        --         local loc_args,loc_nodes = get_seals_args(card.seal,G.P_CENTERS[v.key]), {}
-        --         if v.key ~= card.config.center_key then goto continue end -- go next loop if not the same as card
-        --             key_override = v.key or card.config.center_key
-
-                    -- localize{type = "descriptions", set = 'Other',key= key_override or card.config.center_key, nodes = loc_nodes, vars = loc_args}  -- TODO: doesnt get + in mult card idk why
-
-        --             local description = ""
-        --             for _, line in ipairs(loc_nodes) do
-        --                 for _, word in ipairs(line) do
-        --                     sendDebugMessage("Text: " .. word.config.text)
-        --                     description = description .. word.config.text
-        --                 end
-        --             end
-
-        --             name = name .. description
-        --     ::continue::
-        --     end
-        -- end
-		-- cards[#cards+1] = name -- this will give to neuro as "{value} of {suit}"
+		cards[#cards+1] = name
     end
     return cards
 end
 
 
 return getText
-
---  _saved_d_u= "true",
---        original_key= "Gold",
---        registered= "true",
---        badge_colour= table: 0x03fb6688        {
---           [1] = 0.91764705882353,
---           [2] = 0.75294117647059,
---           [3] = 0.34509803921569,
---           [4] = 1,
---         },
---        _discovered_unlocked_overwritten= "true",
---        order= 3,
---        _d= "false",
---        set= "Seal",
---        taken_ownership= "true",
---        discovered= "false",
---        prefix_config= table: 0x0432d800        {
---         },
---        generate_ui= "function: 0x0319b368",
---        key= "Gold",
---        pos= table: 0x04c42998        {
---           y= 0,
---           x= 2,
---         },
---        atlas= "centers",
---        is_loc_modified= "true",
