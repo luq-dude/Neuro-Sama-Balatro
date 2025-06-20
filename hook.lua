@@ -1,76 +1,11 @@
 local GameHooks = ModCache.load("game-sdk/game_hooks.lua")
-local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
-local SelectDeck = ModCache.load("custom-actions/select_deck.lua")
-
+local GamePrep = ModCache.load("game_prep.lua")
+local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
 local Hook = {}
 Hook.__index = Hook
 
-local neuro_profile = NeuroConfig.PROFILE_SLOT
 local should_unlock = NeuroConfig.UNLOCK_ALL
 
-local function load_profile(delay)
-    G.E_MANAGER:add_event(Event({
-        trigger = "after",
-        delay = delay or 1,
-        func = function()
-            sendDebugMessage("highlighted profile: " .. G.focused_profile)
-
-            G.PROFILES[neuro_profile].name = "Neuro-Sama"
-            local tab_root = G.OVERLAY_MENU:get_UIE_by_ID("tab_contents").config.object.UIRoot
-
-            -- tabs have a very cursed hierachy, there's definitely a better way to do this
-            local button = tab_root.children[2].children[2].children[2].children[1].children[1]
-            button:click()
-            return true
-        end
-    }))
-end
-
-local function select_profile_tab(delay)
-    G.E_MANAGER:add_event(Event({
-        trigger = "after",
-        delay = delay or 1,
-        func = function()
-            local button = G.OVERLAY_MENU:get_UIE_by_ID("tab_but_" .. neuro_profile)
-            button:click()
-            load_profile(1)
-            return true
-        end
-    }))
-end
-
-local function open_profile_select(delay)
-    G.E_MANAGER:add_event(Event({
-        trigger = "after",
-        delay = delay or 1,
-        func = function()
-            local profile_btn_box_root = G.PROFILE_BUTTON.UIRoot
-            local button = profile_btn_box_root.children[1].children[2].children[1]
-            button:click()
-            -- idk if calling release does anything or not
-            button:release()
-            select_profile_tab(0.2)
-            return true
-        end
-    }))
-end
-
-local function select_deck(delay)
-    G.E_MANAGER:add_event(Event({
-        trigger = "after",
-        delay = delay,
-        func = function()
-            local window = ActionWindow:new()
-            window:set_force(0.0, "Pick a deck", "The game has yet to start. " ..
-                "To start a new run, first select a deck. " ..
-                "Each deck has a different effect that changes how the game is played.", false)
-            window:add_action(SelectDeck:new(window))
-            window:register()
-            return true
-        end
-    }
-    ))
-end
 
 local function hook_main_menu()
     local main_menu = Game.main_menu
@@ -89,7 +24,7 @@ local function hook_main_menu()
                     "Neuro Integration")
                 -- if the profile isn't neuro's profile, we need to switch to it
                 if profile_num ~= neuro_profile then
-                    open_profile_select(1)
+                    GamePrep.select_profile(1)
                 else
                     -- it is neuros profile so lets unlock everything if we need to
                     if should_unlock and not G.PROFILES[neuro_profile].all_unlocked then
@@ -118,25 +53,74 @@ local function hook_main_menu()
                             end
                         end
                         SMODS.SAVE_UNLOCKS()
-                        return true
                     end
-                    -- lets start the game
-                    -- eventualyl this whole section should be moved somewhere else
-                    -- bc games can also start after losing one without going to the main menu
-                    -- but for now im leaving it here
-                    G.E_MANAGER:add_event(Event({
-                        trigger = "after",
-                        delay = 2,
-                        func = function()
-                            G.MAIN_MENU_UI:get_UIE_by_ID('main_menu_play'):click()
-                            select_deck(2)
-                            return true
-                        end
-                    }))
+                    -- now we can start the game
+                    GamePrep.start_from_title()
                 end
                 return true
             end
         }))
+    end
+end
+
+local function hook_game_over()
+    local game_over = Game.update_game_over
+    function Game:update_game_over(dt)
+        local complete = G.STATE_COMPLETE -- if this is false then the call to game_over will make G.STATE_COMPLETE true
+        game_over(self, dt)
+
+        if complete then return end -- if it was already true then weve already run this before
+
+        -- collect information abt the run
+        -- TODO: check if its a new high score value
+        local win = G.GAME.round_resets.ante > G.GAME.win_ante           -- did we win the game (beat ante 8?)
+        local best_hand = number_format(G.GAME.round_scores['hand'].amt) -- highest score in a single hand
+        local amt = 0
+        local most_played = nil                                          -- most played hand type
+        for k, v in pairs(G.GAME.hand_usage) do
+            if v.count > amt then
+                most_played = v.order
+                amt = v.count
+            end
+        end
+
+        local chips = number_format(G.GAME.chips)
+        local target_chips = number_format(G.GAME.blind.chips)
+
+        local cards_played = G.GAME.round_scores['cards_played'].amt
+        local cards_discarded = G.GAME.round_scores['cards_discarded'].amt
+        local cards_bought = G.GAME.round_scores['cards_purchased'].amt
+        local rerolls = G.GAME.round_scores['times_rerolled'].amt
+
+        local ante = G.GAME.round_scores['furthest_ante'].amt
+        local round = G.GAME.round_scores['furthest_round'].amt
+
+        -- now tell her
+        Context.send(string.format(
+            "GAME OVER.\nYour final score was %s, but you needed %s. %s. Here's some stats about your run:\n" ..
+            "Highest scoring hand: %s\n" ..
+            "Most played hand type: %s (Played %d times)\n" ..
+            "Cards played: %d\n" ..
+            "Cards discarded: %d\n" ..
+            "Cards purchased: %d\n" ..
+            "Times rerolled: %d\n" ..
+            "Ante: %d\n" ..
+            "Round: %d\n",
+            chips,
+            target_chips,
+            win and "You still won the game since you got past ante " .. G.GAME.win_ante or "You lost",
+            best_hand,
+            most_played,
+            amt,
+            cards_played,
+            cards_discarded,
+            cards_bought,
+            rerolls,
+            ante,
+            round)
+        )
+
+        GamePrep.start_from_gameover()
     end
 end
 
@@ -156,6 +140,7 @@ function Hook:hook_game()
     end
 
     hook_main_menu()
+    hook_game_over()
 end
 
 return Hook
