@@ -17,9 +17,28 @@ function PlayCards:_get_name()
 end
 
 function PlayCards:_get_description()
-    local description = "play a maximum of 5 cards with your current hand."
+    local description = "play a maximum of 5 cards with your current hand. The cards will be ordered by the position they are located in your hand from left to right"
 
     return description
+end
+
+
+local function get_cards_modifiers() -- get names then add appropriate descriptions
+    local cards = GetText:get_hand_names()
+    local editions = GetText:get_hand_editions()
+    local enhancements = GetText:get_hand_enhancements()
+    local seals = GetText:get_hand_seals()
+
+    for i = 1, #cards do
+        local name = cards[i] or ""
+        local edition = editions[i] or ""
+        local enhancement = enhancements[i] or ""
+        local seal = seals[i] or ""
+
+        cards[i] = name .. edition .. enhancement .. seal
+    end
+
+    return cards
 end
 
 function PlayCards:_get_schema()
@@ -28,7 +47,7 @@ function PlayCards:_get_schema()
 			type = "array",
             items = {
 				type = "string",
-				enum = GetText:get_hand_seals() -- TODO: change to editions --GetText:get_hand_editions()
+				enum = get_cards_modifiers()
 			},
 		}
     })
@@ -38,10 +57,8 @@ local function increment_card_table(table)
     local selected_table = {}
     for _, card in pairs(table) do
         if selected_table[card] == nil then
-            sendDebugMessage("setting " .. card .. "to 1")
             selected_table[card] = 1
         else
-            sendDebugMessage("adding 1 to " .. card)
             selected_table[card] = selected_table[card] + 1 -- should increment for each type of card in hand
         end
     end
@@ -50,25 +67,17 @@ end
 
 function PlayCards:_validate_action(data, state)
     local selected_hand = data:get_object("hand")
-    selected_hand = selected_hand._data  -- get_object returns incoming data instead of the object :)
-
-    -- sendErrorMessage(selected_hand) -- issue here?
-
-    for key, value in pairs(selected_hand) do
-        sendDebugMessage("table k/v: " .. key .. " , " .. value)
-    end
+    selected_hand = selected_hand._data
 
     if not selected_hand then
         return ExecutionResult.failure(SDK_Strings.action_failed_missing_required_parameter("hand"))
     end
 
-	sendInfoMessage("Length of table: " .. #selected_hand) -- TODO: selected hand is always 0 idk why
-
     if #selected_hand == 0 then return ExecutionResult.failure("At least one card must be selected.") end
 
     if #selected_hand > 5 then return ExecutionResult.failure("Cannot play more than 5 cards.") end
 
-	local hand = GetText:get_hand_enhancements() --TODO: change to editions later -- check hand to see if has selected more than are available
+	local hand = get_cards_modifiers()
     local selected_amount = {}
     local hand_amount = {}
 
@@ -106,23 +115,19 @@ function PlayCards:_execute_action(state)
     sendDebugMessage("running PlayCards execute")
     local selected_hand = state["hand"]
 
-    sendDebugMessage("G.deck" .. tostring(G.play.cards))
-    sendDebugMessage(tostring(selected_hand))
-
-    for key, value in pairs(G.hand.highlighted) do
-        sendDebugMessage("first key: " .. tostring(key) .. " value: " .. tostring(value))
-    end
-
-
-    local play_button = G.buttons:get_UIE_by_ID('play_button')
-    local hand_string = GetText:get_hand_enhancements() -- TODO: change back to editions
+    -- local play_button = G.buttons:get_UIE_by_ID('play_button') -- not used
+    local hand_string = get_cards_modifiers()
     local hand = G.hand.cards
+    local selected_amount = increment_card_table(selected_hand)
 
-    for location, card in pairs(selected_hand) do
+    local highlighted_cards = {}
+
+    for pos, card in pairs(selected_hand) do
+        local card_id = card
         for index = 1, #hand_string, 1  do
-            if card == hand_string[index] then
+            if card == hand_string[index] and (highlighted_cards[card_id] or 0) < selected_amount[card] then
                 G.hand:add_to_highlighted(hand[index])
-                -- send_hand[#send_hand + 1] = hand[index]
+                highlighted_cards[card_id] = (highlighted_cards[card_id] or 0) + 1
             end
         end
     end
@@ -132,10 +137,10 @@ function PlayCards:_execute_action(state)
     end
 
     -- shouldn't cause any issues with mods
-    G.FUNCS.play_cards_from_highlighted() -- try
+    G.FUNCS.play_cards_from_highlighted()
 
     -- couldn't get this to work and I hate ui so function call is good enough for now
-    -- play_button:click() -- play_cards_from_highlighted
+    -- play_button:click() -- Maybe try to make this an event to see if it would work
     -- G.buttons:get_UIE_by_ID('play_button'):release()
 
 	return true

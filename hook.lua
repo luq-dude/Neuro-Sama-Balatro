@@ -172,7 +172,7 @@ local function hook_start_run()
                 blocking = false,
                 func = function ()
                     sendDebugMessage("start second event")
-                    play_card(8)
+                    play_card(12)
                     return true
                 end
                 }))

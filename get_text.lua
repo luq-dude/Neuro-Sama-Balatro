@@ -107,60 +107,68 @@ function getText:get_stake_names(keys, allStakes)
     return stakes
 end
 
+function getText:get_hand_names()
+    local cards = {}
+    for pos, card in ipairs(G.hand.cards) do
+
+
+        local name = card.base.name
+
+		cards[#cards+1] = name
+	end
+	return cards
+end
+
+
 local function get_edition_args(name,card_config)
     local loc_args = {}
-    if name == "foil" then loc_args = {card_config.config.extra} -- returns 50 as foil adds 50 chips
+    if name == "foil" then loc_args = {card_config.config.extra}
     elseif name == "holo" then loc_args = {card_config.config.extra}
     elseif name == "polychrome" then loc_args = {card_config.config.extra} end
     return loc_args
 end
 
-function getText:get_hand_editions() -- G.hand.cards  G.play.cards
+function getText:get_hand_editions()
 	local cards = {}
-	for pos, card in ipairs(G.hand.cards) do -- Can get editions with card.edition / enhancements with card.ability / seal with card.seal
+	for _, card in ipairs(G.hand.cards) do
 
-        local name = card.base.name
-
-        sendDebugMessage("card edition " .. tostring(card.config))
+        local edition_desc = ""
 
         if card.edition then
             local key_override
             for _, v in pairs(G.P_CENTER_POOLS.Edition) do
-                local loc_args,loc_nodes = get_edition_args(card.edition.type,G.P_CENTERS[v.key]), {} -- idk why G.P_CENTERS contains the extra's details but it works
-                sendDebugMessage("original_key: " .. tostring(v.original_key) .. " edition type: " .. tostring(card.edition.type))
-                sendDebugMessage(tprint(v,1,2))
-                sendDebugMessage("v: " .. tostring(v) .. " v type " .. type(v))
-                if v.original_key ~= card.edition.type then goto continue end -- go next loop if not the same as card
+                local loc_args,loc_nodes = get_edition_args(card.edition.type,G.P_CENTERS[v.key]), {}
+                if v.key ~= card.edition.key then goto continue end -- go next loop if not the same as card
                 if v.loc_vars and type(v.loc_vars) == 'function' then
-                    -- local res = v:loc_vars() or {} -- this causes crashes idk why, works without it though
-                    loc_args = v.vars or loc_args
-                    key_override = v.key
+                    local res = v:loc_vars() or {}
+                    loc_args = res.vars or loc_args
+                end
+                key_override = v.key
 
-                    localize{type = "descriptions", set = 'Edition',key= key_override or card.key, nodes = loc_nodes, vars = loc_args}
-                    sendDebugMessage("loc_vars " .. tostring(card.loc_vars) .. " type " .. type(card.loc_vars))
+                localize{type = "descriptions", set = 'Edition',key= key_override or card.key, nodes = loc_nodes, vars = loc_args}
 
-                    local description = ""
-                    for _, line in ipairs(loc_nodes) do
-                        for _, word in ipairs(line) do
-                            sendDebugMessage("Text: " .. word.config.text)
+                local description = " Cards edition: "
+                for _, line in ipairs(loc_nodes) do
+                    for _, word in ipairs(line) do
+                        if word.nodes ~= nil then
+                            description = description .. word.nodes[1].config.text
+                        else
                             description = description .. word.config.text
                         end
+                        description = description .. " "
                     end
-
-                    name = name .. description
                 end
+
+                edition_desc = description
             ::continue::
             end
         end
-		cards[#cards+1] = name
+		cards[#cards+1] = edition_desc
     end
     return cards
 end
 
 local function get_enhancements_args(name,card_config)
-    sendDebugMessage("card config: " .. tprint(card_config,1,2))
-    sendDebugMessage("card config config: " .. tprint(card_config.config,1,2))
-    sendDebugMessage("card config mult: " .. tostring(card_config.config.mult) .. " name " .. name)
     local loc_args = {}
     if name == "Bonus Card" then loc_args = {card_config.config.bonus}
     elseif name == "Mult Card" then loc_args = {card_config.config.mult}
@@ -173,50 +181,45 @@ local function get_enhancements_args(name,card_config)
     return loc_args
 end
 
--- these are stuff like Bonus card and mult Card
 function getText:get_hand_enhancements()
     local cards = {}
 	for pos, card in ipairs(G.hand.cards) do
 
-        local name = card.base.name
+        local enhancement_desc = ""
 
-        sendDebugMessage("card config table: " .. tprint(card.config,1,2))
-
-        if card.ability.effect then
+        if not card.ability.effect then
             local key_override
             for _, v in pairs(G.P_CENTER_POOLS.Enhanced) do
                 local loc_args,loc_nodes = get_enhancements_args(card.ability.effect,G.P_CENTERS[v.key]), {}
-                if v.key ~= card.seal then goto continue end -- go next loop if not the same as card
-                    if v.loc_txt and type(v.loc_vars) == 'function' then -- not tested probably works though
-                        local res = v:loc_vars() or {}
-                        sendDebugMessage("res value: " .. tprint(res,1,2))
-                        loc_args = res.vars or {}
-                        key_override = v.key
+                if v.key ~= card.config.center.name then goto continue end -- go next loop if not the same as card
+                if v.loc_txt and type(v.loc_vars) == 'function' then
+                    local res = v:loc_vars(nil,card) or {} -- makes twins card work and glorp still works so I think its fine
+                    loc_args = res.vars or {}
+                end
+                key_override = v.key
+
+                localize{type = "descriptions", set = 'Enhanced',key= key_override or card.config.original_key, nodes = loc_nodes, vars = loc_args}  -- TODO: doesnt get + in mult card idk why
+
+                local description = " Cards enhancement: "
+                for _, line in ipairs(loc_nodes) do
+                    for _, word in ipairs(line) do
+                        if not word.config.text then break end -- removes table that contains stuff for setting up UI
+                        sendDebugMessage("word: " .. tostring(word))
+                        description = description .. word.config.text
                     end
-                    key_override = v.key
+                end
 
-                    localize{type = "descriptions", set = 'Enhanced',key= key_override or card.config.center_key, nodes = loc_nodes, vars = loc_args}  -- TODO: doesnt get + in mult card idk why
-
-                    local description = ""
-                    for _, line in ipairs(loc_nodes) do
-                        for _, word in ipairs(line) do
-                            sendDebugMessage("Text: " .. word.config.text)
-                            description = description .. word.config.text
-                        end
-                    end
-
-                    name = name .. description
+                enhancement_desc = description
             ::continue::
             end
         end
-		cards[#cards+1] = name
+		cards[#cards+1] = enhancement_desc
     end
     return cards
 end
 
 
 local function get_seals_args(name)
-    sendDebugMessage("name: " .. name)
     local loc_args = {}
     if name == "Gold" then loc_args = {"gold_seal"}
     elseif name == "Red" then loc_args = {"red_seal"}
@@ -225,64 +228,48 @@ local function get_seals_args(name)
     return loc_args
 end
 
--- these are stuff like Bonus card and mult Card
 function getText:get_hand_seals()
     local cards = {}
 
-    local seals = {"gold_seal","red_seal","blue_seal","purple_seal"} -- bad but I can't find a way to get them :'(
+    local seals = {"gold_seal","red_seal","blue_seal","purple_seal"} -- bad but I'm a bit too lazy to find another way and it works
 
 	for pos, card in ipairs(G.hand.cards) do
 
-        local name = card.base.name
+        local seal_desc = ""
 
         if card.ability.seal then
             local key_override = nil
             for _, v in pairs(G.P_CENTER_POOLS.Seal) do
-                sendDebugMessage("v key: " .. v.key)
-                -- if v.key == "seel_blu" then
-                --     test_args = v
-                --     sendDebugMessage("setting test args")
-                -- end
-                sendDebugMessage(tprint(v,1,2))
-                local loc_args,loc_nodes,loc_set = get_seals_args(card.seal), {}, 'Other'
-                if v.key ~= card.seal then goto continue end -- go next loop if not the same as card
-                    if v.loc_txt and type(v.loc_vars) == 'function' then -- this is for modded seals
-                        local res = v:loc_vars() or {}
-                        sendDebugMessage("res value: " .. tprint(res,1,2))
-                        loc_args = res.vars or {}
-                        key_override = v.key
-                        loc_set = v.set
-                    else
-                        loc_args = get_seals_args(card.seal) -- this is for vanilla seals
-                        key_override = loc_args[1]
-                        loc_args = {}
-                        loc_set = 'Other' -- we need to do this because v.set would be Set which doesn't exist
-                    end
+                local loc_args,loc_nodes = get_seals_args(card.seal), {}
+                if v.key ~= card.seal then goto continue end
+                if v.loc_txt and type(v.loc_vars) == 'function' then
+                    local res = v:loc_vars() or {}
+                    loc_args = res.vars or {}
+                    key_override = v.key .. '_seal' -- Smods does this however doesn't mention it in any documentation :)
+                else -- vanilla seal
+                    key_override = loc_args[1]
+                    loc_args = {}
+                end
 
-                    -- key_override = v.key -- modded seals dont use loc_vars for key
-                    -- key_override = test_args.key
+                localize{type = 'descriptions', set = "Other" or v.set, key= key_override or v.key, nodes = loc_nodes, vars = loc_args}
 
-                    -- loc_args = test_args.config
-                    -- local args_set = test_args.set -- "Other" on vanilla
-                    sendDebugMessage("loc_args: " .. tprint(loc_args,1,2) .. " Set: " .. loc_set .. " key: " .. tostring(key_override))
-                    -- key_override is nil ???
-                    localize{type = 'descriptions', set = loc_set or v.set, key= key_override or v.key, nodes = loc_nodes, vars = loc_args} --TODO: doesnt get for example modded
-
-                    sendDebugMessage("loc_nodes: " .. tprint(loc_nodes,1,2))
-
-                    local description = ""
-                    for _, line in ipairs(loc_nodes) do
-                        for _, word in ipairs(line) do
-                            sendDebugMessage("Text: " .. word.config.text)
+                local description = " Cards seal: "
+                for _, line in ipairs(loc_nodes) do
+                    for _, word in ipairs(line) do
+                        if word.nodes ~= nil then
+                            description = description .. word.nodes[1].config.text
+                        else
                             description = description .. word.config.text
                         end
+                        description = description .. " "
                     end
+                end
 
-                    name = name .. description
+                seal_desc = description
             ::continue::
             end
         end
-		cards[#cards+1] = name
+		cards[#cards+1] = seal_desc
     end
     return cards
 end
