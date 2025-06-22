@@ -1,6 +1,7 @@
 local GameHooks = ModCache.load("game-sdk/game_hooks.lua")
 local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
 local SelectDeck = ModCache.load("custom-actions/select_deck.lua")
+local PlayCards = ModCache.load("custom-actions/play_cards.lua")
 
 local Hook = {}
 Hook.__index = Hook
@@ -63,6 +64,20 @@ local function select_deck(delay)
             local window = ActionWindow:new()
             window:set_force(0.0, "Pick a deck", "", false)
             window:add_action(SelectDeck:new(window, nil))
+            window:register()
+            return true
+        end
+    }
+    ))
+end
+
+local function play_card(delay)
+    G.E_MANAGER:add_event(Event({
+        trigger = "after",
+        delay = delay,
+        func = function()
+            local window = ActionWindow:new()
+            window:add_action(PlayCards:new(window, nil))
             window:register()
             return true
         end
@@ -138,6 +153,61 @@ local function hook_main_menu()
     end
 end
 
+local function hook_start_run()
+    local start_run = Game.start_run
+    function Game:start_run(args)
+        start_run(self,args)
+
+        G.E_MANAGER:add_event(Event({
+            trigger = "after",
+            delay = 4,
+            blocking = false,
+            func = function ()
+                G.E_MANAGER:add_event(Event({
+                trigger = "after",
+                delay = 4,
+                blocking = false,
+                func = function ()
+                    sendDebugMessage("start second event")
+                    play_card(12)
+                    return true
+                end
+                }))
+            return true
+            end
+        }))
+
+    end
+    return true
+end
+
+-- call play_card after selecting first bind
+SMODS.Keybind{
+	key = 'test_cards',
+	key_pressed = 'c',
+
+    action = function(self)
+        G.E_MANAGER:add_event(Event({
+            trigger = "after",
+            delay = 0,
+            blocking = false,
+            func = function ()
+                G.E_MANAGER:add_event(Event({
+                trigger = "after",
+                delay = 0,
+                blocking = false,
+                func = function ()
+                    sendDebugMessage("start second event")
+                    play_card(2)
+                    return true
+                end
+                }))
+            return true
+            end
+        }))
+    end,
+}
+
 
 function Hook:hook_game()
     if not neuro_profile or neuro_profile < 1 or neuro_profile > 3 then
@@ -154,6 +224,8 @@ function Hook:hook_game()
     end
 
     hook_main_menu()
+
+    hook_start_run()
 end
 
 return Hook
