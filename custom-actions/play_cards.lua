@@ -112,7 +112,6 @@ end
 
 -- id play card button: "play_button"
 function PlayCards:_execute_action(state)
-    sendDebugMessage("running PlayCards execute")
     local selected_hand = state["hand"]
 
     -- local play_button = G.buttons:get_UIE_by_ID('play_button') -- not used
@@ -122,7 +121,7 @@ function PlayCards:_execute_action(state)
 
     local highlighted_cards = {}
 
-    for pos, card in pairs(selected_hand) do
+    for _, card in pairs(selected_hand) do
         local card_id = card
         for index = 1, #hand_string, 1  do
             if card == hand_string[index] and (highlighted_cards[card_id] or 0) < selected_amount[card] then
@@ -130,10 +129,6 @@ function PlayCards:_execute_action(state)
                 highlighted_cards[card_id] = (highlighted_cards[card_id] or 0) + 1
             end
         end
-    end
-
-    for key, value in pairs(G.hand.highlighted) do
-        sendDebugMessage("key: " .. tostring(key) .. " value: " .. tostring(value))
     end
 
     -- shouldn't cause any issues with mods

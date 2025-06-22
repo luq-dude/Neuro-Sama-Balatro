@@ -76,9 +76,7 @@ local function play_card(delay)
         trigger = "after",
         delay = delay,
         func = function()
-            sendDebugMessage("start action event")
             local window = ActionWindow:new()
-            -- window:set_force(0.0, "Pick a deck", "", false)
             window:add_action(PlayCards:new(window, nil))
             window:register()
             return true
@@ -160,7 +158,6 @@ local function hook_start_run()
     function Game:start_run(args)
         start_run(self,args)
 
-        sendDebugMessage("call first event")
         G.E_MANAGER:add_event(Event({
             trigger = "after",
             delay = 4,
@@ -180,14 +177,14 @@ local function hook_start_run()
             end
         }))
 
-        sendDebugMessage("after first event")
     end
     return true
 end
 
+-- call play_card after selecting first bind
 SMODS.Keybind{
 	key = 'test_cards',
-	key_pressed = 'c', -- other key(s) that need to be held
+	key_pressed = 'c',
 
     action = function(self)
         G.E_MANAGER:add_event(Event({

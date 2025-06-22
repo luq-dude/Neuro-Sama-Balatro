@@ -218,7 +218,6 @@ function getText:get_hand_enhancements()
     return cards
 end
 
-
 local function get_seals_args(name)
     local loc_args = {}
     if name == "Gold" then loc_args = {"gold_seal"}
