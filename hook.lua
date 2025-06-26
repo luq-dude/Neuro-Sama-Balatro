@@ -63,6 +63,49 @@ local function hook_main_menu()
     end
 end
 
+local function get_run_stats()
+    -- TODO: check if its a new high score value
+    local best_hand = number_format(G.GAME.round_scores['hand'].amt) -- highest score in a single hand
+    local amt = 0
+    local most_played = nil                                          -- most played hand type
+    for k, v in pairs(G.GAME.hand_usage) do
+        if v.count > amt then
+            most_played = v.order
+            amt = v.count
+        end
+    end
+
+
+    local cards_played = G.GAME.round_scores['cards_played'].amt
+    local cards_discarded = G.GAME.round_scores['cards_discarded'].amt
+    local cards_bought = G.GAME.round_scores['cards_purchased'].amt
+    local rerolls = G.GAME.round_scores['times_rerolled'].amt
+
+    local ante = G.GAME.round_scores['furthest_ante'].amt
+    local round = G.GAME.round_scores['furthest_round'].amt
+
+
+    return string.format(
+        "Here's some stats about your run:\n" ..
+        "Highest scoring hand: %s\n" ..
+        "Most played hand type: %s (Played %d times)\n" ..
+        "Cards played: %d\n" ..
+        "Cards discarded: %d\n" ..
+        "Cards purchased: %d\n" ..
+        "Times rerolled: %d\n" ..
+        "Ante: %d\n" ..
+        "Round: %d\n",
+        best_hand,
+        most_played,
+        amt,
+        cards_played,
+        cards_discarded,
+        cards_bought,
+        rerolls,
+        ante,
+        round)
+end
+
 local function hook_game_over()
     local game_over = Game.update_game_over
     function Game:update_game_over(dt)
@@ -70,59 +113,50 @@ local function hook_game_over()
         game_over(self, dt)
 
         if complete then return end -- if it was already true then weve already run this before
-
-        -- collect information abt the run
-        -- TODO: check if its a new high score value
-        local win = G.GAME.round_resets.ante > G.GAME.win_ante           -- did we win the game (beat ante 8?)
-        local best_hand = number_format(G.GAME.round_scores['hand'].amt) -- highest score in a single hand
-        local amt = 0
-        local most_played = nil                                          -- most played hand type
-        for k, v in pairs(G.GAME.hand_usage) do
-            if v.count > amt then
-                most_played = v.order
-                amt = v.count
-            end
-        end
-
-        local chips = number_format(G.GAME.chips)
-        local target_chips = number_format(G.GAME.blind.chips)
-
-        local cards_played = G.GAME.round_scores['cards_played'].amt
-        local cards_discarded = G.GAME.round_scores['cards_discarded'].amt
-        local cards_bought = G.GAME.round_scores['cards_purchased'].amt
-        local rerolls = G.GAME.round_scores['times_rerolled'].amt
-
-        local ante = G.GAME.round_scores['furthest_ante'].amt
-        local round = G.GAME.round_scores['furthest_round'].amt
-
-        -- now tell her
-        Context.send(string.format(
-            "GAME OVER.\nYour final score was %s, but you needed %s. %s. Here's some stats about your run:\n" ..
-            "Highest scoring hand: %s\n" ..
-            "Most played hand type: %s (Played %d times)\n" ..
-            "Cards played: %d\n" ..
-            "Cards discarded: %d\n" ..
-            "Cards purchased: %d\n" ..
-            "Times rerolled: %d\n" ..
-            "Ante: %d\n" ..
-            "Round: %d\n",
-            chips,
-            target_chips,
-            win and "You still won the game since you got past ante " .. G.GAME.win_ante or "You lost",
-            best_hand,
-            most_played,
-            amt,
-            cards_played,
-            cards_discarded,
-            cards_bought,
-            rerolls,
-            ante,
-            round)
-        )
+        local win = G.GAME.round_resets.ante > G.GAME.win_ante
+        Context.send("GAME OVER." .. win and "You still won the game since you passed ante " .. G.GAME.win_ante or
+            "You lost.\n" .. get_run_stats())
 
         GamePrep.start_from_gameover()
     end
 end
+
+local function hook_win()
+    local win = win_game
+    function win_game()
+        win()
+        Context.send(
+            "YOU WIN! The game will now continue in Endless Mode. Try to keep your run going for as long as possible!\n" ..
+            get_run_stats())
+        G.E_MANAGER:add_event(Event({
+            trigger = "after",
+            delay = 2,
+            pause_force = true,
+            func = function()
+                print('aaaaaaaaa')
+                G.FUNCS.exit_overlay_menu()
+                return true
+            end
+        }))
+    end
+end
+
+
+SMODS.Keybind {
+    event = 'pressed',
+    key_pressed = 'p',
+    action = function()
+        win_game()
+    end
+}
+
+SMODS.Keybind {
+    event = 'pressed',
+    key_pressed = "'",
+    action = function()
+        G.FUNCS.exit_overlay_menu()
+    end
+}
 
 
 function Hook:hook_game()
@@ -141,6 +175,7 @@ function Hook:hook_game()
 
     hook_main_menu()
     hook_game_over()
+    hook_win()
 end
 
 return Hook
