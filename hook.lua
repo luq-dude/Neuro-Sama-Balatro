@@ -133,7 +133,6 @@ local function hook_win()
             delay = 2,
             pause_force = true,
             func = function()
-                print('aaaaaaaaa')
                 G.FUNCS.exit_overlay_menu()
                 return true
             end
@@ -141,22 +140,6 @@ local function hook_win()
     end
 end
 
-
-SMODS.Keybind {
-    event = 'pressed',
-    key_pressed = 'p',
-    action = function()
-        win_game()
-    end
-}
-
-SMODS.Keybind {
-    event = 'pressed',
-    key_pressed = "'",
-    action = function()
-        G.FUNCS.exit_overlay_menu()
-    end
-}
 
 
 function Hook:hook_game()
