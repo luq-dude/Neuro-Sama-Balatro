@@ -107,10 +107,9 @@ function getText:get_stake_names(keys, allStakes)
     return stakes
 end
 
-function getText:get_hand_names()
+function getText:get_hand_names(cards_table)
     local cards = {}
-    for pos, card in ipairs(G.hand.cards) do
-
+    for pos, card in ipairs(cards_table) do
 
         local name = card.base.name
 
@@ -128,9 +127,9 @@ local function get_edition_args(name,card_config)
     return loc_args
 end
 
-function getText:get_hand_editions()
+function getText:get_hand_editions(cards_table)
 	local cards = {}
-	for _, card in ipairs(G.hand.cards) do
+	for _, card in ipairs(cards_table) do
 
         local edition_desc = ""
 
@@ -181,17 +180,22 @@ local function get_enhancements_args(name,card_config)
     return loc_args
 end
 
-function getText:get_hand_enhancements()
+function getText:get_hand_enhancements(cards_table)
     local cards = {}
-	for pos, card in ipairs(G.hand.cards) do
+	for pos, card in ipairs(cards_table) do
 
         local enhancement_desc = ""
 
-        if not card.ability.effect then
+        sendDebugMessage("card enhancement: " .. tprint(card,1,2))
+
+        sendDebugMessage("card ability: " .. tprint(card.ability,1,2))
+
+        if card.ability.effect ~= "Base" then
             local key_override
             for _, v in pairs(G.P_CENTER_POOLS.Enhanced) do
-                local loc_args,loc_nodes = get_enhancements_args(card.ability.effect,G.P_CENTERS[v.key]), {}
-                if v.key ~= card.config.center.name then goto continue end -- go next loop if not the same as card
+                local loc_args,loc_nodes = get_enhancements_args(card.ability.name,G.P_CENTERS[v.key]), {}
+                sendDebugMessage("card config: " .. tprint(card.config,1,2) .. "v key: " .. v.key)
+                if v.key ~= card.config.center_key then goto continue end -- go next loop if not the same as card
                 if v.loc_txt and type(v.loc_vars) == 'function' then
                     local res = v:loc_vars(nil,card) or {} -- makes twins card work and glorp still works so I think its fine
                     loc_args = res.vars or {}
@@ -205,7 +209,7 @@ function getText:get_hand_enhancements()
                     for _, word in ipairs(line) do
                         if not word.config.text then break end -- removes table that contains stuff for setting up UI
                         sendDebugMessage("word: " .. tostring(word))
-                        description = description .. word.config.text
+                        description = description .. word.config.text .. " "
                     end
                 end
 
@@ -227,12 +231,12 @@ local function get_seals_args(name)
     return loc_args
 end
 
-function getText:get_hand_seals()
+function getText:get_hand_seals(cards_table)
     local cards = {}
 
     local seals = {"gold_seal","red_seal","blue_seal","purple_seal"} -- bad but I'm a bit too lazy to find another way and it works
 
-	for pos, card in ipairs(G.hand.cards) do
+	for pos, card in ipairs(cards_table) do
 
         local seal_desc = ""
 

@@ -1,47 +1,70 @@
 local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
+local GetRunText = ModCache.load("get_run_text.lua")
 local GetText = ModCache.load("get_text.lua")
 
 local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
 
-local PlayCards = setmetatable({}, { __index = NeuroAction })
-PlayCards.__index = PlayCards
+local PickCards = setmetatable({}, { __index = NeuroAction })
+PickCards.__index = PickCards
 
-function PlayCards:new(actionWindow, state)
+function PickCards:new(actionWindow, state)
     local obj = NeuroAction.new(self, actionWindow)
     return obj
 end
 
-function PlayCards:_get_name()
-    return "play_cards"
+function PickCards:_get_name()
+    return "pick_cards"
 end
 
-function PlayCards:_get_description()
-    local description = "play a maximum of 5 cards with your current hand. The cards will be ordered by the position they are located in your hand from left to right"
+function PickCards:_get_description()  -- use G.P_CENTERS.p-buffoon_jumbo_1.config for getting values
+    local description = string.format("Pick cards to add to your deck. You can pick a max of " ..
+    SMODS.OPENED_BOOSTER.config.center.config.choose
+    .. " cards "
+    .. "out of the " .. SMODS.OPENED_BOOSTER.config.center.config.extra .. " available.")
 
     return description
 end
 
+local function get_cards_modifiers()
+    local cards = GetText:get_hand_names(G.pack_cards.cards)
 
-local function get_cards_modifiers() -- get names then add appropriate descriptions
-    local cards = GetText:get_hand_names(G.hand.cards)
-    local editions = GetText:get_hand_editions(G.hand.cards)
-    local enhancements = GetText:get_hand_enhancements(G.hand.cards)
-    local seals = GetText:get_hand_seals(G.hand.cards)
+    local planet_cards = GetRunText:get_planet_details()
+    local joker_cards = GetRunText:get_joker_details()
+    local spectral_cards = GetRunText:get_spectral_details()
+
+    -- this is for standard
+    local names = GetText:get_hand_names(G.pack_cards.cards)
+    local editions = GetText:get_hand_editions(G.pack_cards.cards)
+    local enhancements = GetText:get_hand_enhancements(G.pack_cards.cards)
+    local seals = GetText:get_hand_seals(G.pack_cards.cards)
 
     for i = 1, #cards do
-        local name = cards[i] or ""
+        local name = names[i] or ""
         local edition = editions[i] or ""
         local enhancement = enhancements[i] or ""
         local seal = seals[i] or ""
 
+        sendDebugMessage("name: " .. name .. "edition: " .. edition .. "enhancement: " .. enhancement .. "seal: " .. seal)
+
         cards[i] = name .. edition .. enhancement .. seal
     end
+
+
+    -- for i = 1, #cards do
+        -- local planet = planet_cards[i] or ""
+        -- local jokers = joker_cards[i] or ""
+        -- local spectral = spectral_cards[i] or ""
+
+        -- cards[i] = planet
+        -- cards[i] = jokers
+        -- cards[i] = spectral
+    -- end
 
     return cards
 end
 
-function PlayCards:_get_schema()
+function PickCards:_get_schema()
     return JsonUtils.wrap_schema({
         hand = {
 			type = "array",
@@ -65,17 +88,12 @@ local function increment_card_table(table)
     return selected_table
 end
 
-function PlayCards:_validate_action(data, state)
+function PickCards:_validate_action(data, state)
     local selected_hand = data:get_object("hand")
     selected_hand = selected_hand._data
 
-    if not selected_hand then
-        return ExecutionResult.failure(SDK_Strings.action_failed_missing_required_parameter("hand"))
-    end
-
-    if #selected_hand == 0 then return ExecutionResult.failure("At least one card must be selected.") end
-
-    if #selected_hand > 5 then return ExecutionResult.failure("Cannot play more than 5 cards.") end
+    if #selected_hand > SMODS.OPENED_BOOSTER.config.center.config.choose then return ExecutionResult.failure("You tried to take more cards then you are allowed too.") end
+    if #selected_hand == 0 then return ExecutionResult.failure("You should either take a card or skip the round") end
 
 	local hand = get_cards_modifiers()
     local selected_amount = {}
@@ -107,39 +125,39 @@ function PlayCards:_validate_action(data, state)
     end
 
     state["hand"] = selected_hand
-    return ExecutionResult.success()
+	return ExecutionResult.success()
 end
 
--- id play card button: "play_button"
-function PlayCards:_execute_action(state)
-    local selected_hand = state["hand"]
+-- buy from store directly "buy_and_use"
 
-    -- local play_button = G.buttons:get_UIE_by_ID('play_button') -- not used
+-- id play card button: "play_button"
+function PickCards:_execute_action(state)
+	local selected_hand = state["hand"]
+
     local hand_string = get_cards_modifiers()
-    local hand = G.hand.cards
+    local hand = G.pack_cards.cards
     local selected_amount = increment_card_table(selected_hand)
 
     local highlighted_cards = {}
+
+    sendDebugMessage("pack_size: " .. tostring(G.GAME.pack_choices) .. "pack_picked" .. SMODS.OPENED_BOOSTER.config.center_key .. "config: " .. tprint(SMODS.OPENED_BOOSTER.config.center.config,1,2))
 
     for _, card in pairs(selected_hand) do
         local card_id = card
         for index = 1, #hand_string, 1  do
             if card == hand_string[index] and (highlighted_cards[card_id] or 0) < selected_amount[card] then
                 G.hand:add_to_highlighted(hand[index])
-                highlighted_cards[card_id] = (highlighted_cards[card_id] or 0) + 1
+                sendDebugMessage("Final card print: " .. tprint(hand[index].children.use_button.UIRoot.children[1].children[1],1,2))
+
+                local button = hand[index].children.use_button.UIRoot.children[1].children[1] -- get use button that is shown after clicking on card
+                button:click() -- idk if this will work for multiple joker pack
+
             end
         end
     end
-
-    -- shouldn't cause any issues with mods
-    G.FUNCS.play_cards_from_highlighted()
-
-    -- couldn't get this to work and I hate ui so function call is good enough for now
-    -- play_button:click() -- Maybe try to make this an event to see if it would work
-    -- G.buttons:get_UIE_by_ID('play_button'):release()
 
 	return true
 end
 
 
-return PlayCards
+return PickCards

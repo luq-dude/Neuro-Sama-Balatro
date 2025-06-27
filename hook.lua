@@ -23,6 +23,37 @@ local function play_card(delay)
     ))
 end
 
+local function pick_pack_card(delay)
+    G.E_MANAGER:add_event(Event({
+        trigger = "after",
+        delay = delay,
+        blocking = false,
+        func = function()
+            local window = ActionWindow:new()
+            window:add_action(PickCard:new(window, nil))
+            window:register()
+            return true
+        end
+    }
+    ))
+end
+
+-- use for tarot and spectral
+local function pick_pack_card_and_hand(delay)
+    G.E_MANAGER:add_event(Event({
+        trigger = "after",
+        delay = delay,
+        blocking = false,
+        func = function()
+            local window = ActionWindow:new()
+            window:add_action(PickCard:new(window, nil))
+            window:register()
+            return true
+        end
+    }
+    ))
+end
+
 local function hook_main_menu()
     local main_menu = Game.main_menu
     function Game:main_menu(change_context)
@@ -179,8 +210,48 @@ local function hook_start_run()
                 return true
             end
         }))
-    end
 
+    end
+    return true
+end
+
+-- TODO: Stop spamming of running event / sending actions while it does get handled the fact it happens is still suboptimal
+-- TODO: Add checks for current state this can be done with G.STATE a good example of this is in G.FUNCS.draw_from_deck_to_hand
+local function hook_draw_card()
+    local original_draw_card = draw_card
+    function draw_card(from, to, percent, dir, sort, card, delay, mute, stay_flipped, vol, discarded_only)
+        original_draw_card(from, to, percent, dir, sort, card, delay, mute, stay_flipped, vol, discarded_only)
+
+        sendDebugMessage("draw_card called")
+        G.E_MANAGER:add_event(Event({
+            trigger = "after",
+            blocking = false,
+            func = function ()
+                    sendDebugMessage("start second event")
+                    if G.STATE == G.STATES.SPECTRAL_PACK then
+                        pick_pack_card(12)
+                    elseif G.STATE == G.STATES.TAROT_PACK then
+                        -- Will probably be its own action
+                    elseif G.STATE == G.STATES.BUFFOON_PACK then -- joker
+                        pick_pack_card(12)
+                    elseif G.STATE == G.STATES.PLANET_PACK then
+                        pick_pack_card(20)
+                    elseif G.STATE == G.STATES.STANDARD_PACK then -- card pack
+                        pick_pack_card(20)
+                    elseif G.STATE == 999 then -- this is equal to SMODS_BOOSTER_OPENED, I just couldn't find it
+                        pick_pack_card(20)
+                    elseif G.STATE == G.STATES.SELECTING_HAND then -- this sounds like drawing hand
+                        play_card(14)
+                    else
+                        sendDebugMessage("In a state that hook_draw_cards does not handle, the current state is: " .. tostring(G.STATE))
+                        for k, v in pairs(G.STATES) do
+                            sendDebugMessage("Key: " .. k .. " Value: " .. v)
+                        end
+                    end
+                return true
+            end
+        }))
+    end
     return true
 end
 
