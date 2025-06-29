@@ -1,3 +1,5 @@
+local GetModifierArgs = ModCache.load("card_modifiers_args.lua")
+
 local getRunText = {}
 
 local function get_planet_args(name, effect_config)
@@ -22,13 +24,34 @@ end
 
 -- G.shop_booster might be related to how boosters in the bottom right of the shop ui are loaded
 
-function getRunText:get_planet_details()
+
+function getRunText:get_celestial_names(card_hand)
+    local cards = {}
+
+	for pos, card in ipairs(card_hand) do
+        for _, v in pairs(G.P_CENTER_POOLS.Joker) do
+            local name = card.ability.name
+
+            if v.key ~= card.config.center_key then goto continue end
+            if v.loc_txt and type(v.loc_vars) == 'function' then
+                name = v.loc_txt.name -- get name that shows on hover
+            end
+            sendDebugMessage("card name: " .. name)
+            cards[#cards + 1] = name
+            ::continue::
+        end
+        sendDebugMessage("past continue")
+    end
+    return cards
+end
+
+function getRunText:get_celestial_details(card_hand)
     local cards = {}
 
     -- sendDebugMessage(tprint(G.pack_cards.cards,1,5))
 
 	sendDebugMessage("start get_planet_details") -- G.consumeables.highlighted
-	for pos, card in ipairs(G.pack_cards.cards) do -- this might need to be changed from G.hand.cards
+	for pos, card in ipairs(card_hand) do -- this might need to be changed from G.hand.cards
 		sendDebugMessage("start for loop")
 		local planet_desc = ""
 
@@ -280,29 +303,53 @@ local function get_joker_args(name, card_ability)
     return loc_args
 end
 
-function getRunText:get_joker_details()
+function getRunText:get_joker_names(card_hand)
     local cards = {}
 
-	for pos, card in ipairs(G.pack_cards.cards) do
+	for pos, card in ipairs(card_hand) do
+        for _, v in pairs(G.P_CENTER_POOLS.Joker) do
+            local name = card.ability.name
+
+            if v.key ~= card.config.center_key then goto continue end
+            if v.loc_txt and type(v.loc_vars) == 'function' then
+                name = v.loc_txt.name -- get name that shows on hover
+            end
+            sendDebugMessage("card name: " .. name)
+            cards[#cards + 1] = name
+            ::continue::
+        end
+        sendDebugMessage("past continue")
+    end
+    return cards
+end
+
+function getRunText:get_joker_details(card_hand)
+    local cards = {}
+
+	for pos, card in ipairs(card_hand) do
 		local joker_desc = ""
 
         if card.ability.set == 'Joker' then
             local key_override = nil
             for _, v in pairs(G.P_CENTER_POOLS.Joker) do
                 local loc_args,loc_nodes = get_joker_args(card.ability.name,card.ability), {}
+                local name = card.ability.name
 
                 if v.key ~= card.config.center_key then goto continue end
                 if v.loc_txt and type(v.loc_vars) == 'function' then
                     local res = v:loc_vars({},card) or {} -- need to pass these to get vars (atleast in neurocards mod)
                     loc_args = res.vars or {}
                     key_override = v.key
+                    name = v.loc_txt.name -- get name that shows on hover
 				else
                     key_override = card.config.center_key
                 end
 
                 localize{type = 'descriptions', key = v.key, set = v.set, nodes = loc_nodes, vars = loc_args}
 
-                local description = "Joker: "
+                sendDebugMessage("joker card: " .. tprint(card,1,2))
+
+                local description = name .. " : "
                 for _, line in ipairs(loc_nodes) do
                     for _, word in ipairs(line) do
                         if word.nodes ~= nil then
@@ -354,10 +401,10 @@ local function get_spectral_args(name, effect_config)
 end
 
 
-function getRunText:get_spectral_details()
+function getRunText:get_spectral_details(card_hand)
     local cards = {}
 
-	for pos, card in ipairs(G.pack_cards.cards) do
+	for pos, card in ipairs(card_hand) do
 		local spectral_desc = ""
 
         sendDebugMessage("Card " .. card.ability.name .. ": " .. tprint(card,1,2))
@@ -401,6 +448,38 @@ function getRunText:get_spectral_details()
         end
 		cards[#cards+1] = spectral_desc
     end
+    return cards
+end
+
+function getRunText:get_card_modifiers(card_hand)
+    local cards = {}
+
+	for pos, card in ipairs(card_hand) do
+		local card_desc = card.base.name or ""
+
+        sendDebugMessage("Card: " .. tprint(card,1,2))
+
+        if card.edition then
+            local description = ", Card edition: " .. card.edition.name or card.ability.name -- could also use card.ability.name
+
+            card_desc = card_desc .. description
+        end
+
+        if card.ability.effect ~= "Base" then
+            local description = ", Card Enhancement: " .. card.ability.name
+
+            card_desc = card_desc .. description
+        end
+
+        if card.ability.seal then
+            local description = ", Card seal: " .. card.seal .. " Seal"
+
+            card_desc = card_desc .. description
+        end
+
+        cards[#cards+1] = "- " .. card_desc .. "\n"
+    end
+
     return cards
 end
 

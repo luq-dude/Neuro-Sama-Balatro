@@ -3,6 +3,11 @@ local GamePrep = ModCache.load("game_prep.lua")
 local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
 local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
 local PlayCards = ModCache.load("custom-actions/play_cards.lua")
+local PickCard = ModCache.load("custom-actions/pick_pack_card.lua")
+local GetRunText = ModCache.load("get_run_text.lua")
+local GetText = ModCache.load("get_text.lua")
+
+local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
 
 local Hook = {}
 Hook.__index = Hook
@@ -215,6 +220,26 @@ local function hook_start_run()
     return true
 end
 
+local function get_current_hand_modifiers(cards)
+    local enhancements = table.table_to_string(GetText:get_hand_enhancements(cards))
+    local editions = table.table_to_string(GetText:get_hand_editions(cards))
+    local seals = table.table_to_string(GetText:get_hand_seals(cards))
+
+    local enhancements_string = "- card enhancements: " .. enhancements
+    local editions_string = "- card editions: " .. editions
+    local seals_string = "- card seals: " .. seals
+
+    if enhancements == "" then
+        enhancements_string = "There are no enhancements on your cards"
+    elseif editions == "" then
+        editions_string = "There are no editions on your cards"
+    elseif seals == "" then
+        seals_string = "There are no seals on your cards"
+    end
+
+    return enhancements_string,editions_string,seals_string
+end
+
 -- TODO: Stop spamming of running event / sending actions while it does get handled the fact it happens is still suboptimal
 -- TODO: Add checks for current state this can be done with G.STATE a good example of this is in G.FUNCS.draw_from_deck_to_hand
 local function hook_draw_card()
@@ -223,30 +248,63 @@ local function hook_draw_card()
         original_draw_card(from, to, percent, dir, sort, card, delay, mute, stay_flipped, vol, discarded_only)
 
         sendDebugMessage("draw_card called")
+
         G.E_MANAGER:add_event(Event({
             trigger = "after",
             blocking = false,
+            delay = 8,
             func = function ()
                     sendDebugMessage("start second event")
-                    if G.STATE == G.STATES.SPECTRAL_PACK then
-                        pick_pack_card(12)
-                    elseif G.STATE == G.STATES.TAROT_PACK then
-                        -- Will probably be its own action
-                    elseif G.STATE == G.STATES.BUFFOON_PACK then -- joker
-                        pick_pack_card(12)
-                    elseif G.STATE == G.STATES.PLANET_PACK then
-                        pick_pack_card(20)
-                    elseif G.STATE == G.STATES.STANDARD_PACK then -- card pack
-                        pick_pack_card(20)
-                    elseif G.STATE == 999 then -- this is equal to SMODS_BOOSTER_OPENED, I just couldn't find it
-                        pick_pack_card(20)
-                    elseif G.STATE == G.STATES.SELECTING_HAND then -- this sounds like drawing hand
+                    if G.STATE == nil or G.STATE == G.STATES.HAND_PLAYED or G.STATE == G.STATES.DRAW_TO_HAND  then
+                        return true
+                    end
+
+                    if G.STATE == G.STATES.SELECTING_HAND then
+                        local enhancements, editions, seals = get_current_hand_modifiers(G.hand.cards)
+
+                        Context.send(string.format("These are what the card's modifiers do," ..
+                        " there can only be one edition,enhancement and seal on each card: \n" ..
+                        enhancements .. "\n" ..
+                        editions .. "\n" ..
+                        seals),true)
+
                         play_card(14)
+                        return true
+                    end
+
+                    -- use this to send different context for each type of pack and different action for spectral and arcana
+                    if SMODS.OPENED_BOOSTER.config.center.kind == "Buffoon" then -- cant use G.STATE
+                        local hand = table.table_to_string(GetRunText:get_joker_details(G.pack_cards.cards))
+
+                        Context.send(string.format("This is the hand of cards that are in this pack: \n" ..
+                        hand .. "\n" ..
+                        "These cards will give passive bonuses after each hand played, these range from increasing the chips" ..
+                        " increasing the mult of a hand or giving money or consumables after certain actions."))
+
+                        pick_pack_card(12)
+                    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Celestial" then
+                        local hand = table.table_to_string(GetRunText:get_celestial_details(G.pack_cards.cards))
+
+                        Context.send(string.format("This is the hand of cards that are in this pack: \n" ..
+                        hand .. "\n" ..
+                        "These cards will level up a poker hand and improve the scoring that you will receive for playing them."))
+
+                        pick_pack_card(20)
+                    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Standard" then
+                        local hand, enhancements, editions, seals = table.table_to_string(GetRunText:get_card_modifiers(G.pack_cards.cards)),get_current_hand_modifiers(G.pack_cards.cards)
+
+                        Context.send(string.format("This is the hand of cards that are in this pack: \n" ..
+                        hand .. "\n" ..
+                        "These are the card modifiers that are on the cards right now," ..
+                        " there can only be one edition,enhancement and seal on each card: \n" ..
+                        enhancements .. "\n" ..
+                        editions .. "\n" ..
+                        seals),true)
+                        sendDebugMessage("Get last opened booster" .. tprint(SMODS.OPENED_BOOSTER,1,2))
+                        pick_pack_card(20)
+                    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Spectral" then
+                    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Arcana" then
                     else
-                        sendDebugMessage("In a state that hook_draw_cards does not handle, the current state is: " .. tostring(G.STATE))
-                        for k, v in pairs(G.STATES) do
-                            sendDebugMessage("Key: " .. k .. " Value: " .. v)
-                        end
                     end
                 return true
             end

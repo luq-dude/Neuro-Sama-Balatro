@@ -1,5 +1,7 @@
 require "functions/misc_functions"
 
+local GetModifierArgs = ModCache.load("card_modifiers_args.lua")
+
 local ALLOWED_DECKS = NeuroConfig.ALLOWED_DECKS
 local ALLOWED_STAKES = NeuroConfig.ALLOWED_DECKS
 
@@ -110,21 +112,11 @@ end
 function getText:get_hand_names(cards_table)
     local cards = {}
     for pos, card in ipairs(cards_table) do
-
         local name = card.base.name
 
 		cards[#cards+1] = name
 	end
 	return cards
-end
-
-
-local function get_edition_args(name,card_config)
-    local loc_args = {}
-    if name == "foil" then loc_args = {card_config.config.extra}
-    elseif name == "holo" then loc_args = {card_config.config.extra}
-    elseif name == "polychrome" then loc_args = {card_config.config.extra} end
-    return loc_args
 end
 
 function getText:get_hand_editions(cards_table)
@@ -136,7 +128,7 @@ function getText:get_hand_editions(cards_table)
         if card.edition then
             local key_override
             for _, v in pairs(G.P_CENTER_POOLS.Edition) do
-                local loc_args,loc_nodes = get_edition_args(card.edition.type,G.P_CENTERS[v.key]), {}
+                local loc_args,loc_nodes = GetModifierArgs:get_edition_args(card.edition.type,G.P_CENTERS[v.key]), {}
                 if v.key ~= card.edition.key then goto continue end -- go next loop if not the same as card
                 if v.loc_vars and type(v.loc_vars) == 'function' then
                     local res = v:loc_vars() or {}
@@ -146,7 +138,7 @@ function getText:get_hand_editions(cards_table)
 
                 localize{type = "descriptions", set = 'Edition',key= key_override or card.key, nodes = loc_nodes, vars = loc_args}
 
-                local description = " Cards edition: "
+                local description = "\n -- " .. tostring(card.edition.name) .. " : "
                 for _, line in ipairs(loc_nodes) do
                     for _, word in ipairs(line) do
                         if word.nodes ~= nil then
@@ -167,34 +159,16 @@ function getText:get_hand_editions(cards_table)
     return cards
 end
 
-local function get_enhancements_args(name,card_config)
-    local loc_args = {}
-    if name == "Bonus Card" then loc_args = {card_config.config.bonus}
-    elseif name == "Mult Card" then loc_args = {card_config.config.mult}
-    elseif name == "Wild Card" then loc_args = {card_config.config.extra} --  localize
-    elseif name == "Glass Card" then loc_args = {card_config.config.Xmult, card_config.config.extra} -- 2x 1 in 4 chance to break (this is sent as 4)
-    elseif name == "Steel Card" then loc_args = {card_config.config.h_x_mult} -- 1.5 while in hand
-    elseif name == "Stone Card" then loc_args = {card_config.config.bonus} -- is always 50
-    elseif name == "Gold Card" then loc_args = {card_config.config.h_dollars} -- three in hand
-    elseif name == "Lucky Card" then loc_args = {card_config.config.p_dollars,card_config.config.mult} end -- 1 in 5 chance for +20 mult and 1 in 15 for $20 (these are both sent as 20)
-    return loc_args
-end
-
 function getText:get_hand_enhancements(cards_table)
     local cards = {}
 	for pos, card in ipairs(cards_table) do
 
         local enhancement_desc = ""
 
-        sendDebugMessage("card enhancement: " .. tprint(card,1,2))
-
-        sendDebugMessage("card ability: " .. tprint(card.ability,1,2))
-
         if card.ability.effect ~= "Base" then
             local key_override
             for _, v in pairs(G.P_CENTER_POOLS.Enhanced) do
-                local loc_args,loc_nodes = get_enhancements_args(card.ability.name,G.P_CENTERS[v.key]), {}
-                sendDebugMessage("card config: " .. tprint(card.config,1,2) .. "v key: " .. v.key)
+                local loc_args,loc_nodes = GetModifierArgs:get_enhancements_args(card.ability.name,G.P_CENTERS[v.key]), {}
                 if v.key ~= card.config.center_key then goto continue end -- go next loop if not the same as card
                 if v.loc_txt and type(v.loc_vars) == 'function' then
                     local res = v:loc_vars(nil,card) or {} -- makes twins card work and glorp still works so I think its fine
@@ -204,7 +178,7 @@ function getText:get_hand_enhancements(cards_table)
 
                 localize{type = "descriptions", set = 'Enhanced',key= key_override or card.config.original_key, nodes = loc_nodes, vars = loc_args}  -- TODO: doesnt get + in mult card idk why
 
-                local description = " Cards enhancement: "
+                local description = "\n -- " .. tostring(card.ability.name) .. " : "
                 for _, line in ipairs(loc_nodes) do
                     for _, word in ipairs(line) do
                         if not word.config.text then break end -- removes table that contains stuff for setting up UI
@@ -222,15 +196,6 @@ function getText:get_hand_enhancements(cards_table)
     return cards
 end
 
-local function get_seals_args(name)
-    local loc_args = {}
-    if name == "Gold" then loc_args = {"gold_seal"}
-    elseif name == "Red" then loc_args = {"red_seal"}
-    elseif name == "Blue" then loc_args = {"blue_seal"}
-    elseif name == "Purple" then loc_args = {"purple_seal"} end
-    return loc_args
-end
-
 function getText:get_hand_seals(cards_table)
     local cards = {}
 
@@ -243,7 +208,7 @@ function getText:get_hand_seals(cards_table)
         if card.ability.seal then
             local key_override = nil
             for _, v in pairs(G.P_CENTER_POOLS.Seal) do
-                local loc_args,loc_nodes = get_seals_args(card.seal), {}
+                local loc_args,loc_nodes = GetModifierArgs:get_seals_args(card.seal), {}
                 if v.key ~= card.seal then goto continue end
                 if v.loc_txt and type(v.loc_vars) == 'function' then
                     local res = v:loc_vars() or {}
@@ -256,7 +221,7 @@ function getText:get_hand_seals(cards_table)
 
                 localize{type = 'descriptions', set = "Other" or v.set, key= key_override or v.key, nodes = loc_nodes, vars = loc_args}
 
-                local description = " Cards seal: "
+                local description = "\n -- " .. tostring(card.seal) .. " Seal"  .. " : "
                 for _, line in ipairs(loc_nodes) do
                     for _, word in ipairs(line) do
                         if word.nodes ~= nil then
@@ -272,6 +237,7 @@ function getText:get_hand_seals(cards_table)
             ::continue::
             end
         end
+        if table.any(cards, function(seal) return seal == seal_desc end) then seal_desc = "" end -- remove duplicates
 		cards[#cards+1] = seal_desc
     end
     return cards

@@ -27,29 +27,42 @@ function PickCards:_get_description()  -- use G.P_CENTERS.p-buffoon_jumbo_1.conf
 end
 
 local function get_cards_modifiers()
-    local cards = GetText:get_hand_names(G.pack_cards.cards)
+    local cards = {}
+    local card_type = {}
+    if SMODS.OPENED_BOOSTER.config.center.kind == "Buffoon" then
+        card_type = GetRunText:get_joker_names(G.pack_cards.cards)
+    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Celestial" then
+        card_type = GetRunText:get_celestial_names(G.pack_cards.cards)
+    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Spectral" then
+        card_type = GetRunText:get_spectral_details(G.pack_cards.cards)
+    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Arcana" then
+        -- card_type = GetRunText:get_arcana_details()
+    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Standard" then
+        -- this is temporary
+        local card_mod = GetText:get_hand_names(G.pack_cards.cards)
 
-    local planet_cards = GetRunText:get_planet_details()
-    local joker_cards = GetRunText:get_joker_details()
-    local spectral_cards = GetRunText:get_spectral_details()
+        for i = 1, #card_mod do
+            local cards_type = card_mod[i] or ""
 
-    -- this is for standard
-    local names = GetText:get_hand_names(G.pack_cards.cards)
-    local editions = GetText:get_hand_editions(G.pack_cards.cards)
-    local enhancements = GetText:get_hand_enhancements(G.pack_cards.cards)
-    local seals = GetText:get_hand_seals(G.pack_cards.cards)
+            cards[i] = cards_type
+        end
+        return cards
+    else -- modded packs or if there is something I forgot
+        local card_mod = GetText:get_hand_names(G.pack_cards.cards)
 
-    for i = 1, #cards do
-        local name = names[i] or ""
-        local edition = editions[i] or ""
-        local enhancement = enhancements[i] or ""
-        local seal = seals[i] or ""
+        for i = 1, #card_mod do
+            local cards_type = card_mod[i] or ""
 
-        sendDebugMessage("name: " .. name .. "edition: " .. edition .. "enhancement: " .. enhancement .. "seal: " .. seal)
-
-        cards[i] = name .. edition .. enhancement .. seal
+            cards[i] = cards_type
+        end
+        return cards
     end
 
+    for i = 1, #card_type do
+        local cards_type = card_type[i] or ""
+
+        cards[i] = cards_type
+    end
 
     -- for i = 1, #cards do
         -- local planet = planet_cards[i] or ""
