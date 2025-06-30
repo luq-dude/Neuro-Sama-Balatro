@@ -29,7 +29,7 @@ function getRunText:get_celestial_names(card_hand)
     local cards = {}
 
 	for pos, card in ipairs(card_hand) do
-        for _, v in pairs(G.P_CENTER_POOLS.Joker) do
+        for _, v in pairs(G.P_CENTER_POOLS.Planet) do
             local name = card.ability.name
 
             if v.key ~= card.config.center_key then goto continue end
@@ -61,15 +61,15 @@ function getRunText:get_celestial_details(card_hand)
         if card.ability.set == "Planet" then
             local key_override = nil
             for _, v in pairs(G.P_CENTER_POOLS.Planet) do -- card.ability.effect card.ability.name
-                -- local loc_args,loc_nodes = get_planet_args(card.ability.name,G.P_CENTERS[v.key]), {}
-                -- G.C.SET.Planet
                 local loc_args,loc_nodes = get_planet_args(card.ability.name,v.config), {}
+                local name = card.ability.name
 
                 if v.key ~= card.config.center_key then goto continue end
                 if v.loc_txt and type(v.loc_vars) == 'function' then
                     local res = v:loc_vars() or {}
                     loc_args = res.vars or {}
                     key_override = v.key
+                    name = v.loc_txt.name
 				else
                     key_override = card.config.center_key
                     -- loc_args[#loc_args + 1] = card.dissolve_colours
@@ -83,7 +83,7 @@ function getRunText:get_celestial_details(card_hand)
 
                 localize{type = 'descriptions', key = v.key, set = v.set, nodes = loc_nodes, vars = loc_args}
 
-                local description = "Planet: "
+                local description = "\n" .. name .. ": "
                 for _, line in ipairs(loc_nodes) do
                     for _, word in ipairs(line) do
                         if word.nodes ~= nil then
@@ -104,7 +104,6 @@ function getRunText:get_celestial_details(card_hand)
     return cards
 end
 
--- can get this from the game's card class iirc
 local function get_joker_args(name, card_ability)
     sendDebugMessage("effect_config" .. tprint(card_ability,1))
     local loc_args = {}
@@ -349,7 +348,7 @@ function getRunText:get_joker_details(card_hand)
 
                 sendDebugMessage("joker card: " .. tprint(card,1,2))
 
-                local description = name .. " : "
+                local description = "\n" .. name .. ": "
                 for _, line in ipairs(loc_nodes) do
                     for _, word in ipairs(line) do
                         if word.nodes ~= nil then
@@ -377,29 +376,48 @@ end
 local function get_spectral_args(name, effect_config)
     sendDebugMessage("effect_config" .. tprint(effect_config,1))
     local loc_args = {}
-    if name == "Familiar" then loc_args = {effect_config.config}
-    elseif name == "Grim" then loc_args = {effect_config.config}
-    elseif name == "Incantation" then loc_args = {effect_config.config}
-    elseif name == "Talisman" then loc_args = {effect_config.config}
-	elseif name == "Aura" then loc_args = {effect_config.config}
-	elseif name == "Wraith" then loc_args = {effect_config.config}
-	elseif name == "Sigil" then loc_args = {effect_config.config}
-	elseif name == "Ouija" then loc_args = {effect_config.config}
-	elseif name == "Ectoplasm" then loc_args = {effect_config.config}
-	elseif name == "Immolate" then loc_args = {effect_config.config}
-	elseif name == "Ankh" then loc_args = {effect_config.config}
-	elseif name == "Deja Vu" then loc_args = {effect_config.config}
-    elseif name == "Hex" then loc_args = {effect_config.config}
-    elseif name == "Trance" then loc_args = {effect_config.config}
-    elseif name == "Medium" then loc_args = {effect_config.config}
-    elseif name == "Cryptid" then loc_args = {effect_config.config}
-    elseif name == "The Soul" then loc_args = {effect_config.config}
-    elseif name == "Black Hole" then loc_args = {effect_config.config}
+    if name == "Familiar" then loc_args = {effect_config.extra}
+    elseif name == "Grim" then loc_args = {effect_config.extra}
+    elseif name == "Incantation" then loc_args = {effect_config.extra}
+    elseif name == "Talisman" then loc_args = {key = 'gold_seal', set = 'Other'}
+	elseif name == "Aura" then loc_args = {}
+	elseif name == "Wraith" then loc_args = {}
+	elseif name == "Sigil" then loc_args = {}
+	elseif name == "Ouija" then loc_args = {}
+	elseif name == "Ectoplasm" then loc_args = {G.GAME.ecto_minus or 1}
+	elseif name == "Immolate" then loc_args = {effect_config.extra.destroy,effect_config.extra.dollars}
+	elseif name == "Ankh" then loc_args = {G.P_CENTERS.e_negative}
+	elseif name == "Deja Vu" then loc_args = {key = 'red_seal', set = 'Other'}
+    elseif name == "Hex" then loc_args = {G.P_CENTERS.e_polychrome}
+    elseif name == "Trance" then loc_args = {key = 'blue_seal', set = 'Other'}
+    elseif name == "Medium" then loc_args = {key = 'purple_seal', set = 'Other'}
+    elseif name == "Cryptid" then loc_args = {effect_config.extra}
+    elseif name == "The Soul" then loc_args = {}
+    elseif name == "Black Hole" then loc_args = {}
 	end
 
     return loc_args
 end
 
+function getRunText:get_spectral_names(card_hand)
+    local cards = {}
+
+	for pos, card in ipairs(card_hand) do
+        for _, v in pairs(G.P_CENTER_POOLS.Spectral) do
+            local name = card.ability.name
+
+            if v.key ~= card.config.center_key then goto continue end
+            if v.loc_txt and type(v.loc_vars) == 'function' then
+                name = v.loc_txt.name -- get name that shows on hover
+            end
+            sendDebugMessage("card name: " .. name)
+            cards[#cards + 1] = name
+            ::continue::
+        end
+        sendDebugMessage("past continue")
+    end
+    return cards
+end
 
 function getRunText:get_spectral_details(card_hand)
     local cards = {}
@@ -413,19 +431,21 @@ function getRunText:get_spectral_details(card_hand)
             local key_override = nil
             for _, v in pairs(G.P_CENTER_POOLS.Spectral) do
                 local loc_args,loc_nodes = get_spectral_args(card.ability.name,card.ability), {}
+                local name = card.ability.name
 
                 if v.key ~= card.config.center_key then goto continue end
                 if v.loc_txt and type(v.loc_vars) == 'function' then
                     local res = v:loc_vars({},card) or {} -- need to pass these to get vars (atleast in neurocards mod)
                     loc_args = res.vars or {}
                     key_override = v.key
+                    name = v.loc_txt.name
 				else
                     key_override = card.config.center_key
-                end
+                end -- 100835
 
-                localize{type = 'descriptions', key = v.key, set = v.set, nodes = loc_nodes, vars = loc_args}
+                localize{type = 'descriptions', key = v.key or key_override, set = v.set, nodes = loc_nodes, vars = loc_args}
 
-                local description = "Spectral card: "
+                local description = "\n" .. name .. ": "
                 for _, line in ipairs(loc_nodes) do
                     for _, word in ipairs(line) do
                         sendDebugMessage("Word: " .. tprint(word,1,2))
@@ -447,6 +467,109 @@ function getRunText:get_spectral_details(card_hand)
             end
         end
 		cards[#cards+1] = spectral_desc
+    end
+    return cards
+end
+
+local function get_tarot_args(name, effect_config)
+    sendDebugMessage("effect_config" .. tprint(effect_config,1))
+    local loc_args = {}
+    if name == "The Fool" then loc_args = {effect_config.consumeable}
+    elseif name == "The Magician" then loc_args = {effect_config.max_highlighted,effect_config.mod_conv}
+    elseif name == "The High Priestess" then loc_args = {effect_config.planets}
+    elseif name == "The Empress" then loc_args = {effect_config.max_highlighted,effect_config.mod_conv}
+	elseif name == "The Emperor" then loc_args = {effect_config.tarots}
+	elseif name == "The Hierophant" then loc_args = {effect_config.max_highlighted,effect_config.mod_conv}
+	elseif name == "The Lovers" then loc_args = {effect_config.max_highlighted,effect_config.mod_conv}
+	elseif name == "The Chariot" then loc_args = {effect_config.max_highlighted,effect_config.mod_conv}
+	elseif name == "Justice" then loc_args = {effect_config.max_highlighted,effect_config.mod_conv}
+	elseif name == "The Hermit" then loc_args = {effect_config.extra}
+	elseif name == "The Wheel of Fortune" then loc_args = {G.GAME.probabilities.normal,effect_config.extra}
+	elseif name == "Strength" then loc_args = {effect_config.max_highlighted}
+    elseif name == "The Hanged Man" then loc_args = {effect_config.max_highlighted}
+    elseif name == "Death" then loc_args = {effect_config.max_highlighted}
+    elseif name == "Temperance" then loc_args = {effect_config.extra,effect_config.money}
+    elseif name == "The Devil" then loc_args = {effect_config.max_highlighted,effect_config.mod_conv}
+    elseif name == "The Tower" then loc_args = {effect_config.max_highlighted,effect_config.mod_conv}
+    elseif name == "The Star" then loc_args = {effect_config.max_highlighted,effect_config.suit_conv}
+    elseif name == "The Moon" then loc_args = {effect_config.max_highlighted,effect_config.suit_conv}
+    elseif name == "The Sun" then loc_args = {effect_config.max_highlighted,effect_config.suit_conv}
+    elseif name == "Judgement" then loc_args = {}
+    elseif name == "The World" then loc_args = {effect_config.max_highlighted,effect_config.suit_conv}
+	end
+
+    sendDebugMessage("loc_args: " .. tprint(loc_args,1,2))
+    return loc_args
+end
+
+function getRunText:get_tarot_names(card_hand)
+    local cards = {}
+
+	for pos, card in ipairs(card_hand) do
+        for _, v in pairs(G.P_CENTER_POOLS.Tarot) do
+            local name = card.ability.name
+
+            sendDebugMessage("card key: " .. v.key .. " card.config: " .. card.config.center_key)
+            if v.key ~= card.config.center_key then goto continue end
+            if v.loc_txt and type(v.loc_vars) == 'function' then
+                name = v.loc_txt.name -- get name that shows on hover
+            end
+            sendDebugMessage("card name: " .. name)
+            cards[#cards + 1] = name
+            ::continue::
+        end
+        sendDebugMessage("past continue")
+    end
+    return cards
+end
+
+function getRunText:get_tarot_details(card_hand)
+    local cards = {}
+
+	for pos, card in ipairs(card_hand) do
+		local tarot_desc = ""
+
+        sendDebugMessage("Card " .. card.ability.name .. ": " .. tprint(card,1,2))
+
+        if card.ability.set == 'Tarot' then
+            local key_override = nil
+            for _, v in pairs(G.P_CENTER_POOLS.Tarot) do
+                local loc_args,loc_nodes = get_tarot_args(card.ability.name,card.ability), {}
+
+                sendDebugMessage("This is tarot: " .. v.key .. " card.config: " .. card.config.center_key)
+                if v.key ~= card.config.center_key then goto continue end
+                if v.loc_txt and type(v.loc_vars) == 'function' then
+                    local res = v:loc_vars({},card) or {}
+                    loc_args = res.vars or {}
+                    key_override = v.key
+				else
+                    key_override = card.config.center_key
+                end
+
+                localize{type = 'descriptions', key = v.key, set = v.set, nodes = loc_nodes, vars = loc_args}
+
+                local description = "\n" .. card.ability.name .. ": "
+                for _, line in ipairs(loc_nodes) do
+                    for _, word in ipairs(line) do
+                        sendDebugMessage("Word: " .. tprint(word,1,2))
+                        if word.nodes ~= nil then
+                            if word.nodes[1].config.text ~= nil then
+                                description = description .. word.nodes[1].config.text
+                            elseif word.nodes[1].config.object ~= nil then -- get modded vars
+                                description = description .. word.nodes[1].config.object.config.string[1]
+                            end
+                        else
+                            description = description .. word.config.text
+                        end
+                        description = description .. " "
+                    end
+                end
+
+                tarot_desc = description
+            ::continue::
+            end
+        end
+		cards[#cards+1] = tarot_desc
     end
     return cards
 end

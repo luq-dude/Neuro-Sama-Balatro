@@ -39,8 +39,12 @@ end
 function table.table_to_string(tbl)
     local s = ""
     for i, value in ipairs(tbl) do
-        s = s .. tostring(value)
-        -- if i < #tbl then s = s .. "," end
+        if type(value) == "string" then
+            s = s .. value
+        else
+            s = s .. tostring(value)
+            -- if i < #tbl then s = s .. "," end
+        end
     end
     return s
 end
