@@ -574,6 +574,7 @@ function getRunText:get_tarot_details(card_hand)
     return cards
 end
 
+-- playing card stuff
 function getRunText:get_card_modifiers(card_hand)
     local cards = {}
 
@@ -605,5 +606,140 @@ function getRunText:get_card_modifiers(card_hand)
 
     return cards
 end
+
+function getRunText:get_hand_names(cards_table)
+    local cards = {}
+    for pos, card in ipairs(cards_table) do
+        local name = card.base.name
+
+		cards[#cards+1] = name
+	end
+	return cards
+end
+
+function getRunText:get_hand_editions(cards_table)
+	local cards = {}
+	for _, card in ipairs(cards_table) do
+
+        local edition_desc = ""
+
+        if card.edition then
+            local key_override
+            for _, v in pairs(G.P_CENTER_POOLS.Edition) do
+                local loc_args,loc_nodes = GetModifierArgs:get_edition_args(card.edition.type,G.P_CENTERS[v.key]), {}
+                if v.key ~= card.edition.key then goto continue end -- go next loop if not the same as card
+                if v.loc_vars and type(v.loc_vars) == 'function' then
+                    local res = v:loc_vars() or {}
+                    loc_args = res.vars or loc_args
+                end
+                key_override = v.key
+
+                localize{type = "descriptions", set = 'Edition',key= key_override or card.key, nodes = loc_nodes, vars = loc_args}
+
+                local description = "\n -- " .. tostring(card.edition.name) .. " : "
+                for _, line in ipairs(loc_nodes) do
+                    for _, word in ipairs(line) do
+                        if word.nodes ~= nil then
+                            description = description .. word.nodes[1].config.text
+                        else
+                            description = description .. word.config.text
+                        end
+                        description = description .. " "
+                    end
+                end
+
+                edition_desc = description
+            ::continue::
+            end
+        end
+		cards[#cards+1] = edition_desc
+    end
+    return cards
+end
+
+function getRunText:get_hand_enhancements(cards_table)
+    local cards = {}
+	for pos, card in ipairs(cards_table) do
+
+        local enhancement_desc = ""
+
+        if card.ability.effect ~= "Base" then
+            local key_override
+            for _, v in pairs(G.P_CENTER_POOLS.Enhanced) do
+                local loc_args,loc_nodes = GetModifierArgs:get_enhancements_args(card.ability.name,G.P_CENTERS[v.key]), {}
+                if v.key ~= card.config.center_key then goto continue end -- go next loop if not the same as card
+                if v.loc_txt and type(v.loc_vars) == 'function' then
+                    local res = v:loc_vars(nil,card) or {} -- makes twins card work and glorp still works so I think its fine
+                    loc_args = res.vars or {}
+                end
+                key_override = v.key
+
+                localize{type = "descriptions", set = 'Enhanced',key= key_override or card.config.original_key, nodes = loc_nodes, vars = loc_args}  -- TODO: doesnt get + in mult card idk why
+
+                local description = "\n -- " .. tostring(card.ability.name) .. " : "
+                for _, line in ipairs(loc_nodes) do
+                    for _, word in ipairs(line) do
+                        if not word.config.text then break end -- removes table that contains stuff for setting up UI
+                        sendDebugMessage("word: " .. tostring(word))
+                        description = description .. word.config.text .. " "
+                    end
+                end
+
+                enhancement_desc = description
+            ::continue::
+            end
+        end
+		cards[#cards+1] = enhancement_desc
+    end
+    return cards
+end
+
+function getRunText:get_hand_seals(cards_table)
+    local cards = {}
+
+    local seals = {"gold_seal","red_seal","blue_seal","purple_seal"} -- bad but I'm a bit too lazy to find another way and it works
+
+	for pos, card in ipairs(cards_table) do
+
+        local seal_desc = ""
+
+        if card.ability.seal then
+            local key_override = nil
+            for _, v in pairs(G.P_CENTER_POOLS.Seal) do
+                local loc_args,loc_nodes = GetModifierArgs:get_seals_args(card.seal), {}
+                if v.key ~= card.seal then goto continue end
+                if v.loc_txt and type(v.loc_vars) == 'function' then
+                    local res = v:loc_vars() or {}
+                    loc_args = res.vars or {}
+                    key_override = v.key .. '_seal' -- Smods does this however doesn't mention it in any documentation :)
+                else -- vanilla seal
+                    key_override = loc_args[1]
+                    loc_args = {}
+                end
+
+                localize{type = 'descriptions', set = "Other" or v.set, key= key_override or v.key, nodes = loc_nodes, vars = loc_args}
+
+                local description = "\n -- " .. tostring(card.seal) .. " Seal"  .. " : "
+                for _, line in ipairs(loc_nodes) do
+                    for _, word in ipairs(line) do
+                        if word.nodes ~= nil then
+                            description = description .. word.nodes[1].config.text
+                        else
+                            description = description .. word.config.text
+                        end
+                        description = description .. " "
+                    end
+                end
+
+                seal_desc = description
+            ::continue::
+            end
+        end
+        if table.any(cards, function(seal) return seal == seal_desc end) then seal_desc = "" end -- remove duplicates
+		cards[#cards+1] = seal_desc
+    end
+    return cards
+end
+
 
 return getRunText

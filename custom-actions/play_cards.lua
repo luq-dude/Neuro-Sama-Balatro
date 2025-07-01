@@ -1,6 +1,6 @@
 local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
-local GetText = ModCache.load("get_text.lua")
+local GetRunText = ModCache.load("get_run_text.lua")
 
 local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
 
@@ -24,10 +24,10 @@ end
 
 
 local function get_cards_modifiers() -- get names then add appropriate descriptions
-    local cards = GetText:get_hand_names(G.hand.cards)
-    local editions = GetText:get_hand_editions(G.hand.cards)
-    local enhancements = GetText:get_hand_enhancements(G.hand.cards)
-    local seals = GetText:get_hand_seals(G.hand.cards)
+    local cards = GetRunText:get_hand_names(G.hand.cards)
+    local editions = GetRunText:get_hand_editions(G.hand.cards)
+    local enhancements = GetRunText:get_hand_enhancements(G.hand.cards)
+    local seals = GetRunText:get_hand_seals(G.hand.cards)
 
     for i = 1, #cards do
         local name = cards[i] or ""

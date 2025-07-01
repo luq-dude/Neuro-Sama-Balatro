@@ -1,12 +1,31 @@
+local GameHooks = ModCache.load("game-sdk/game_hooks.lua")
+local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
+
 local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
 local GetRunText = ModCache.load("get_run_text.lua")
-local GetText = ModCache.load("get_text.lua")
 
 local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
 
 local PickHandPackCards = setmetatable({}, { __index = NeuroAction })
 PickHandPackCards.__index = PickHandPackCards
+
+local cards_picked = 0
+
+local function pick_hand_pack_card(delay)
+    G.E_MANAGER:add_event(Event({
+        trigger = "after",
+        delay = delay,
+        blocking = false,
+        func = function()
+            local window = ActionWindow:new()
+            window:add_action(PickHandPackCards:new(window, nil))
+            window:register()
+            return true
+        end
+    }
+    ))
+end
 
 function PickHandPackCards:new(actionWindow, state)
     local obj = NeuroAction.new(self, actionWindow)
@@ -21,16 +40,17 @@ function PickHandPackCards:_get_description()  -- use G.P_CENTERS.p-buffoon_jumb
     local description = string.format("Pick cards from this pack, you can pick a max of " ..
     SMODS.OPENED_BOOSTER.config.center.config.choose
     .. " cards "
-    .. "out of the " .. SMODS.OPENED_BOOSTER.config.center.config.extra .. " available.")
+    .. "out of the " ..
+    SMODS.OPENED_BOOSTER.config.center.config.extra .. " available.")
 
     return description
 end
 
-local function get_cards_modifiers()
+local function get_cards_names()
     local cards = {}
     local card_type = {}
 
-	local card_mod = GetText:get_hand_names(G.hand.cards)
+	local card_mod = GetRunText:get_hand_names(G.hand.cards)
 
 	for i = 1, #card_mod do
 		local cards_type = card_mod[i] or ""
@@ -49,7 +69,7 @@ local function get_pack_cards() -- this is tarot type cards
     elseif SMODS.OPENED_BOOSTER.config.center.kind == "Arcana" then
         card_type = GetRunText:get_tarot_names(G.pack_cards.cards)
     else -- modded packs or if there is something I forgot
-        local card_mod = GetText:get_hand_names(G.pack_cards.cards)
+        local card_mod = GetRunText:get_hand_names(G.hand.cards)
 
         for i = 1, #card_mod do
             local cards_type = card_mod[i] or ""
@@ -74,7 +94,7 @@ function PickHandPackCards:_get_schema()
 			type = "array",
             items = {
 				type = "string",
-				enum = get_cards_modifiers()
+				enum = get_cards_names()
 			},
 		},
 		pack_card = { -- this is the tarot or spectral card
@@ -100,13 +120,13 @@ function PickHandPackCards:_validate_action(data, state)
     local selected_pack_card = data:get_string("pack_card")
     selected_hand = selected_hand._data
 
-	local hand = get_cards_modifiers()
+	local hand = get_cards_names()
     local pack_hand = get_pack_cards()
     local selected_amount = {}
     local hand_amount = {}
 
     if #selected_hand > #hand then return ExecutionResult.failure("You tried to take more cards then you are allowed too.") end
-    if #selected_hand == 0 then return ExecutionResult.failure("You should either take a card or skip the round") end
+    if #selected_hand == 0 then return ExecutionResult.failure("You should either pick a hand then pick a card from the pack or skip the round") end
 
     if not table.any(pack_hand, function(card)
             return card == selected_pack_card
@@ -135,14 +155,11 @@ function PickHandPackCards:_validate_action(data, state)
 	return ExecutionResult.success()
 end
 
--- buy from store directly "buy_and_use"
-
--- id play card button: "play_button"
 function PickHandPackCards:_execute_action(state)
 	local selected_hand = state["hand"]
     local selected_pack_card = state["pack_cards"]
 
-    local hand_string = get_cards_modifiers()
+    local hand_string = get_cards_names()
     local pack_hand_string = get_pack_cards()
     local hand = G.hand.cards
     local pack_cards_hand = G.pack_cards.cards
@@ -167,6 +184,13 @@ function PickHandPackCards:_execute_action(state)
                 G.hand:add_to_highlighted(pack_cards_hand[i])
                 local button = pack_cards_hand[i].children.use_button.UIRoot.children[2].children[1] -- get use button that is shown after clicking on card
                 button:click()
+                if SMODS.OPENED_BOOSTER.config.center.config.choose > cards_picked then
+                    cards_picked = cards_picked + 1
+                    pick_hand_pack_card(5) -- call action again if more than one pack card can be picked
+                else
+                    cards_picked = 0
+                    return true
+                end
                 return true
             end
         end

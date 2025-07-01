@@ -1,7 +1,6 @@
 local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
 local GetRunText = ModCache.load("get_run_text.lua")
-local GetText = ModCache.load("get_text.lua")
 
 local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
 
@@ -39,7 +38,7 @@ local function get_cards_modifiers()
         -- card_type = GetRunText:get_arcana_details()
     elseif SMODS.OPENED_BOOSTER.config.center.kind == "Standard" then
         -- this is temporary
-        local card_mod = GetText:get_hand_names(G.pack_cards.cards)
+        local card_mod = GetRunText:get_hand_names(G.pack_cards.cards)
 
         for i = 1, #card_mod do
             local cards_type = card_mod[i] or ""
@@ -48,7 +47,7 @@ local function get_cards_modifiers()
         end
         return cards
     else -- modded packs or if there is something I forgot
-        local card_mod = GetText:get_hand_names(G.pack_cards.cards)
+        local card_mod = GetRunText:get_hand_names(G.pack_cards.cards)
 
         for i = 1, #card_mod do
             local cards_type = card_mod[i] or ""
