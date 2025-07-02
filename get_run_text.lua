@@ -72,10 +72,9 @@ function getRunText:get_celestial_details(card_hand)
                     name = v.loc_txt.name
 				else
                     key_override = card.config.center_key
-                    -- loc_args[#loc_args + 1] = card.dissolve_colours
                 end
 
-                -- Idk what this does but it works with vanilla so it's good enough for me
+                -- Idk what this does but it works with vanilla and modded so it's good enough for me
                 loc_args = {
                     G.GAME.hands[v.config.hand_type].level,localize(v.config.hand_type, 'poker_hands'), G.GAME.hands[v.config.hand_type].l_mult, G.GAME.hands[v.config.hand_type].l_chips,
                     colours = {(G.GAME.hands[v.config.hand_type].level==1 and G.C.UI.TEXT_DARK or G.C.HAND_LEVELS[math.min(7, G.GAME.hands[v.config.hand_type].level)])}
@@ -104,7 +103,7 @@ function getRunText:get_celestial_details(card_hand)
     return cards
 end
 
-local function get_joker_args(name, card_ability)
+local function get_joker_args(name, card_ability,card)
     sendDebugMessage("effect_config" .. tprint(card_ability,1))
     local loc_args = {}
 
@@ -148,7 +147,7 @@ local function get_joker_args(name, card_ability)
             r_mults[#r_mults+1] = tostring(i)
         end
         local loc_mult = ' '..(localize('k_mult'))..' '
-        main_start = {
+        card.main_start = {
             {n=G.UIT.T, config={text = '  +',colour = G.C.MULT, scale = 0.32}},
             {n=G.UIT.O, config={object = DynaText({string = r_mults, colours = {G.C.RED},pop_in_rate = 9999999, silent = true, random_element = true, pop_delay = 0.5, scale = 0.32, min_cycle_time = 0})}},
             {n=G.UIT.O, config={object = DynaText({string = {
@@ -188,9 +187,9 @@ local function get_joker_args(name, card_ability)
     elseif card_ability.name == 'Smeared Joker' then
     elseif card_ability.name == 'Blueprint' then
         card_ability.blueprint_compat_ui = card_ability.blueprint_compat_ui or ''; card_ability.blueprint_compat_check = nil
-        main_end = (self.area and self.area == G.jokers) and {
+        card.main_end = (card.area and card.area == G.jokers) and {
             {n=G.UIT.C, config={align = "bm", minh = 0.4}, nodes={
-                {n=G.UIT.C, config={ref_table = self, align = "m", colour = G.C.JOKER_GREY, r = 0.05, padding = 0.06, func = 'blueprint_compat'}, nodes={
+                {n=G.UIT.C, config={ref_table = card, align = "m", colour = G.C.JOKER_GREY, r = 0.05, padding = 0.06, func = 'blueprint_compat'}, nodes={
                     {n=G.UIT.T, config={ref_table = card_ability, ref_value = 'blueprint_compat_ui',colour = G.C.UI.TEXT_LIGHT, scale = 0.32*0.8}},
                 }}
             }}
@@ -240,12 +239,12 @@ local function get_joker_args(name, card_ability)
     elseif card_ability.name == 'Obelisk' then loc_args = {card_ability.extra, card_ability.x_mult}
     elseif card_ability.name == 'Midas Mask' then
     elseif card_ability.name == 'Luchador' then
-        local has_message= (G.GAME and self.area and (self.area == G.jokers))
+        local has_message= (G.GAME and card.area and (card.area == G.jokers)) -- TODO: self should equal the card class I think so add that to this
         if has_message then
             local disableable = G.GAME.blind and ((not G.GAME.blind.disabled) and (G.GAME.blind:get_type() == 'Boss'))
-            main_end = {
+            card.main_end = {
                 {n=G.UIT.C, config={align = "bm", minh = 0.4}, nodes={
-                    {n=G.UIT.C, config={ref_table = self, align = "m", colour = disableable and G.C.GREEN or G.C.RED, r = 0.05, padding = 0.06}, nodes={
+                    {n=G.UIT.C, config={ref_table = card, align = "m", colour = disableable and G.C.GREEN or G.C.RED, r = 0.05, padding = 0.06}, nodes={
                         {n=G.UIT.T, config={text = ' '..localize(disableable and 'k_active' or 'ph_no_boss_active')..' ',colour = G.C.UI.TEXT_LIGHT, scale = 0.32*0.9}},
                     }}
                 }}
@@ -261,7 +260,7 @@ local function get_joker_args(name, card_ability)
     elseif card_ability.name == 'Hallucination' then loc_args = {G.GAME.probabilities.normal, card_ability.extra}
     elseif card_ability.name == 'Lucky Cat' then loc_args = {card_ability.extra, card_ability.x_mult}
     elseif card_ability.name == 'Baseball Card' then loc_args = {card_ability.extra}
-    elseif card_ability.name == 'Bull' then loc_args = {card_ability.extra, card_ability.extra*math.max(0,G.GAME.dollars) or 0}
+    elseif card_ability.name == 'Bull' then loc_args = {card_ability.extra, card_ability.extra.math.max(0,G.GAME.dollars) or 0}
     elseif card_ability.name == 'Diet Cola' then loc_args = {localize{type = 'name_text', set = 'Tag', key = 'tag_double', nodes = {}}}
     elseif card_ability.name == 'Trading Card' then loc_args = {card_ability.extra}
     elseif card_ability.name == 'Flash Card' then loc_args = {card_ability.extra, card_ability.mult}
@@ -277,9 +276,9 @@ local function get_joker_args(name, card_ability)
     elseif card_ability.name == 'Invisible Joker' then loc_args = {card_ability.extra, card_ability.invis_rounds}
     elseif card_ability.name == 'Brainstorm' then
         card_ability.blueprint_compat_ui = card_ability.blueprint_compat_ui or ''; card_ability.blueprint_compat_check = nil
-        main_end = (self.area and self.area == G.jokers) and {
+        card.main_end = (card.area and card.area == G.jokers) and {
             {n=G.UIT.C, config={align = "bm", minh = 0.4}, nodes={
-                {n=G.UIT.C, config={ref_table = self, align = "m", colour = G.C.JOKER_GREY, r = 0.05, padding = 0.06, func = 'blueprint_compat'}, nodes={
+                {n=G.UIT.C, config={ref_table = card, align = "m", colour = G.C.JOKER_GREY, r = 0.05, padding = 0.06, func = 'blueprint_compat'}, nodes={
                     {n=G.UIT.T, config={ref_table = card_ability, ref_value = 'blueprint_compat_ui',colour = G.C.UI.TEXT_LIGHT, scale = 0.32*0.8}},
                 }}
             }}
@@ -304,7 +303,6 @@ end
 
 function getRunText:get_joker_names(card_hand)
     local cards = {}
-
 	for pos, card in ipairs(card_hand) do
         for _, v in pairs(G.P_CENTER_POOLS.Joker) do
             local name = card.ability.name
@@ -331,7 +329,7 @@ function getRunText:get_joker_details(card_hand)
         if card.ability.set == 'Joker' then
             local key_override = nil
             for _, v in pairs(G.P_CENTER_POOLS.Joker) do
-                local loc_args,loc_nodes = get_joker_args(card.ability.name,card.ability), {}
+                local loc_args,loc_nodes = get_joker_args(card.ability.name,card.ability,card), {}
                 local name = card.ability.name
 
                 if v.key ~= card.config.center_key then goto continue end
@@ -498,7 +496,6 @@ local function get_tarot_args(name, effect_config)
     elseif name == "The World" then loc_args = {effect_config.max_highlighted,effect_config.suit_conv}
 	end
 
-    sendDebugMessage("loc_args: " .. tprint(loc_args,1,2))
     return loc_args
 end
 
@@ -518,7 +515,6 @@ function getRunText:get_tarot_names(card_hand)
             cards[#cards + 1] = name
             ::continue::
         end
-        sendDebugMessage("past continue")
     end
     return cards
 end
@@ -741,5 +737,24 @@ function getRunText:get_hand_seals(cards_table)
     return cards
 end
 
+function getRunText:get_current_hand_modifiers(cards_table)
+    local enhancements = table.table_to_string(self:get_hand_enhancements(cards_table))
+    local editions = table.table_to_string(self:get_hand_editions(cards_table))
+    local seals = table.table_to_string(self:get_hand_seals(cards_table))
+
+    local enhancements_string = "- card enhancements: " .. enhancements
+    local editions_string = "- card editions: " .. editions
+    local seals_string = "- card seals: " .. seals
+
+    if enhancements == "" == enhancements == nil then
+        enhancements_string = "There are no enhancements on your cards"
+    elseif editions == "" or editions == nil then -- can cause issues with pack cards
+        editions_string = "There are no editions on your cards"
+    elseif seals == "" or seals == nil then
+        seals_string = "There are no seals on your cards"
+    end
+
+    return enhancements_string,editions_string,seals_string
+end
 
 return getRunText

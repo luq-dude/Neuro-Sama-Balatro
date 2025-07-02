@@ -1,6 +1,7 @@
 local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
 local GetRunText = ModCache.load("get_run_text.lua")
+local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
 
 local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
 
@@ -28,50 +29,57 @@ end
 local function get_cards_modifiers()
     local cards = {}
     local card_type = {}
-    if SMODS.OPENED_BOOSTER.config.center.kind == "Buffoon" then
+    if G.pack_cards.cards == nil or G.pack_cards.cards == {} then return end
+    if SMODS.OPENED_BOOSTER.config.center.kind == "Buffoon" or G.pack_cards.cards[1].ability.set == "Joker" then
+        local hand = table.table_to_string(GetRunText:get_joker_details(G.pack_cards.cards))
+
+        Context.send(string.format("This is the hand of cards that are in this pack: " ..
+        hand .. "\n" ..
+        "These cards will give passive bonuses after each hand played, these range from increasing the chips" ..
+        " increasing the mult of a hand or giving money or consumables after certain actions."))
+
         card_type = GetRunText:get_joker_names(G.pack_cards.cards)
-    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Celestial" then
+    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Celestial" or G.pack_cards.cards[1].ability.set == "Celestial" then
+        local hand = table.table_to_string(GetRunText:get_celestial_details(G.pack_cards.cards))
+
+        Context.send(string.format("This is the hand of cards that are in this pack: " ..
+        hand .. "\n" ..
+        "These cards will level up a poker hand and improve the scoring that you will receive for playing them."))
+
         card_type = GetRunText:get_celestial_names(G.pack_cards.cards)
-    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Spectral" then
-        card_type = GetRunText:get_spectral_details(G.pack_cards.cards)
-    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Arcana" then
-        -- card_type = GetRunText:get_arcana_details()
-    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Standard" then
+    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Standard" or G.pack_cards.cards[1].ability.set == "Base" then
+        local hand, enhancements, editions, seals = table.table_to_string(GetRunText:get_card_modifiers(G.pack_cards.cards)),GetRunText:get_current_hand_modifiers(G.pack_cards.cards)
+
+        Context.send(string.format("This is the hand of cards that are in this pack: " ..
+        hand .. "\n" ..
+        "These are the card modifiers that are on the cards right now," ..
+        " there can only be one edition,enhancement and seal on each card: \n" ..
+        enhancements .. "\n" ..
+        editions .. "\n" ..
+        seals),true)
         -- this is temporary
-        local card_mod = GetRunText:get_hand_names(G.pack_cards.cards)
+        card_type = GetRunText:get_hand_names(G.pack_cards.cards)
+    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Spectral" or G.pack_cards.cards[1].ability.set == "Spectral" then
+        sendDebugMessage("Spectral should not be called from pick_pack_card")
+        return
+    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Arcana" or G.pack_cards.cards[1].ability.set == "Tarot" then
+        sendDebugMessage("Arcana should not be called from pick_pack_card")
+        return
+    else -- modded packs that dont contain contain a default set or if there is something I forgot
+        sendDebugMessage("card table: " .. tprint(G.pack_cards.cards,1,2))
+        local hand = table.table_to_string(GetRunText:get_hand_names(G.pack_cards.cards))
 
-        for i = 1, #card_mod do
-            local cards_type = card_mod[i] or ""
+        Context.send(string.format("This is the hand of cards that are in this pack: " ..
+        hand))
 
-            cards[i] = cards_type
-        end
-        return cards
-    else -- modded packs or if there is something I forgot
-        local card_mod = GetRunText:get_hand_names(G.pack_cards.cards)
-
-        for i = 1, #card_mod do
-            local cards_type = card_mod[i] or ""
-
-            cards[i] = cards_type
-        end
-        return cards
+        card_type = GetRunText:get_hand_names(G.pack_cards.cards)
     end
 
     for i = 1, #card_type do
-        local cards_type = card_type[i] or ""
+        local local_card = card_type[i] or ""
 
-        cards[i] = cards_type
+        cards[i] = local_card
     end
-
-    -- for i = 1, #cards do
-        -- local planet = planet_cards[i] or ""
-        -- local jokers = joker_cards[i] or ""
-        -- local spectral = spectral_cards[i] or ""
-
-        -- cards[i] = planet
-        -- cards[i] = jokers
-        -- cards[i] = spectral
-    -- end
 
     return cards
 end

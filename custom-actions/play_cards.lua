@@ -1,3 +1,4 @@
+local Context = ModCache.load("game-sdk/messages/outgoing/Context.lua")
 local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
 local GetRunText = ModCache.load("get_run_text.lua")
@@ -22,23 +23,10 @@ function PlayCards:_get_description()
     return description
 end
 
+local function get_cards_modifiers()
+    Context.send("This is the information on your cards current modifiers " .. table:table_to_string(GetRunText:get_current_hand_modifiers(G.hand.cards)))
 
-local function get_cards_modifiers() -- get names then add appropriate descriptions
-    local cards = GetRunText:get_hand_names(G.hand.cards)
-    local editions = GetRunText:get_hand_editions(G.hand.cards)
-    local enhancements = GetRunText:get_hand_enhancements(G.hand.cards)
-    local seals = GetRunText:get_hand_seals(G.hand.cards)
-
-    for i = 1, #cards do
-        local name = cards[i] or ""
-        local edition = editions[i] or ""
-        local enhancement = enhancements[i] or ""
-        local seal = seals[i] or ""
-
-        cards[i] = name .. edition .. enhancement .. seal
-    end
-
-    return cards
+    return GetRunText:get_hand_names(G.hand.cards)
 end
 
 function PlayCards:_get_schema()

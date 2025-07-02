@@ -4,6 +4,7 @@ local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
 local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
 local GetRunText = ModCache.load("get_run_text.lua")
+local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
 
 local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
 
@@ -64,19 +65,32 @@ local function get_pack_cards() -- this is tarot type cards
 	local cards = {}
 	local card_type = {}
 
+    local hand, enhancements, editions, seals = table.table_to_string(GetRunText:get_card_modifiers(G.hand.cards)),GetRunText:get_current_hand_modifiers(G.hand.cards)
+
+    Context.send(string.format(
+    "these are the cards in your hand \n" .. hand .. "\n" ..
+    "These are the card modifiers that are on the cards right now," ..
+    " there can only be one edition,enhancement and seal on each card: \n" ..
+    enhancements .. "\n" ..
+    editions .. "\n" ..
+    seals),true)
+
+    if G.pack_cards.cards == nil or G.pack_cards.cards == {} then return end
     if SMODS.OPENED_BOOSTER.config.center.kind == "Spectral" then
+        local pack_hand = table.table_to_string(GetRunText:get_spectral_details(G.pack_cards.cards))
+        Context.send(string.format("This is the hand of cards that are in this pack: " .. pack_hand))
+
         card_type = GetRunText:get_spectral_names(G.pack_cards.cards)
     elseif SMODS.OPENED_BOOSTER.config.center.kind == "Arcana" then
+        local pack_hand = table.table_to_string(GetRunText:get_tarot_details(G.pack_cards.cards))
+        Context.send(string.format("This is the hand of cards that are in this pack: " .. pack_hand))
+
         card_type = GetRunText:get_tarot_names(G.pack_cards.cards)
-    else -- modded packs or if there is something I forgot
-        local card_mod = GetRunText:get_hand_names(G.hand.cards)
+    else -- modded packs that dont contain contain a default set or if there is something I forgot
+        local pack_hand = table.table_to_string(GetRunText:get_hand_details(G.pack_cards.cards))
+        Context.send(string.format("This is the hand of cards that are in this pack: " .. pack_hand))
 
-        for i = 1, #card_mod do
-            local cards_type = card_mod[i] or ""
-
-            cards[i] = cards_type
-        end
-        return cards
+        card_type = GetRunText:get_hand_names(G.pack_cards.cards)
     end
 
     for i = 1, #card_type do
