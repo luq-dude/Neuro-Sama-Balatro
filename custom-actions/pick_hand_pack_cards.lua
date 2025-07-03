@@ -6,6 +6,9 @@ local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
 local GetRunText = ModCache.load("get_run_text.lua")
 local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
 
+local NeuroActionHandler = ModCache.load("game-sdk/actions/neuro_action_handler.lua")
+local SkipPack = ModCache.load("custom-actions/skip_pack.lua")
+
 local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
 
 local PickHandPackCards = setmetatable({}, { __index = NeuroAction })
@@ -75,7 +78,7 @@ local function get_pack_cards() -- this is tarot type cards
     editions .. "\n" ..
     seals),true)
 
-    if G.pack_cards.cards == nil or G.pack_cards.cards == {} then return end
+    if G.pack_cards == nil or G.pack_cards.cards == nil or G.pack_cards.cards == {} then return end
     if SMODS.OPENED_BOOSTER.config.center.kind == "Spectral" then
         local pack_hand = table.table_to_string(GetRunText:get_spectral_details(G.pack_cards.cards))
         Context.send(string.format("This is the hand of cards that are in this pack: " .. pack_hand))
@@ -192,6 +195,7 @@ function PickHandPackCards:_execute_action(state)
         end
     end
 
+    if pack_hand_string == nil then return false end -- get warning below if this is not here
     for _, card in ipairs(pack_hand_string) do
         for i = 1, #pack_cards_hand, 1 do
             if card == selected_pack_card then
@@ -210,6 +214,7 @@ function PickHandPackCards:_execute_action(state)
         end
     end
 
+    NeuroActionHandler.unregister_actions({SkipPack:new()})
 	return true
 end
 

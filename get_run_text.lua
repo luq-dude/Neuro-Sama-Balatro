@@ -470,30 +470,30 @@ function getRunText:get_spectral_details(card_hand)
 end
 
 local function get_tarot_args(name, effect_config)
-    sendDebugMessage("effect_config" .. tprint(effect_config,1))
+    sendDebugMessage("effect_config" .. tprint(effect_config,1) .. " name: " .. name)
     local loc_args = {}
-    if name == "The Fool" then loc_args = {effect_config.consumeable}
-    elseif name == "The Magician" then loc_args = {effect_config.max_highlighted,effect_config.mod_conv}
+    if name == "The Fool" then loc_args = {}
+    elseif name == "The Magician" then loc_args = {effect_config.max_highlighted,localize{type = 'name_text', set = 'Enhanced', key = effect_config.mod_conv}}
     elseif name == "The High Priestess" then loc_args = {effect_config.planets}
-    elseif name == "The Empress" then loc_args = {effect_config.max_highlighted,effect_config.mod_conv}
+    elseif name == "The Empress" then loc_args = {effect_config.max_highlighted,localize{type = 'name_text', set = 'Enhanced', key = effect_config.mod_conv}}
 	elseif name == "The Emperor" then loc_args = {effect_config.tarots}
-	elseif name == "The Hierophant" then loc_args = {effect_config.max_highlighted,effect_config.mod_conv}
-	elseif name == "The Lovers" then loc_args = {effect_config.max_highlighted,effect_config.mod_conv}
-	elseif name == "The Chariot" then loc_args = {effect_config.max_highlighted,effect_config.mod_conv}
-	elseif name == "Justice" then loc_args = {effect_config.max_highlighted,effect_config.mod_conv}
+	elseif name == "The Hierophant" then loc_args = {effect_config.max_highlighted,localize{type = 'name_text', set = 'Enhanced', key = effect_config.mod_conv}}
+	elseif name == "The Lovers" then loc_args = {effect_config.max_highlighted,localize{type = 'name_text', set = 'Enhanced', key = effect_config.mod_conv}}
+	elseif name == "The Chariot" then loc_args = {effect_config.max_highlighted,localize{type = 'name_text', set = 'Enhanced', key = effect_config.mod_conv}}
+	elseif name == "Justice" then loc_args = {effect_config.max_highlighted,localize{type = 'name_text', set = 'Enhanced', key = effect_config.mod_conv}}
 	elseif name == "The Hermit" then loc_args = {effect_config.extra}
 	elseif name == "The Wheel of Fortune" then loc_args = {G.GAME.probabilities.normal,effect_config.extra}
 	elseif name == "Strength" then loc_args = {effect_config.max_highlighted}
     elseif name == "The Hanged Man" then loc_args = {effect_config.max_highlighted}
     elseif name == "Death" then loc_args = {effect_config.max_highlighted}
     elseif name == "Temperance" then loc_args = {effect_config.extra,effect_config.money}
-    elseif name == "The Devil" then loc_args = {effect_config.max_highlighted,effect_config.mod_conv}
-    elseif name == "The Tower" then loc_args = {effect_config.max_highlighted,effect_config.mod_conv}
-    elseif name == "The Star" then loc_args = {effect_config.max_highlighted,effect_config.suit_conv}
-    elseif name == "The Moon" then loc_args = {effect_config.max_highlighted,effect_config.suit_conv}
-    elseif name == "The Sun" then loc_args = {effect_config.max_highlighted,effect_config.suit_conv}
+    elseif name == "The Devil" then loc_args = {effect_config.max_highlighted,localize{type = 'name_text', set = 'Enhanced', key = effect_config.mod_conv}}
+    elseif name == "The Tower" then loc_args = {effect_config.max_highlighted,localize{type = 'name_text', set = 'Enhanced', key = effect_config.mod_conv}}
+    elseif name == "The Star" then loc_args = {effect_config.max_highlighted,localize(effect_config.suit_conv, 'suits_plural'),colours = {G.C.SUITS[effect_config.suit_conv]}}
+    elseif name == "The Moon" then loc_args = {effect_config.max_highlighted,localize(effect_config.suit_conv, 'suits_plural'),colours = {G.C.SUITS[effect_config.suit_conv]}}
+    elseif name == "The Sun" then loc_args = {effect_config.max_highlighted,localize(effect_config.suit_conv, 'suits_plural'),colours = {G.C.SUITS[effect_config.suit_conv]}}
     elseif name == "Judgement" then loc_args = {}
-    elseif name == "The World" then loc_args = {effect_config.max_highlighted,effect_config.suit_conv}
+    elseif name == "The World" then loc_args = {effect_config.max_highlighted,localize(effect_config.suit_conv, 'suits_plural'),colours = {G.C.SUITS[effect_config.suit_conv]}}
 	end
 
     return loc_args
@@ -525,8 +525,6 @@ function getRunText:get_tarot_details(card_hand)
 	for pos, card in ipairs(card_hand) do
 		local tarot_desc = ""
 
-        sendDebugMessage("Card " .. card.ability.name .. ": " .. tprint(card,1,2))
-
         if card.ability.set == 'Tarot' then
             local key_override = nil
             for _, v in pairs(G.P_CENTER_POOLS.Tarot) do
@@ -542,7 +540,7 @@ function getRunText:get_tarot_details(card_hand)
                     key_override = card.config.center_key
                 end
 
-                localize{type = 'descriptions', key = v.key, set = v.set, nodes = loc_nodes, vars = loc_args}
+                localize{type = 'descriptions', key = v.key or key_override, set = v.set or card.ability.set, nodes = loc_nodes, vars = loc_args}
 
                 local description = "\n" .. card.ability.name .. ": "
                 for _, line in ipairs(loc_nodes) do
@@ -746,11 +744,18 @@ function getRunText:get_current_hand_modifiers(cards_table)
     local editions_string = "- card editions: " .. editions
     local seals_string = "- card seals: " .. seals
 
-    if enhancements == "" == enhancements == nil then
+    sendDebugMessage("enhancement: " .. enhancements)
+    sendDebugMessage("editions: " .. editions)
+    sendDebugMessage("seals: " .. seals)
+
+    -- figure out better way to do this because sometimes this doesn't work even if there are no modifiers
+    if enhancements == "" or enhancements == nil then
         enhancements_string = "There are no enhancements on your cards"
-    elseif editions == "" or editions == nil then -- can cause issues with pack cards
+    end
+    if editions == "" or editions == nil then
         editions_string = "There are no editions on your cards"
-    elseif seals == "" or seals == nil then
+    end
+    if seals == "" or seals == nil then
         seals_string = "There are no seals on your cards"
     end
 

@@ -3,6 +3,9 @@ local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
 local GetRunText = ModCache.load("get_run_text.lua")
 local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
 
+local NeuroActionHandler = ModCache.load("game-sdk/actions/neuro_action_handler.lua")
+local SkipPack = ModCache.load("custom-actions/skip_pack.lua")
+
 local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
 
 local PickCards = setmetatable({}, { __index = NeuroAction })
@@ -29,7 +32,7 @@ end
 local function get_cards_modifiers()
     local cards = {}
     local card_type = {}
-    if G.pack_cards.cards == nil or G.pack_cards.cards == {} then return end
+    if G.pack_cards == nil or G.pack_cards.cards == nil or G.pack_cards.cards == {} then return end
     if SMODS.OPENED_BOOSTER.config.center.kind == "Buffoon" or G.pack_cards.cards[1].ability.set == "Joker" then
         local hand = table.table_to_string(GetRunText:get_joker_details(G.pack_cards.cards))
 
@@ -175,6 +178,7 @@ function PickCards:_execute_action(state)
         end
     end
 
+    NeuroActionHandler.unregister_actions({SkipPack:new()})
 	return true
 end
 
