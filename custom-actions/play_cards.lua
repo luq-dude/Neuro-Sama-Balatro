@@ -18,18 +18,34 @@ function PlayCards:_get_name()
 end
 
 function PlayCards:_get_description()
-    local description = "play a maximum of 5 cards with your current hand. The cards will be ordered by the position they are located in your hand from left to right"
+    local description = string.format("play a maximum of 5 cards with your current hand." ..
+    "The cards will be ordered by the position they are located in your hand from left to right." ..
+    "When defining the card's index the first card will be 1")
 
     return description
 end
 
 local function get_cards_modifiers()
-    Context.send("This is the information on your cards current modifiers " .. table:table_to_string(GetRunText:get_current_hand_modifiers(G.hand.cards)))
+    local enhancements, editions, seals = GetRunText:get_current_hand_modifiers(G.hand.cards)
+
+    Context.send(string.format("These are what the card's modifiers do," ..
+    " there can only be one edition,enhancement and seal on each card: \n" ..
+    enhancements .. "\n" ..
+    editions .. "\n" ..
+    seals),true)
+
+    Context.send("These are the current cards in your hand and their modifiers: \n" .. table.table_to_string(GetRunText:get_card_modifiers(G.hand.cards)),true)
 
     return GetRunText:get_hand_names(G.hand.cards)
 end
 
 function PlayCards:_get_schema()
+    local hand_names = GetRunText:get_hand_names(G.hand.cards) -- get length of hand
+    local hand_length = {}
+    for i = 1, #hand_names do
+        table.insert(hand_length, i)
+    end
+
     return JsonUtils.wrap_schema({
         hand = {
 			type = "array",
@@ -37,7 +53,14 @@ function PlayCards:_get_schema()
 				type = "string",
 				enum = get_cards_modifiers()
 			},
-		}
+		},
+        cards_index = {
+            type = "array",
+            items ={
+                type = "integer",
+                enum = hand_length
+            }
+        }
     })
 end
 
@@ -55,7 +78,9 @@ end
 
 function PlayCards:_validate_action(data, state)
     local selected_hand = data:get_object("hand")
+    local selected_index = data:get_object("cards_index")
     selected_hand = selected_hand._data
+    selected_index = selected_index._data
 
     if not selected_hand then
         return ExecutionResult.failure(SDK_Strings.action_failed_missing_required_parameter("hand"))
@@ -65,9 +90,23 @@ function PlayCards:_validate_action(data, state)
 
     if #selected_hand > 5 then return ExecutionResult.failure("Cannot play more than 5 cards.") end
 
+    if #selected_index ~= #selected_hand then return ExecutionResult.failure("You have either given more card indexs or more selected cards.") end
+
 	local hand = get_cards_modifiers()
     local selected_amount = {}
     local hand_amount = {}
+
+    for pos, card in ipairs(selected_hand) do
+        for ipos, index in ipairs(selected_index) do
+            sendDebugMessage("card: " .. card .. " index: " .. index .. " card in hand at index: " .. hand[index])
+            if hand[index] ~= card and pos == ipos then
+                return ExecutionResult.failure("the card: " .. card .. " is not at the index " .. index .. " in the hand")
+            else
+                goto continue
+            end
+        end
+        ::continue::
+    end
 
     -- check if card exist
 	for _, selected_card in pairs(selected_hand) do
@@ -94,6 +133,7 @@ function PlayCards:_validate_action(data, state)
         end
     end
 
+    state["cards_index"] = selected_index
     state["hand"] = selected_hand
     return ExecutionResult.success()
 end
@@ -101,6 +141,7 @@ end
 -- id play card button: "play_button"
 function PlayCards:_execute_action(state)
     local selected_hand = state["hand"]
+    local selected_index = state["cards_index"]
 
     -- local play_button = G.buttons:get_UIE_by_ID('play_button') -- not used
     local hand_string = get_cards_modifiers()
@@ -111,12 +152,15 @@ function PlayCards:_execute_action(state)
 
     for _, card in pairs(selected_hand) do
         local card_id = card
-        for index = 1, #hand_string, 1  do
-            if card == hand_string[index] and (highlighted_cards[card_id] or 0) < selected_amount[card] then
+        for _, index in ipairs(selected_index) do
+            if hand_string[index] == card and (highlighted_cards[card_id] or 0) < selected_amount[card] then
+                sendDebugMessage("hand card: " .. hand_string[index] .. " card: " .. card)
                 G.hand:add_to_highlighted(hand[index])
                 highlighted_cards[card_id] = (highlighted_cards[card_id] or 0) + 1
+                goto continue
             end
         end
+        ::continue::
     end
 
     -- shouldn't cause any issues with mods

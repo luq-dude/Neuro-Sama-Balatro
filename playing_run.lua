@@ -92,14 +92,6 @@ function PlayingRun:hook_draw_card()
                     end
 
                     if G.STATE == G.STATES.SELECTING_HAND then
-                        local enhancements, editions, seals = GetRunText:get_current_hand_modifiers(G.hand.cards)
-
-                        Context.send(string.format("These are what the card's modifiers do," ..
-                        " there can only be one edition,enhancement and seal on each card: \n" ..
-                        enhancements .. "\n" ..
-                        editions .. "\n" ..
-                        seals),true)
-
                         play_card(14)
                         return true
                     end

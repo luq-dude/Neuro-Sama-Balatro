@@ -569,34 +569,72 @@ function getRunText:get_tarot_details(card_hand)
 end
 
 -- playing card stuff
-function getRunText:get_card_modifiers(card_hand)
+function getRunText:get_card_modifiers(card_hand) -- TODO: port this to other context stuff
     local cards = {}
 
-	for pos, card in ipairs(card_hand) do
+	for _, card in ipairs(card_hand) do
 		local card_desc = card.base.name or ""
 
-        sendDebugMessage("Card: " .. tprint(card,1,2))
-
         if card.edition then
-            local description = ", Card edition: " .. card.edition.name or card.ability.name -- could also use card.ability.name
+            for _, v in ipairs(G.P_CENTER_POOLS.Edition) do
+                sendDebugMessage("card ability: " .. tprint(card.ability,1,2))
+                local description
+                if v.key == card.edition.key and v.loc_txt and type(v.loc_vars) == 'function' then
+                    sendDebugMessage("running if: " .. v.loc_txt.name .. " loc_txt table: " .. tprint(v.loc_txt,1,2))
+                    description = ", Card Edition: " .. v.loc_txt.name
+                elseif v.key ~= card.edition.key then
+                    goto continue
+                else
+                    sendDebugMessage("running else")
+                    description = ", Card Edition: " .. card.ability.name
+                end
 
-            card_desc = card_desc .. description
+                card_desc = card_desc .. description
+                ::continue::
+            end
         end
 
         if card.ability.effect ~= "Base" then
-            local description = ", Card Enhancement: " .. card.ability.name
+            for _, v in ipairs(G.P_CENTER_POOLS.Enhanced) do
+                sendDebugMessage("card ability: " .. tprint(card.ability,1,2))
+                local description
+                if v.key == card.config.center_key and v.loc_txt and type(v.loc_vars) == 'function' then
+                    sendDebugMessage("running if: " .. v.loc_txt.name .. " loc_txt table: " .. tprint(v.loc_txt,1,2))
+                    description = ", Card Enhancement: " .. v.loc_txt.name
+                elseif v.key ~= card.config.center_key then
+                    goto continue
+                else
+                    sendDebugMessage("running else")
+                    description = ", Card Enhancement: " .. card.ability.name
+                end
 
-            card_desc = card_desc .. description
+                card_desc = card_desc .. description
+                ::continue::
+            end
         end
 
         if card.ability.seal then
-            local description = ", Card seal: " .. card.seal .. " Seal"
+            for _, v in ipairs(G.P_CENTER_POOLS.Seal) do
+                sendDebugMessage("card ability: " .. tprint(card.ability,1,2))
+                local description
+                if v.key == card.seal and v.loc_txt and type(v.loc_vars) == 'function' then
+                    sendDebugMessage("running if: " .. v.loc_txt.name .. " loc_txt table: " .. tprint(v.loc_txt,1,2))
+                    description = ", Card Seal: " .. v.loc_txt.name
+                elseif v.key ~= card.seal then
+                    goto continue
+                else
+                    sendDebugMessage("running else")
+                    description = ", Card Seal: " .. card.seal .. " Seal"
+                end
 
-            card_desc = card_desc .. description
+                card_desc = card_desc .. description
+                ::continue::
+            end
         end
 
         cards[#cards+1] = "- " .. card_desc .. "\n"
     end
+
 
     return cards
 end
@@ -620,8 +658,9 @@ function getRunText:get_hand_editions(cards_table)
         if card.edition then
             local key_override
             for _, v in pairs(G.P_CENTER_POOLS.Edition) do
-                local loc_args,loc_nodes = GetModifierArgs:get_edition_args(card.edition.type,G.P_CENTERS[v.key]), {}
+                local loc_args,loc_nodes = GetModifierArgs.get_edition_args(card.edition.type,G.P_CENTERS[v.key]), {}
                 if v.key ~= card.edition.key then goto continue end -- go next loop if not the same as card
+                sendDebugMessage("card stuff: " .. card.edition.type .. "  card: " .. tprint(card,1,2))
                 if v.loc_vars and type(v.loc_vars) == 'function' then
                     local res = v:loc_vars() or {}
                     loc_args = res.vars or loc_args

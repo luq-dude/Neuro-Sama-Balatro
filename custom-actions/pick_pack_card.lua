@@ -88,6 +88,12 @@ local function get_cards_modifiers()
 end
 
 function PickCards:_get_schema()
+    local hand_names = GetRunText:get_hand_names(G.pack_cards.cards) -- get length of hand
+    local hand_length = {}
+    for i = 1, #hand_names do
+        table.insert(hand_length, i)
+    end
+
     return JsonUtils.wrap_schema({
         hand = {
 			type = "array",
@@ -95,7 +101,14 @@ function PickCards:_get_schema()
 				type = "string",
 				enum = get_cards_modifiers()
 			},
-		}
+		},
+        cards_index = {
+            type = "array",
+            items ={
+                type = "integer",
+                enum = hand_length
+            }
+        }
     })
 end
 
@@ -113,14 +126,31 @@ end
 
 function PickCards:_validate_action(data, state)
     local selected_hand = data:get_object("hand")
+    local selected_index = data:get_object("cards_index")
     selected_hand = selected_hand._data
+    selected_index = selected_index._data
 
     if #selected_hand > SMODS.OPENED_BOOSTER.config.center.config.choose then return ExecutionResult.failure("You tried to take more cards then you are allowed too.") end
     if #selected_hand == 0 then return ExecutionResult.failure("You should either take a card or skip the round") end
 
+    if #selected_index ~= #selected_hand then return ExecutionResult.failure("You have either given more card indexs or more selected cards.") end
+
 	local hand = get_cards_modifiers()
     local selected_amount = {}
     local hand_amount = {}
+
+    for pos, card in ipairs(selected_hand) do
+        for ipos, index in ipairs(selected_index) do
+            sendDebugMessage("card: " .. card .. " index: " .. index .. " card in hand at index: " .. hand[index])
+            if hand[index] ~= card and pos == ipos then
+                return ExecutionResult.failure("the card: " .. card .. " is not at the index " .. index .. " in the hand")
+            else
+                goto continue
+            end
+        end
+        ::continue::
+    end
+
 
     -- check if card exist
 	for _, selected_card in pairs(selected_hand) do
@@ -147,6 +177,7 @@ function PickCards:_validate_action(data, state)
         end
     end
 
+    state["cards_index"] = selected_index
     state["hand"] = selected_hand
 	return ExecutionResult.success()
 end
@@ -156,6 +187,7 @@ end
 -- id play card button: "play_button"
 function PickCards:_execute_action(state)
 	local selected_hand = state["hand"]
+    local selected_index = state["cards_index"]
 
     local hand_string = get_cards_modifiers()
     local hand = G.pack_cards.cards
@@ -165,18 +197,20 @@ function PickCards:_execute_action(state)
 
     sendDebugMessage("pack_size: " .. tostring(G.GAME.pack_choices) .. "pack_picked" .. SMODS.OPENED_BOOSTER.config.center_key .. "config: " .. tprint(SMODS.OPENED_BOOSTER.config.center.config,1,2))
 
+    if hand_string == nil then return false end
     for _, card in pairs(selected_hand) do
         local card_id = card
-        for index = 1, #hand_string, 1  do
-            if card == hand_string[index] and (highlighted_cards[card_id] or 0) < selected_amount[card] then
+        for _, index in ipairs(selected_index) do
+            if hand_string[index] == card and (highlighted_cards[card_id] or 0) < selected_amount[card] then
+                sendDebugMessage("hand card: " .. hand_string[index] .. " card: " .. card)
                 G.hand:add_to_highlighted(hand[index])
-                sendDebugMessage("Final card print: " .. tprint(hand[index].children.use_button.UIRoot.children[1].children[1],1,2))
 
                 local button = hand[index].children.use_button.UIRoot.children[1].children[1] -- get use button that is shown after clicking on card
                 button:click()
             end
         end
     end
+
 
     NeuroActionHandler.unregister_actions({SkipPack:new()})
 	return true

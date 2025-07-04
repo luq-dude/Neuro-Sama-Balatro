@@ -45,7 +45,7 @@ function PickHandPackCards:_get_description()  -- use G.P_CENTERS.p-buffoon_jumb
     SMODS.OPENED_BOOSTER.config.center.config.choose
     .. " cards "
     .. "out of the " ..
-    SMODS.OPENED_BOOSTER.config.center.config.extra .. " available.")
+    SMODS.OPENED_BOOSTER.config.center.config.extra .. " available. You should pick the cards you want one at a time.")
 
     return description
 end
@@ -106,6 +106,12 @@ local function get_pack_cards() -- this is tarot type cards
 end
 
 function PickHandPackCards:_get_schema()
+    local hand_names = GetRunText:get_hand_names(G.hand.cards) -- get length of hand
+    local hand_length = {}
+    for i = 1, #hand_names do
+        table.insert(hand_length, i)
+    end
+
     return JsonUtils.wrap_schema({
         hand = {
 			type = "array",
@@ -114,6 +120,13 @@ function PickHandPackCards:_get_schema()
 				enum = get_cards_names()
 			},
 		},
+        cards_index = {
+            type = "array",
+            items ={
+                type = "integer",
+                enum = hand_length
+            }
+        },
 		pack_card = { -- this is the tarot or spectral card
 			enum = get_pack_cards()
 		}
@@ -134,21 +147,36 @@ end
 
 function PickHandPackCards:_validate_action(data, state)
     local selected_hand = data:get_object("hand")
+    local selected_index = data:get_object("cards_index")
     local selected_pack_card = data:get_string("pack_card")
     selected_hand = selected_hand._data
+    selected_index = selected_index._data
 
 	local hand = get_cards_names()
     local pack_hand = get_pack_cards()
     local selected_amount = {}
     local hand_amount = {}
+    -- I think there is a max highlighted_cards var somewhere
+    if #selected_hand > 5 then return ExecutionResult.failure("You tried to take more cards then you are allowed too.") end
 
-    if #selected_hand > #hand then return ExecutionResult.failure("You tried to take more cards then you are allowed too.") end
-    if #selected_hand == 0 then return ExecutionResult.failure("You should either pick a hand then pick a card from the pack or skip the round") end
+    if #selected_index ~= #selected_hand then return ExecutionResult.failure("You have either given more card indexs or more selected cards.") end
 
     if not table.any(pack_hand, function(card)
             return card == selected_pack_card
         end) then
         return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("pack_card"))
+    end
+
+    for pos, card in ipairs(selected_hand) do
+        for ipos, index in ipairs(selected_index) do
+            sendDebugMessage("card: " .. card .. " index: " .. index .. " card in hand at index: " .. hand[index])
+            if hand[index] ~= card and pos == ipos then
+                return ExecutionResult.failure("the card: " .. card .. " is not at the index " .. index .. " in the hand")
+            else
+                goto continue
+            end
+        end
+        ::continue::
     end
 
     -- add one for each card that is in the hand
@@ -168,6 +196,7 @@ function PickHandPackCards:_validate_action(data, state)
     end
 
     state["hand"] = selected_hand
+    state["cards_index"] = selected_index
     state["pack_cards"] = selected_pack_card
 	return ExecutionResult.success()
 end
@@ -175,6 +204,7 @@ end
 function PickHandPackCards:_execute_action(state)
 	local selected_hand = state["hand"]
     local selected_pack_card = state["pack_cards"]
+    local selected_index = state["selected_index"]
 
     local hand_string = get_cards_names()
     local pack_hand_string = get_pack_cards()
@@ -187,12 +217,15 @@ function PickHandPackCards:_execute_action(state)
     -- select main hand cards
     for _, card in pairs(selected_hand) do
         local card_id = card
-        for index = 1, #hand_string, 1 do
-            if card == hand_string[index] and (highlighted_cards[card_id] or 0) < selected_amount[card] then
+        for _, index in ipairs(selected_index) do
+            if hand_string[index] == card and (highlighted_cards[card_id] or 0) < selected_amount[card] then
+                sendDebugMessage("hand card: " .. hand_string[index] .. " card: " .. card)
                 G.hand:add_to_highlighted(hand[index])
                 highlighted_cards[card_id] = (highlighted_cards[card_id] or 0) + 1
+                goto continue
             end
         end
+        ::continue::
     end
 
     if pack_hand_string == nil then return false end -- get warning below if this is not here
