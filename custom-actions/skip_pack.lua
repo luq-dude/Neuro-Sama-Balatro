@@ -9,6 +9,7 @@ SkipPack.__index = SkipPack
 function SkipPack:new(actionWindow, actions)
     local obj = NeuroAction.new(self, actionWindow)
 	obj.actions = actions
+	obj.hook = actions[3]
     return obj
 end
 
@@ -17,7 +18,7 @@ function SkipPack:_get_name()
 end
 
 function SkipPack:_get_description()
-    local description = "Skip this pack, you should typically only do this if there is nothing you want in here"
+    local description = "Skip this pack and take no more cards from it."
 
     return description
 end
@@ -26,9 +27,7 @@ function SkipPack:_get_schema()
 end
 
 function SkipPack:_validate_action(data, state)
-	sendDebugMessage("opened booster table: " .. tprint(G.booster_pack.UIRoot.children[1].children[2],2,3))
-
-	return ExecutionResult.success()
+	return ExecutionResult.success() -- I dont think this needs any validation soprry if it does
 end
 
 function SkipPack:_execute_action(state)
@@ -38,6 +37,8 @@ function SkipPack:_execute_action(state)
 	else
 		NeuroActionHandler.unregister_actions({self.actions[1]:new()})
 	end
+
+    self.hook.HookRan = false
 	return true
 end
 

@@ -13,6 +13,7 @@ PickCards.__index = PickCards
 
 function PickCards:new(actionWindow, state)
     local obj = NeuroAction.new(self, actionWindow)
+    obj.hook = state[1]
     return obj
 end
 
@@ -24,7 +25,8 @@ function PickCards:_get_description()  -- use G.P_CENTERS.p-buffoon_jumbo_1.conf
     local description = string.format("Pick cards to add to your deck. You can pick a max of " ..
     SMODS.OPENED_BOOSTER.config.center.config.choose
     .. " cards "
-    .. "out of the " .. SMODS.OPENED_BOOSTER.config.center.config.extra .. " available.")
+    .. "out of the " .. SMODS.OPENED_BOOSTER.config.center.config.extra .. " available." ..
+    " When defining the card's index the first card will be 1, you should send these in the same order as you send the cards")
 
     return description
 end
@@ -211,7 +213,7 @@ function PickCards:_execute_action(state)
         end
     end
 
-
+    self.hook.HookRan = false
     NeuroActionHandler.unregister_actions({SkipPack:new()})
 	return true
 end

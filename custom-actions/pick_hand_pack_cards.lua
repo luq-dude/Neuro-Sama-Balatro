@@ -33,6 +33,7 @@ end
 
 function PickHandPackCards:new(actionWindow, state)
     local obj = NeuroAction.new(self, actionWindow)
+    obj.hook = state[1]
     return obj
 end
 
@@ -45,7 +46,8 @@ function PickHandPackCards:_get_description()  -- use G.P_CENTERS.p-buffoon_jumb
     SMODS.OPENED_BOOSTER.config.center.config.choose
     .. " cards "
     .. "out of the " ..
-    SMODS.OPENED_BOOSTER.config.center.config.extra .. " available. You should pick the cards you want one at a time.")
+    SMODS.OPENED_BOOSTER.config.center.config.extra .. " available. You should pick the cards you want one at a time." ..
+    " When defining the card's index the first card will be 1, you should send these in the same order as you send the cards")
 
     return description
 end
@@ -68,15 +70,17 @@ local function get_pack_cards() -- this is tarot type cards
 	local cards = {}
 	local card_type = {}
 
-    local hand, enhancements, editions, seals = table.table_to_string(GetRunText:get_card_modifiers(G.hand.cards)),GetRunText:get_current_hand_modifiers(G.hand.cards)
+    if #G.hand.cards > 0 then
+        local hand, enhancements, editions, seals = table.table_to_string(GetRunText:get_card_modifiers(G.hand.cards)),GetRunText:get_current_hand_modifiers(G.hand.cards)
 
-    Context.send(string.format(
-    "these are the cards in your hand \n" .. hand .. "\n" ..
-    "These are the card modifiers that are on the cards right now," ..
-    " there can only be one edition,enhancement and seal on each card: \n" ..
-    enhancements .. "\n" ..
-    editions .. "\n" ..
-    seals),true)
+        Context.send(string.format(
+        "These are the playing cards in your hand \n" .. hand .. "\n" ..
+        "These are the card modifiers that are on the cards right now," ..
+        " there can only be one edition,enhancement and seal on each card: \n" ..
+        enhancements .. "\n" ..
+        editions .. "\n" ..
+        seals),true)
+    end
 
     if G.pack_cards == nil or G.pack_cards.cards == nil or G.pack_cards.cards == {} then return end
     if SMODS.OPENED_BOOSTER.config.center.kind == "Spectral" then
@@ -247,6 +251,7 @@ function PickHandPackCards:_execute_action(state)
         end
     end
 
+    self.hook.HookRan = false
     NeuroActionHandler.unregister_actions({SkipPack:new()})
 	return true
 end

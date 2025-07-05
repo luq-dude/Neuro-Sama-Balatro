@@ -10,6 +10,8 @@ local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
 
 local PlayingRun = {}
 
+PlayingRun.HookRan = false
+
 local function play_card(delay)
     G.E_MANAGER:add_event(Event({
         trigger = "after",
@@ -17,7 +19,7 @@ local function play_card(delay)
         blocking = false,
         func = function()
             local window = ActionWindow:new()
-            window:add_action(PlayCards:new(window, nil))
+            window:add_action(PlayCards:new(window, {PlayingRun}))
             window:register()
             return true
         end
@@ -32,7 +34,7 @@ local function pick_pack_card(delay)
         blocking = false,
         func = function()
             local window = ActionWindow:new()
-            window:add_action(PickCard:new(window, nil))
+            window:add_action(PickCard:new(window, {PlayingRun}))
             window:register()
             return true
         end
@@ -48,7 +50,7 @@ local function pick_hand_pack_card(delay)
         blocking = false,
         func = function()
             local window = ActionWindow:new()
-            window:add_action(PickPackCard:new(window, nil))
+            window:add_action(PickPackCard:new(window, {PlayingRun}))
             window:register()
             return true
         end
@@ -64,7 +66,7 @@ local function skip_pack(delay)
         blocking = false,
         func = function()
             local window = ActionWindow:new()
-            window:add_action(SkipPack:new(window, {PickCard,PickPackCard}))
+            window:add_action(SkipPack:new(window, {PickCard,PickPackCard,PlayingRun}))
             window:register()
             return true
         end
@@ -72,12 +74,12 @@ local function skip_pack(delay)
     ))
 end
 
-
--- TODO: Stop spamming of running event / sending actions while it does get handled the fact it happens is still suboptimal (This only happens when hand is drawn as they are drawn one by one)
 function PlayingRun:hook_draw_card()
     local original_draw_card = draw_card
     function draw_card(from, to, percent, dir, sort, card, delay, mute, stay_flipped, vol, discarded_only)
         original_draw_card(from, to, percent, dir, sort, card, delay, mute, stay_flipped, vol, discarded_only)
+        if self.HookRan then sendDebugMessage("Blocked a hook call") return end -- this stops actions or context being sent multiple times
+        self.HookRan = true -- this needs to be set back to false after in an actions execute_action
 
         sendDebugMessage("draw_card called")
 

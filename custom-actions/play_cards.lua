@@ -10,6 +10,7 @@ PlayCards.__index = PlayCards
 
 function PlayCards:new(actionWindow, state)
     local obj = NeuroAction.new(self, actionWindow)
+    obj.hook = state[1]
     return obj
 end
 
@@ -20,7 +21,7 @@ end
 function PlayCards:_get_description()
     local description = string.format("play a maximum of 5 cards with your current hand." ..
     "The cards will be ordered by the position they are located in your hand from left to right." ..
-    "When defining the card's index the first card will be 1")
+    "When defining the card's index the first card will be 1, you should send these in the same order as you send the cards")
 
     return description
 end
@@ -166,6 +167,7 @@ function PlayCards:_execute_action(state)
     -- shouldn't cause any issues with mods
     G.FUNCS.play_cards_from_highlighted()
 
+    self.hook.HookRan = false
     -- couldn't get this to work and I hate ui so function call is good enough for now
     -- play_button:click() -- Maybe try to make this an event to see if it would work
     -- G.buttons:get_UIE_by_ID('play_button'):release()
