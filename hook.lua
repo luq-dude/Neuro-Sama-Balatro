@@ -210,25 +210,6 @@ local function hook_start_run()
     function Game:start_run(args)
         start_run(self, args)
 
-        G.E_MANAGER:add_event(Event({
-            trigger = "after",
-            delay = 4,
-            blocking = false,
-            func = function()
-                G.E_MANAGER:add_event(Event({
-                    trigger = "after",
-                    delay = 4,
-                    blocking = false,
-                    func = function()
-                        sendDebugMessage("start second event")
-                        play_card(12)
-                        return true
-                    end
-                }))
-                return true
-            end
-        }))
-
     end
     return true
 end
