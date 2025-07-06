@@ -4,6 +4,8 @@ local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
 local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
 local PlayCards = ModCache.load("custom-actions/play_cards.lua")
 
+local GetText = ModCache.load("get_text.lua")
+
 local Hook = {}
 Hook.__index = Hook
 
@@ -211,6 +213,30 @@ SMODS.Keybind {
     end
 }
 
+local function hook_blind_select()
+    local blind_select = Game.update_blind_select
+    function Game:update_blind_select(dt)
+        local complete = G.STATE_COMPLETE
+        blind_select(self, dt)
+
+        if complete then return end
+
+        G.E_MANAGER:add_event(Event({
+            trigger = "after",
+            delay = 1,
+            blocking = false,
+            func = function()
+                local msg = "Entering blind selection. Completion of a blind gives money and an opportunity to shop, " ..
+                    "while skipping a blind gives a tag instead. Failing a blind results in a game over. " ..
+                    "You must at least play the Boss Blind, which has an additional special effect to make it harder.\n"
+
+                Context.send(msg .. GetText:generate_blind_descriptions())
+                return true
+            end
+        }))
+    end
+end
+
 
 function Hook:hook_game()
     if not neuro_profile or neuro_profile < 1 or neuro_profile > 3 then
@@ -230,6 +256,7 @@ function Hook:hook_game()
     hook_game_over()
     hook_win()
     hook_start_run()
+    hook_blind_select()
 end
 
 return Hook
