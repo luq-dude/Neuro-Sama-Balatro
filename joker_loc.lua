@@ -1,0 +1,27 @@
+Back_Loc = {
+    b_red = { "discards" },
+    b_blue = { "hands" },
+    b_yellow = { "dollars" },
+    b_green = { "extra_hand_bonus", "extra_discard_bonus" },
+    b_black = function(back)
+        return { back.config.joker_slot, -back.config.hands }
+    end,
+    b_magic = function(back)
+        return {"Crystall Ball", "The Fool"}
+    end,
+    n_nebula = function(back)
+        return {"Telescope", -1}
+    end,
+    b_ghost = {},
+    b_abandoned = {},
+    b_checkered = {},
+    b_zodiac = function(back)
+        return {"Tarot Merchant", "Planent Merchant", "Overstock"}
+    end,
+    b_painted = {"hand_size", "joker_slot"},
+    b_anaglyph = function(back)
+        return {"Double Tag"}
+    end,
+    b_plasma = {"ante_scaling"},
+    b_erratic = {}
+}

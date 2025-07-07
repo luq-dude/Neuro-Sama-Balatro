@@ -2,6 +2,8 @@ assert(SMODS.load_file("game-sdk/utils/table_utils.lua"))()
 
 assert(SMODS.load_file("game-sdk/sdk_string_consts.lua"))()
 
+assert(SMODS.load_file("joker_loc.lua"))()
+
 ModCache = assert(SMODS.load_file("module_cache.lua"))()
 NeuroConfig = ModCache.load("config.lua")
 
