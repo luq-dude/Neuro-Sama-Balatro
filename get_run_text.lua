@@ -329,7 +329,8 @@ function getRunText:get_joker_details(card_hand)
         if card.ability.set == 'Joker' then
             local key_override = nil
             for _, v in pairs(G.P_CENTER_POOLS.Joker) do
-                local loc_args,loc_nodes = get_joker_args(card.ability.name,card.ability,card), {}
+                -- local loc_args,loc_nodes = get_joker_args(card.ability.name,card.ability,card), {}
+                local loc_args,loc_nodes = {}, {}
                 local name = card.ability.name
 
                 if v.key ~= card.config.center_key then goto continue end
@@ -339,6 +340,8 @@ function getRunText:get_joker_details(card_hand)
                     key_override = v.key
                     name = v.loc_txt.name -- get name that shows on hover
 				else
+                    card:generate_UIBox_ability_table()
+                    loc_args = LOC_ARGS -- this is defined in lovely patch
                     key_override = card.config.center_key
                 end
 

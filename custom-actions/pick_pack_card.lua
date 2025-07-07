@@ -90,9 +90,11 @@ local function get_cards_modifiers()
 end
 
 function PickCards:_get_schema()
-    local hand_names = GetRunText:get_hand_names(G.pack_cards.cards) -- get length of hand
+    local hand_names = get_cards_modifiers() -- get length of hand
     local hand_length = {}
+    print("length of hand_names: " .. #hand_names)
     for i = 1, #hand_names do
+        print("adding one to hand names")
         table.insert(hand_length, i)
     end
 
@@ -141,6 +143,7 @@ function PickCards:_validate_action(data, state)
     local selected_amount = {}
     local hand_amount = {}
 
+    if hand == nil then sendErrorMessage("hand was nil in pick_pack_card") return end
     for pos, card in ipairs(selected_hand) do
         for ipos, index in ipairs(selected_index) do
             sendDebugMessage("card: " .. card .. " index: " .. index .. " card in hand at index: " .. hand[index])
@@ -207,14 +210,16 @@ function PickCards:_execute_action(state)
                 sendDebugMessage("hand card: " .. hand_string[index] .. " card: " .. card)
                 G.hand:add_to_highlighted(hand[index])
 
+                hand[index]:generate_UIBox_ability_table()
                 local button = hand[index].children.use_button.UIRoot.children[1].children[1] -- get use button that is shown after clicking on card
                 button:click()
             end
         end
     end
 
+    print("loc_args global: " .. tprint(LOC_ARGS,1,2))
     self.hook.HookRan = false
-    NeuroActionHandler.unregister_actions({SkipPack:new()})
+    NeuroActionHandler.unregister_actions({SkipPack})
 	return true
 end
 

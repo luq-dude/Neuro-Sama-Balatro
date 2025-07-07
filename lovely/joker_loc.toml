@@ -1,0 +1,19 @@
+[manifest]
+dump_lua = true
+version = "1.0.0"
+priority = 0
+
+[[patches]]
+[patches.pattern]
+target = "card.lua"
+pattern = "if self.sticker or ((self.sticker_run and self.sticker_run~='NONE') and G.SETTINGS.run_stake_stickers)  then loc_vars = loc_vars or {}; loc_vars.sticker=(self.sticker or self.sticker_run) end"
+position = "after"
+payload = '''
+if loc_vars ~= nil then
+	LOC_ARGS = loc_vars
+else
+	print("loc_vars is null")
+end
+'''
+match_indent = true
+times = 1

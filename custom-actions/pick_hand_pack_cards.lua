@@ -252,7 +252,7 @@ function PickHandPackCards:_execute_action(state)
     end
 
     self.hook.HookRan = false
-    NeuroActionHandler.unregister_actions({SkipPack:new()})
+    NeuroActionHandler.unregister_actions({SkipPack})
 	return true
 end
 

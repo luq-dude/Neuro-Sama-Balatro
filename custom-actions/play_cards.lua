@@ -8,6 +8,8 @@ local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
 local PlayCards = setmetatable({}, { __index = NeuroAction })
 PlayCards.__index = PlayCards
 
+loc_args = {}
+
 function PlayCards:new(actionWindow, state)
     local obj = NeuroAction.new(self, actionWindow)
     obj.hook = state[1]
