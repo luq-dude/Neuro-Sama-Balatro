@@ -16,14 +16,14 @@ PickHandPackCards.__index = PickHandPackCards
 
 local cards_picked = 0
 
-local function pick_hand_pack_card(delay)
+local function pick_hand_pack_card(delay,hook)
     G.E_MANAGER:add_event(Event({
         trigger = "after",
         delay = delay,
         blocking = false,
         func = function()
             local window = ActionWindow:new()
-            window:add_action(PickHandPackCards:new(window, nil))
+            window:add_action(PickHandPackCards:new(window, {hook}))
             window:register()
             return true
         end
@@ -47,7 +47,7 @@ function PickHandPackCards:_get_description()  -- use G.P_CENTERS.p-buffoon_jumb
     .. " cards "
     .. "out of the " ..
     SMODS.OPENED_BOOSTER.config.center.config.extra .. " available. You should pick the cards you want one at a time." ..
-    " When defining the card's index the first card will be 1, you should send these in the same order as you send the cards")
+    " When defining the card's index the first card will be 1.")
 
     return description
 end
@@ -66,10 +66,7 @@ local function get_cards_names()
 	return cards
 end
 
-local function get_pack_cards() -- this is tarot type cards
-	local cards = {}
-	local card_type = {}
-
+local function get_pack_context()
     if #G.hand.cards > 0 then
         local hand, enhancements, editions, seals = table.table_to_string(GetRunText:get_card_modifiers(G.hand.cards)),GetRunText:get_current_hand_modifiers(G.hand.cards)
 
@@ -86,17 +83,25 @@ local function get_pack_cards() -- this is tarot type cards
     if SMODS.OPENED_BOOSTER.config.center.kind == "Spectral" then
         local pack_hand = table.table_to_string(GetRunText:get_spectral_details(G.pack_cards.cards))
         Context.send(string.format("This is the hand of cards that are in this pack: " .. pack_hand))
-
-        card_type = GetRunText:get_spectral_names(G.pack_cards.cards)
     elseif SMODS.OPENED_BOOSTER.config.center.kind == "Arcana" then
         local pack_hand = table.table_to_string(GetRunText:get_tarot_details(G.pack_cards.cards))
         Context.send(string.format("This is the hand of cards that are in this pack: " .. pack_hand))
-
-        card_type = GetRunText:get_tarot_names(G.pack_cards.cards)
     else -- modded packs that dont contain contain a default set or if there is something I forgot
         local pack_hand = table.table_to_string(GetRunText:get_hand_details(G.pack_cards.cards))
         Context.send(string.format("This is the hand of cards that are in this pack: " .. pack_hand))
+    end
+end
 
+local function get_pack_cards() -- this is tarot type cards
+	local cards = {}
+	local card_type = {}
+
+    if G.pack_cards == nil or G.pack_cards.cards == nil or G.pack_cards.cards == {} then return end
+    if SMODS.OPENED_BOOSTER.config.center.kind == "Spectral" then
+        card_type = GetRunText:get_spectral_names(G.pack_cards.cards)
+    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Arcana" then
+        card_type = GetRunText:get_tarot_names(G.pack_cards.cards)
+    else -- modded packs that dont contain contain a default set or if there is something I forgot
         card_type = GetRunText:get_hand_names(G.pack_cards.cards)
     end
 
@@ -109,21 +114,20 @@ local function get_pack_cards() -- this is tarot type cards
 	return cards
 end
 
-function PickHandPackCards:_get_schema()
-    local hand_names = GetRunText:get_hand_names(G.hand.cards) -- get length of hand
+local function get_hand_length(card_table)
     local hand_length = {}
-    for i = 1, #hand_names do
+    for i = 1, #card_table do
         table.insert(hand_length, i)
     end
+    return hand_length
+end
+
+function PickHandPackCards:_get_schema()
+    get_pack_context()
+    local hand_length = get_hand_length(G.hand.cards)
+    local pack_hand_length = get_hand_length(G.pack_cards.cards)
 
     return JsonUtils.wrap_schema({
-        hand = {
-			type = "array",
-            items = {
-				type = "string",
-				enum = get_cards_names()
-			},
-		},
         cards_index = {
             type = "array",
             items ={
@@ -131,124 +135,68 @@ function PickHandPackCards:_get_schema()
                 enum = hand_length
             }
         },
-		pack_card = { -- this is the tarot or spectral card
-			enum = get_pack_cards()
+		pack_card_index = { -- this is the tarot or spectral card
+            type = "array",
+            items = {
+                type = "integer",
+                enum = pack_hand_length
+            }
 		}
     })
 end
 
-local function increment_card_table(table)
-    local selected_table = {}
-    for _, card in pairs(table) do
-        if selected_table[card] == nil then
-            selected_table[card] = 1
-        else
-            selected_table[card] = selected_table[card] + 1 -- should increment for each type of card in hand
-        end
-    end
-    return selected_table
-end
-
 function PickHandPackCards:_validate_action(data, state)
-    local selected_hand = data:get_object("hand")
-    local selected_index = data:get_object("cards_index")
-    local selected_pack_card = data:get_string("pack_card")
-    selected_hand = selected_hand._data
-    selected_index = selected_index._data
+    local selected_hand_index = data:get_object("cards_index")
+    local selected_pack_card = data:get_string("pack_card_index")
+    selected_hand_index = selected_hand_index._data
 
 	local hand = get_cards_names()
     local pack_hand = get_pack_cards()
     local selected_amount = {}
     local hand_amount = {}
-    -- I think there is a max highlighted_cards var somewhere
-    if #selected_hand > 5 then return ExecutionResult.failure("You tried to take more cards then you are allowed too.") end
 
-    if #selected_index ~= #selected_hand then return ExecutionResult.failure("You have either given more card indexs or more selected cards.") end
+    if #selected_hand_index > 5 then return ExecutionResult.failure("You tried to take more cards then you are allowed too.") end
 
-    if not table.any(pack_hand, function(card)
-            return card == selected_pack_card
-        end) then
-        return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("pack_card"))
-    end
+    if #selected_hand_index == 0 then return ExecutionResult.failure("You should either take a card or skip the round.") end
 
-    for pos, card in ipairs(selected_hand) do
-        for ipos, index in ipairs(selected_index) do
-            sendDebugMessage("card: " .. card .. " index: " .. index .. " card in hand at index: " .. hand[index])
-            if hand[index] ~= card and pos == ipos then
-                return ExecutionResult.failure("the card: " .. card .. " is not at the index " .. index .. " in the hand")
-            else
-                goto continue
-            end
-        end
-        ::continue::
-    end
+    if #selected_pack_card > 1 then return ExecutionResult.failure("You should only pick one pack card at at time.") end
+    if #selected_pack_card < 0 then return ExecutionResult.failure("You have took a pack card index that is too low.") end
 
-    -- add one for each card that is in the hand
-    hand_amount = increment_card_table(hand)
-
-    -- add one for each card that is in the selected hand
-    selected_amount = increment_card_table(selected_hand)
-
-    -- get if trying to play more cards than in hand
-    for _, card in pairs(selected_hand) do
-        if selected_amount[card] > hand_amount[card] then
-            return ExecutionResult.failure("You can only use the cards given in the hand. You tried to play more " .. card .. "'s when those do not exist")
-        else
-            sendDebugMessage("lowering " .. card .. "by 1")
-            selected_amount[card] = selected_amount[card] - 1
-        end
-    end
-
-    state["hand"] = selected_hand
-    state["cards_index"] = selected_index
-    state["pack_cards"] = selected_pack_card
+    state["cards_index"] = selected_hand_index
+    state["pack_card_index"] = selected_pack_card
 	return ExecutionResult.success()
 end
 
 function PickHandPackCards:_execute_action(state)
-	local selected_hand = state["hand"]
-    local selected_pack_card = state["pack_cards"]
-    local selected_index = state["selected_index"]
+    local selected_index = state["cards_index"]
+    local selected_pack_card = state["pack_card_index"]
 
     local hand_string = get_cards_names()
     local pack_hand_string = get_pack_cards()
     local hand = G.hand.cards
     local pack_cards_hand = G.pack_cards.cards
-    local selected_amount = increment_card_table(selected_hand)
 
     local highlighted_cards = {}
 
-    -- select main hand cards
-    for _, card in pairs(selected_hand) do
-        local card_id = card
-        for _, index in ipairs(selected_index) do
-            if hand_string[index] == card and (highlighted_cards[card_id] or 0) < selected_amount[card] then
-                sendDebugMessage("hand card: " .. hand_string[index] .. " card: " .. card)
-                G.hand:add_to_highlighted(hand[index])
-                highlighted_cards[card_id] = (highlighted_cards[card_id] or 0) + 1
-                goto continue
-            end
-        end
-        ::continue::
+    for _, index in ipairs(selected_index) do
+        local card_id = hand[index]
+        G.hand:add_to_highlighted(hand[index])
+        highlighted_cards[card_id] = (highlighted_cards[card_id] or 0) + 1
     end
 
-    if pack_hand_string == nil then return false end -- get warning below if this is not here
-    for _, card in ipairs(pack_hand_string) do
-        for i = 1, #pack_cards_hand, 1 do
-            if card == selected_pack_card then
-                G.hand:add_to_highlighted(pack_cards_hand[i])
-                local button = pack_cards_hand[i].children.use_button.UIRoot.children[2].children[1] -- get use button that is shown after clicking on card
-                button:click()
-                if SMODS.OPENED_BOOSTER.config.center.config.choose > cards_picked then
-                    cards_picked = cards_picked + 1
-                    pick_hand_pack_card(5) -- call action again if more than one pack card can be picked
-                else
-                    cards_picked = 0
-                    return true
-                end
-                return true
-            end
+    for _, index in ipairs(selected_index) do
+        G.pack_cards:add_to_highlighted(pack_cards_hand[index])
+        local button = pack_cards_hand[index].children.use_button.UIRoot.children[2]
+        button:click()
+        cards_picked = cards_picked + 1
+        if SMODS.OPENED_BOOSTER.config.center.config.choose > cards_picked then
+            pick_hand_pack_card(5,self.hook) -- call action again if more than one pack card can be picked.
+        else
+            cards_picked = 0
         end
+        self.hook.HookRan = false
+        NeuroActionHandler.unregister_actions({SkipPack})
+        return true
     end
 
     self.hook.HookRan = false

@@ -268,7 +268,11 @@ function getRunText:get_tarot_details(card_hand)
                         table.insert(loc_args,g_card.config[v])
                     end
                 elseif type(loc_lookup) == "function" then
-                    loc_args = loc_lookup(g_card)
+                    if g_card.key == "c_temperance" then -- value is stored in card, ugly solution but I can't find a more elegant one
+                        loc_args = loc_lookup(card)
+                    else
+                        loc_args = loc_lookup(g_card)
+                    end
                 else
                     sendErrorMessage("Could not find localize for card" .. g_card.key)
                 end
@@ -377,6 +381,7 @@ function getRunText:get_hand_names(cards_table)
     for pos, card in ipairs(cards_table) do
         local name = card.base.name
 
+        sendDebugMessage("name: " .. name)
 		cards[#cards+1] = name
 	end
 	return cards

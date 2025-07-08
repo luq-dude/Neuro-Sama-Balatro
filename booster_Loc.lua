@@ -50,7 +50,10 @@ Tarot_Loc = {
 	end,
 	c_hanged_man = {"max_highlighted"},
 	c_death = {"max_highlighted"},
-	c_temperance = {"extra"},
+	c_temperance = function (card)
+		sendDebugMessage("card: " .. tprint(card,1,2))
+		return {card.ability.extra, card.ability.money}
+	end,
 	c_devil = function(card)
 		return {card.config.max_highlighted,"Gold Card"}
 	end,

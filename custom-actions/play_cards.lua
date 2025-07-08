@@ -26,7 +26,7 @@ function PlayCards:_get_description()
     return description
 end
 
-local function get_cards_modifiers()
+local function get_cards_context()
     local enhancements, editions, seals = GetRunText:get_current_hand_modifiers(G.hand.cards)
 
     Context.send(string.format("These are what the card's modifiers do," ..
@@ -36,21 +36,18 @@ local function get_cards_modifiers()
     seals),true)
 
     Context.send("These are the current cards in your hand and their modifiers: \n" .. table.table_to_string(GetRunText:get_card_modifiers(G.hand.cards)))
-
-    return GetRunText:get_hand_names(G.hand.cards)
 end
 
 local function get_hand_length(card_table)
-    local hand_names = GetRunText:get_hand_names(card_table) -- get length of hand
     local hand_length = {}
-    for i = 1, #hand_names do
+    for i = 1, #card_table do
         table.insert(hand_length, i)
     end
     return hand_length
 end
 
 function PlayCards:_get_schema()
-    get_cards_modifiers()
+    get_cards_context()
     local hand_length = get_hand_length(G.hand.cards)
 
     return JsonUtils.wrap_schema({
@@ -115,7 +112,6 @@ end
 function PlayCards:_execute_action(state)
     local selected_index = state["cards_index"]
 
-    local hand_string = get_cards_modifiers()
     local hand = G.hand.cards
     local selected_amount = increment_card_table(selected_index)
 
@@ -126,19 +122,6 @@ function PlayCards:_execute_action(state)
         G.hand:add_to_highlighted(hand[index])
         highlighted_cards[card_id] = (highlighted_cards[card_id] or 0) + 1
     end
-
-    -- for _, card in pairs(selected_hand) do
-    --     local card_id = card
-    --     for _, index in ipairs(selected_index) do
-    --         if hand_string[index] == card and (highlighted_cards[card_id] or 0) < selected_amount[card] then
-    --             sendDebugMessage("hand card: " .. hand_string[index] .. " card: " .. card)
-    --             G.hand:add_to_highlighted(hand[index])
-    --             highlighted_cards[card_id] = (highlighted_cards[card_id] or 0) + 1
-    --             goto continue
-    --         end
-    --     end
-    --     ::continue::
-    -- end
 
     G.FUNCS.play_cards_from_highlighted()
 

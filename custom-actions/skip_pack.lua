@@ -33,9 +33,9 @@ end
 function SkipPack:_execute_action(state)
 	G.FUNCS.skip_booster(G.booster_pack)
 	if SMODS.OPENED_BOOSTER.config.center.draw_hand then -- remove actions to pick cards from pack
-		NeuroActionHandler.unregister_actions({self.actions[2]:new()})
+		NeuroActionHandler.unregister_actions({self.actions[2]})
 	else
-		NeuroActionHandler.unregister_actions({self.actions[1]:new()})
+		NeuroActionHandler.unregister_actions({self.actions[1]})
 	end
 
     self.hook.HookRan = false
