@@ -134,8 +134,8 @@ local function hook_game_over()
 
         if complete then return end -- if it was already true then weve already run this before
         local win = G.GAME.round_resets.ante > G.GAME.win_ante
-        Context.send("GAME OVER." .. win and "You still won the game since you passed ante " .. G.GAME.win_ante or
-            "You lost.\n" .. get_run_stats())
+        Context.send("GAME OVER." .. (win and "You still won the game since you passed ante " .. G.GAME.win_ante or
+            "You lost.\n" .. get_run_stats()))
 
         GamePrep.start_from_gameover()
     end
