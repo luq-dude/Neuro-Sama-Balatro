@@ -1,7 +1,5 @@
 require "functions/misc_functions"
 
-local GetModifierArgs = ModCache.load("card_modifiers_args.lua")
-
 local ALLOWED_DECKS = NeuroConfig.ALLOWED_DECKS
 local ALLOWED_STAKES = NeuroConfig.ALLOWED_DECKS
 

@@ -210,14 +210,12 @@ function PickCards:_execute_action(state)
                 sendDebugMessage("hand card: " .. hand_string[index] .. " card: " .. card)
                 G.hand:add_to_highlighted(hand[index])
 
-                hand[index]:generate_UIBox_ability_table()
-                local button = hand[index].children.use_button.UIRoot.children[1].children[1] -- get use button that is shown after clicking on card
+                local button = hand[index].children.use_button.UIRoot.children[2] -- get use button that is shown after clicking on card
                 button:click()
             end
         end
     end
 
-    print("loc_args global: " .. tprint(LOC_ARGS,1,2))
     self.hook.HookRan = false
     NeuroActionHandler.unregister_actions({SkipPack})
 	return true

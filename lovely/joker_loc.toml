@@ -12,7 +12,6 @@ payload = '''
 if loc_vars ~= nil then
 	LOC_ARGS = loc_vars
 else
-	print("loc_vars is null")
 end
 '''
 match_indent = true

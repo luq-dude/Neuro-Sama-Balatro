@@ -74,6 +74,33 @@ local function skip_pack(delay)
     ))
 end
 
+-- call play_card after selecting first bind
+SMODS.Keybind {
+    key = 'test_cards',
+    key_pressed = 'c',
+
+    action = function(self)
+        G.E_MANAGER:add_event(Event({
+            trigger = "after",
+            delay = 0,
+            blocking = false,
+            func = function()
+                G.E_MANAGER:add_event(Event({
+                    trigger = "after",
+                    delay = 0,
+                    blocking = false,
+                    func = function()
+                        sendDebugMessage("start second event")
+                        play_card(2)
+                        return true
+                    end
+                }))
+                return true
+            end
+        }))
+    end
+}
+
 function PlayingRun:hook_draw_card()
     local original_draw_card = draw_card
     function draw_card(from, to, percent, dir, sort, card, delay, mute, stay_flipped, vol, discarded_only)
