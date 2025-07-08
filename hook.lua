@@ -3,6 +3,10 @@ local GamePrep = ModCache.load("game_prep.lua")
 local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
 local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
 local PlayCards = ModCache.load("custom-actions/play_cards.lua")
+local PlayBlind = ModCache.load("custom-actions/play_blind.lua")
+local SkipBlind = ModCache.load("custom-actions/skip_blind.lua")
+
+local GetText = ModCache.load("get_text.lua")
 
 local Hook = {}
 Hook.__index = Hook
@@ -130,8 +134,8 @@ local function hook_game_over()
 
         if complete then return end -- if it was already true then weve already run this before
         local win = G.GAME.round_resets.ante > G.GAME.win_ante
-        Context.send("GAME OVER." .. win and "You still won the game since you passed ante " .. G.GAME.win_ante or
-            "You lost.\n" .. get_run_stats())
+        Context.send("GAME OVER." .. (win and "You still won the game since you passed ante " .. G.GAME.win_ante or
+            "You lost.\n" .. get_run_stats()))
 
         GamePrep.start_from_gameover()
     end
@@ -154,34 +158,6 @@ local function hook_win()
             end
         }))
     end
-end
-
-local function hook_start_run()
-    local start_run = Game.start_run
-    function Game:start_run(args)
-        start_run(self, args)
-
-        G.E_MANAGER:add_event(Event({
-            trigger = "after",
-            delay = 4,
-            blocking = false,
-            func = function()
-                G.E_MANAGER:add_event(Event({
-                    trigger = "after",
-                    delay = 4,
-                    blocking = false,
-                    func = function()
-                        sendDebugMessage("start second event")
-                        play_card(12)
-                        return true
-                    end
-                }))
-                return true
-            end
-        }))
-    end
-
-    return true
 end
 
 -- call play_card after selecting first bind
@@ -211,6 +187,38 @@ SMODS.Keybind {
     end
 }
 
+local function hook_blind_select()
+    local blind_select = Game.update_blind_select
+    function Game:update_blind_select(dt)
+        local complete = G.STATE_COMPLETE
+        blind_select(self, dt)
+
+        if complete then return end
+
+        G.E_MANAGER:add_event(Event({
+            trigger = "after",
+            delay = 1,
+            blocking = false,
+            func = function()
+                local msg = "Entering blind selection. Completion of a blind gives money and an opportunity to shop, " ..
+                    "while skipping a blind gives a tag instead. Failing a blind results in a game over. " ..
+                    "You must at least play the Boss Blind, which has an additional special effect to make it harder.\n"
+
+                Context.send(msg .. GetText:generate_blind_descriptions())
+
+                local window = ActionWindow:new()
+                window:set_force(0.0, "", "Choose to select or skip the currently selected blind")
+                window:add_action(PlayBlind:new(window))
+                if G.GAME.blind_on_deck ~= "Boss" then
+                    window:add_action(SkipBlind:new(window))
+                end
+                window:register()
+                return true
+            end
+        }))
+    end
+end
+
 
 function Hook:hook_game()
     if not neuro_profile or neuro_profile < 1 or neuro_profile > 3 then
@@ -229,7 +237,7 @@ function Hook:hook_game()
     hook_main_menu()
     hook_game_over()
     hook_win()
-    hook_start_run()
+    hook_blind_select()
 end
 
 return Hook
