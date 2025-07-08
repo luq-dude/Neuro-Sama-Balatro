@@ -3,6 +3,8 @@ local GamePrep = ModCache.load("game_prep.lua")
 local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
 local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
 local PlayCards = ModCache.load("custom-actions/play_cards.lua")
+local PlayBlind = ModCache.load("custom-actions/play_blind.lua")
+local SkipBlind = ModCache.load("custom-actions/skip_blind.lua")
 
 local GetText = ModCache.load("get_text.lua")
 
@@ -158,34 +160,6 @@ local function hook_win()
     end
 end
 
-local function hook_start_run()
-    local start_run = Game.start_run
-    function Game:start_run(args)
-        start_run(self, args)
-
-        G.E_MANAGER:add_event(Event({
-            trigger = "after",
-            delay = 4,
-            blocking = false,
-            func = function()
-                G.E_MANAGER:add_event(Event({
-                    trigger = "after",
-                    delay = 4,
-                    blocking = false,
-                    func = function()
-                        sendDebugMessage("start second event")
-                        play_card(12)
-                        return true
-                    end
-                }))
-                return true
-            end
-        }))
-    end
-
-    return true
-end
-
 -- call play_card after selecting first bind
 SMODS.Keybind {
     key = 'test_cards',
@@ -231,6 +205,14 @@ local function hook_blind_select()
                     "You must at least play the Boss Blind, which has an additional special effect to make it harder.\n"
 
                 Context.send(msg .. GetText:generate_blind_descriptions())
+
+                local window = ActionWindow:new()
+                window:set_force(0.0, "", "Choose to select or skip the currently selected blind")
+                window:add_action(PlayBlind:new(window))
+                if G.GAME.blind_on_deck ~= "Boss" then
+                    window:add_action(SkipBlind:new(window))
+                end
+                window:register()
                 return true
             end
         }))
@@ -255,7 +237,6 @@ function Hook:hook_game()
     hook_main_menu()
     hook_game_over()
     hook_win()
-    hook_start_run()
     hook_blind_select()
 end
 

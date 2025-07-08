@@ -21,13 +21,18 @@ end
 
 
 function PlayBlind:_get_schema()
-    return {}
+    return nil
 end
 
 function PlayBlind:_validate_action()
-    return ExecutionResult.success()
+    return ExecutionResult.success("Opening the " .. G.GAME.blind_on_deck .. " Blind." )
 end
 
 function PlayBlind:_execute_action(state)
-    
+    local e = {
+        config = {ref_table = G.P_BLINDS[G.GAME.round_resets.blind_choices[G.GAME.blind_on_deck]]}
+    }
+    G.FUNCS.select_blind(e)
 end
+
+return PlayBlind
