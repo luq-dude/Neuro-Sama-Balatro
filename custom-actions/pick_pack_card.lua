@@ -91,34 +91,11 @@ local function get_card_context()
     end
 end
 
-local function get_pack_cards()
-    local cards = {}
-    local card_type = {}
-    if G.pack_cards == nil or G.pack_cards.cards == nil or G.pack_cards.cards == {} then return end
-    if SMODS.OPENED_BOOSTER.config.center.kind == "Buffoon" or G.pack_cards.cards[1].ability.set == "Joker" then
-        card_type = GetRunText:get_joker_names(G.pack_cards.cards)
-    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Celestial" or G.pack_cards.cards[1].ability.set == "Celestial" then
-        card_type = GetRunText:get_celestial_names(G.pack_cards.cards)
-    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Standard" or G.pack_cards.cards[1].ability.set == "Base" then
-        card_type = GetRunText:get_hand_names(G.pack_cards.cards)
-    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Spectral" or G.pack_cards.cards[1].ability.set == "Spectral" then
-        sendErrorMessage("Spectral should not be called from pick_pack_card")
-        return
-    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Arcana" or G.pack_cards.cards[1].ability.set == "Tarot" then
-        sendErrorMessage("Arcana should not be called from pick_pack_card")
-        return
-    else -- modded packs that dont contain contain a default set or if there is something I forgot
-        sendDebugMessage("card table: " .. tprint(G.pack_cards.cards,1,2))
-        card_type = GetRunText:get_hand_names(G.pack_cards.cards)
+local function value_in_table(tbl, val)
+    for _, v in ipairs(tbl) do
+        if v == val then return true end
     end
-
-    for i = 1, #card_type do
-        local local_card = card_type[i] or ""
-
-        cards[i] = local_card
-    end
-
-    return cards
+    return false
 end
 
 local function get_hand_length(card_table)
@@ -148,16 +125,16 @@ function PickCards:_validate_action(data, state)
     local selected_hand_index = data:get_object("cards_index")
     selected_hand_index = selected_hand_index._data
 
+    local valid_hand_indices = get_hand_length(G.pack_cards.cards)
+    for _, value in ipairs(selected_hand_index) do
+        if not value_in_table(valid_hand_indices, value) then
+            return ExecutionResult.failure("Selected card index " .. tostring(value) .. " is not valid.")
+        end
+    end
+
     if #selected_hand_index > 1 then return ExecutionResult.failure("You can only take one card per action.") end
 
     if #selected_hand_index < 1 then return ExecutionResult.failure("You should either take a card or skip the round") end
-
-    local hand = get_pack_cards()
-    if not table.any(hand, function(card)
-            return card == hand
-        end) then
-        return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("cards_index"))
-    end
 
     state["cards_index"] = selected_hand_index
 	return ExecutionResult.success()

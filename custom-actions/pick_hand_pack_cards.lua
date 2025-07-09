@@ -52,20 +52,6 @@ function PickHandPackCards:_get_description()
     return description
 end
 
-local function get_cards_names()
-    local cards = {}
-    local card_type = {}
-
-	local card_mod = GetRunText:get_hand_names(G.hand.cards)
-
-	for i = 1, #card_mod do
-		local cards_type = card_mod[i] or ""
-
-		cards[i] = cards_type
-	end
-	return cards
-end
-
 local function get_pack_context()
     if #G.hand.cards > 0 then
         local hand, enhancements, editions, seals = table.table_to_string(GetRunText:get_card_modifiers(G.hand.cards)),GetRunText:get_current_hand_modifiers(G.hand.cards)
@@ -92,26 +78,15 @@ local function get_pack_context()
     end
 end
 
-local function get_pack_cards() -- this is tarot type cards
-	local cards = {}
-	local card_type = {}
-
-    if G.pack_cards == nil or G.pack_cards.cards == nil or G.pack_cards.cards == {} then return end
-    if SMODS.OPENED_BOOSTER.config.center.kind == "Spectral" then
-        card_type = GetRunText:get_spectral_names(G.pack_cards.cards)
-    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Arcana" then
-        card_type = GetRunText:get_tarot_names(G.pack_cards.cards)
-    else -- modded packs that dont contain contain a default set or if there is something I forgot
-        card_type = GetRunText:get_hand_names(G.pack_cards.cards)
+local function check_for_duplicates(table)
+    local seen = {}
+    for _, idx in ipairs(table) do
+        if seen[idx] then
+            return false
+        end
+        seen[idx] = true
     end
-
-    for i = 1, #card_type do
-        local cards_type = card_type[i] or ""
-
-        cards[i] = cards_type
-    end
-
-	return cards
+    return true
 end
 
 local function get_hand_length(card_table)
@@ -120,6 +95,13 @@ local function get_hand_length(card_table)
         table.insert(hand_length, i)
     end
     return hand_length
+end
+
+local function value_in_table(tbl, val)
+    for _, v in ipairs(tbl) do
+        if v == val then return true end
+    end
+    return false
 end
 
 function PickHandPackCards:_get_schema()
@@ -147,8 +129,27 @@ end
 
 function PickHandPackCards:_validate_action(data, state)
     local selected_hand_index = data:get_object("cards_index")
-    local selected_pack_card = data:get_string("pack_card_index")
+    local selected_pack_card = data:get_object("pack_card_index")
     selected_hand_index = selected_hand_index._data
+    selected_pack_card = selected_pack_card._data
+
+    if check_for_duplicates(selected_hand_index) == false then
+        return ExecutionResult.failure("You cannot select the same card index more than once.")
+    end
+
+    local valid_hand_indices = get_hand_length(G.hand.cards)
+    for _, value in ipairs(selected_hand_index) do
+        if not value_in_table(valid_hand_indices, value) then
+            return ExecutionResult.failure("Selected card index " .. tostring(value) .. " is not valid.")
+        end
+    end
+
+    local valid_pack_indices = get_hand_length(G.pack_cards.cards)
+    for _, value in ipairs(selected_pack_card) do
+        if not value_in_table(valid_pack_indices, value) then
+            return ExecutionResult.failure("Selected card index " .. tostring(value) .. " is not valid.")
+        end
+    end
 
     if #selected_hand_index > 5 then return ExecutionResult.failure("You tried to take more cards then you are allowed too.") end
 
@@ -157,23 +158,9 @@ function PickHandPackCards:_validate_action(data, state)
     if #selected_pack_card > 1 then return ExecutionResult.failure("You should only pick one pack card at at time.") end
     if #selected_pack_card < 0 then return ExecutionResult.failure("You have took a pack card index that is too low.") end
 
-    local hand = get_cards_names()
-    if not table.any(hand, function(card)
-            return card == hand
-        end) then
-        return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("cards_index"))
-    end
-
-    local pack_hand = get_pack_cards()
-    if not table.any(hand, function(card)
-            return card == hand
-        end) then
-        return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("pack_card_index"))
-    end
-
     state["cards_index"] = selected_hand_index
     state["pack_card_index"] = selected_pack_card
-	return ExecutionResult.success()
+    return ExecutionResult.success()
 end
 
 function PickHandPackCards:_execute_action(state)

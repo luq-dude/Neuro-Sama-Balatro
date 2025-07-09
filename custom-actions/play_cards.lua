@@ -61,6 +61,24 @@ function PlayCards:_get_schema()
     })
 end
 
+local function check_for_duplicates(table)
+    local seen = {}
+    for _, idx in ipairs(table) do
+        if seen[idx] then
+            return false
+        end
+        seen[idx] = true
+    end
+    return true
+end
+
+local function value_in_table(tbl, val)
+    for _, v in ipairs(tbl) do
+        if v == val then return true end
+    end
+    return false
+end
+
 local function increment_card_table(table)
     local selected_table = {}
     for _, card in pairs(table) do
@@ -77,6 +95,17 @@ function PlayCards:_validate_action(data, state)
     local selected_index = data:get_object("cards_index")
     selected_index = selected_index._data
 
+    if check_for_duplicates(selected_index) == false then
+        return ExecutionResult.failure("You cannot select the same card index more than once.")
+    end
+
+    local valid_hand_indices = get_hand_length(G.hand.cards)
+    for _, value in ipairs(selected_index) do
+        if not value_in_table(valid_hand_indices, value) then
+            return ExecutionResult.failure("Selected card index " .. tostring(value) .. " is not valid.")
+        end
+    end
+
     if not selected_index then
         return ExecutionResult.failure(SDK_Strings.action_failed_missing_required_parameter("cards_index"))
     end
@@ -88,22 +117,6 @@ function PlayCards:_validate_action(data, state)
 	local hand_length = get_hand_length(G.hand.cards)
     local selected_amount = {}
     local hand_amount = {}
-
-    -- add one for each card that is in the hand
-    hand_amount = increment_card_table(hand_length)
-
-    -- add one for each card that is in the selected hand
-    selected_amount = increment_card_table(selected_index)
-
-    -- get if trying to play more cards than in hand
-    for _, card in pairs(selected_index) do
-        if selected_amount[card] > hand_amount[card] then
-            return ExecutionResult.failure("You can only use the cards given in the hand. You tried to play more " .. card .. "'s when those do not exist")
-        else
-            sendDebugMessage("lowering " .. card .. "by 1")
-            selected_amount[card] = selected_amount[card] - 1
-        end
-    end
 
     state["cards_index"] = selected_index
     return ExecutionResult.success()

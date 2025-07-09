@@ -27,7 +27,7 @@ function SkipPack:_get_schema()
 end
 
 function SkipPack:_validate_action(data, state)
-	return ExecutionResult.success() -- I dont think this needs any validation soprry if it does
+	return ExecutionResult.success() -- I dont think this needs any validation sorry if it does
 end
 
 function SkipPack:_execute_action(state)
