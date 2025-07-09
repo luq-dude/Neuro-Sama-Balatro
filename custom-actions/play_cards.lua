@@ -124,6 +124,7 @@ function PlayCards:_execute_action(state)
     end
 
     G.FUNCS.play_cards_from_highlighted()
+    -- TODO: add logic for removing and reseting actions here
 
     self.hook.HookRan = false
 	return true

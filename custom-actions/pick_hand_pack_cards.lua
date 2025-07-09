@@ -41,7 +41,7 @@ function PickHandPackCards:_get_name()
     return "pick_hand_cards"
 end
 
-function PickHandPackCards:_get_description()  -- use G.P_CENTERS.p-buffoon_jumbo_1.config for getting values
+function PickHandPackCards:_get_description()
     local description = string.format("Pick cards from this pack, you can pick a max of " ..
     SMODS.OPENED_BOOSTER.config.center.config.choose
     .. " cards "
@@ -150,17 +150,26 @@ function PickHandPackCards:_validate_action(data, state)
     local selected_pack_card = data:get_string("pack_card_index")
     selected_hand_index = selected_hand_index._data
 
-	local hand = get_cards_names()
-    local pack_hand = get_pack_cards()
-    local selected_amount = {}
-    local hand_amount = {}
-
     if #selected_hand_index > 5 then return ExecutionResult.failure("You tried to take more cards then you are allowed too.") end
 
     if #selected_hand_index == 0 then return ExecutionResult.failure("You should either take a card or skip the round.") end
 
     if #selected_pack_card > 1 then return ExecutionResult.failure("You should only pick one pack card at at time.") end
     if #selected_pack_card < 0 then return ExecutionResult.failure("You have took a pack card index that is too low.") end
+
+    local hand = get_cards_names()
+    if not table.any(hand, function(card)
+            return card == hand
+        end) then
+        return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("cards_index"))
+    end
+
+    local pack_hand = get_pack_cards()
+    if not table.any(hand, function(card)
+            return card == hand
+        end) then
+        return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("pack_card_index"))
+    end
 
     state["cards_index"] = selected_hand_index
     state["pack_card_index"] = selected_pack_card
@@ -171,20 +180,15 @@ function PickHandPackCards:_execute_action(state)
     local selected_index = state["cards_index"]
     local selected_pack_card = state["pack_card_index"]
 
-    local hand_string = get_cards_names()
-    local pack_hand_string = get_pack_cards()
     local hand = G.hand.cards
     local pack_cards_hand = G.pack_cards.cards
-
-    local highlighted_cards = {}
 
     for _, index in ipairs(selected_index) do
         local card_id = hand[index]
         G.hand:add_to_highlighted(hand[index])
-        highlighted_cards[card_id] = (highlighted_cards[card_id] or 0) + 1
     end
 
-    for _, index in ipairs(selected_index) do
+    for _, index in ipairs(selected_pack_card) do
         G.pack_cards:add_to_highlighted(pack_cards_hand[index])
         local button = pack_cards_hand[index].children.use_button.UIRoot.children[2]
         button:click()

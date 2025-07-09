@@ -1,7 +1,5 @@
 local getRunText = {}
 
--- G.shop_booster might be related to how boosters in the bottom right of the shop ui are loaded
-
 function getRunText:get_celestial_names(card_hand)
     local cards = {}
 
@@ -25,19 +23,14 @@ end
 function getRunText:get_celestial_details(card_hand)
     local cards = {}
 
-    -- sendDebugMessage(tprint(G.pack_cards.cards,1,5))
 
-	sendDebugMessage("start get_planet_details") -- G.consumeables.highlighted
-	for pos, card in ipairs(card_hand) do -- this might need to be changed from G.hand.cards
+	for pos, card in ipairs(card_hand) do
 		sendDebugMessage("start for loop")
 		local planet_desc = ""
 
-		sendDebugMessage("Pos: " .. pos .. " Card: " .. card.ability.name)
-
-
         if card.ability.set == "Planet" then
             local key_override = nil
-            for _, v in pairs(G.P_CENTER_POOLS.Planet) do -- card.ability.effect card.ability.name
+            for _, v in pairs(G.P_CENTER_POOLS.Planet) do
                 local loc_args,loc_nodes = {}, {}
                 local name = card.ability.name
 
@@ -89,7 +82,7 @@ function getRunText:get_joker_names(card_hand)
 
             if v.key ~= card.config.center_key then goto continue end
             if v.loc_txt and type(v.loc_vars) == 'function' then
-                name = v.loc_txt.name -- get name that shows on hover
+                name = v.loc_txt.name
             end
             sendDebugMessage("card name: " .. name)
             cards[#cards + 1] = name
@@ -117,17 +110,15 @@ function getRunText:get_joker_details(card_hand)
                     local res = v:loc_vars({},card) or {} -- need to pass these to get vars (atleast in neurocards mod)
                     loc_args = res.vars or {}
                     key_override = v.key
-                    name = v.loc_txt.name -- get name that shows on hover
+                    name = v.loc_txt.name
 				else
                     LOC_ARGS = {}
                     card:generate_UIBox_ability_table()
-                    loc_args = LOC_ARGS -- this is defined in lovely patch
+                    loc_args = LOC_ARGS
                     key_override = card.config.center_key
                 end
 
                 localize{type = 'descriptions', key = v.key, set = v.set, nodes = loc_nodes, vars = loc_args}
-
-                sendDebugMessage("joker card: " .. tprint(card,1,2))
 
                 local description = "\n" .. name .. ": "
                 for _, line in ipairs(loc_nodes) do
@@ -163,13 +154,11 @@ function getRunText:get_spectral_names(card_hand)
 
             if v.key ~= card.config.center_key then goto continue end
             if v.loc_txt and type(v.loc_vars) == 'function' then
-                name = v.loc_txt.name -- get name that shows on hover
+                name = v.loc_txt.name
             end
-            sendDebugMessage("card name: " .. name)
             cards[#cards + 1] = name
             ::continue::
         end
-        sendDebugMessage("past continue")
     end
     return cards
 end
@@ -180,13 +169,10 @@ function getRunText:get_spectral_details(card_hand)
 	for pos, card in ipairs(card_hand) do
 		local spectral_desc = ""
 
-        sendDebugMessage("Card " .. card.ability.name .. ": " .. tprint(card,1,2))
-
         if card.ability.set == 'Spectral' then
             local key_override = nil
             for card_id, g_card in pairs(G.P_CENTERS) do
                 if g_card.name ~= card.ability.name then goto continue end
-                sendDebugMessage("G.P_CENTER_POOLS table: " .. tprint(G.P_CENTER_POOLS.Spectral,1,2))
                 local loc_lookup = Spectral_Loc[card_id]
                 local loc_args = {}
                 local loc_nodes = {}
@@ -210,7 +196,7 @@ function getRunText:get_spectral_details(card_hand)
                         if word.nodes ~= nil then
                             if word.nodes[1].config.text ~= nil then
                                 description = description .. word.nodes[1].config.text
-                            elseif word.nodes[1].config.object ~= nil then -- get modded vars
+                            elseif word.nodes[1].config.object ~= nil then
                                 description = description .. word.nodes[1].config.object.config.string[1]
                             end
                         else
@@ -236,12 +222,10 @@ function getRunText:get_tarot_names(card_hand)
         for _, v in pairs(G.P_CENTER_POOLS.Tarot) do
             local name = card.ability.name
 
-            sendDebugMessage("card key: " .. v.key .. " card.config: " .. card.config.center_key)
             if v.key ~= card.config.center_key then goto continue end
             if v.loc_txt and type(v.loc_vars) == 'function' then
-                name = v.loc_txt.name -- get name that shows on hover
+                name = v.loc_txt.namer
             end
-            sendDebugMessage("card name: " .. name)
             cards[#cards + 1] = name
             ::continue::
         end
@@ -268,7 +252,7 @@ function getRunText:get_tarot_details(card_hand)
                         table.insert(loc_args,g_card.config[v])
                     end
                 elseif type(loc_lookup) == "function" then
-                    if g_card.key == "c_temperance" then -- value is stored in card, ugly solution but I can't find a more elegant one
+                    if g_card.key == "c_temperance" then -- value is stored in card, ugly solution but I don't think you can get it from g_card
                         loc_args = loc_lookup(card)
                     else
                         loc_args = loc_lookup(g_card)
@@ -286,7 +270,7 @@ function getRunText:get_tarot_details(card_hand)
                         if word.nodes ~= nil then
                             if word.nodes[1].config.text ~= nil then
                                 description = description .. word.nodes[1].config.text
-                            elseif word.nodes[1].config.object ~= nil then -- get modded vars
+                            elseif word.nodes[1].config.object ~= nil then
                                 description = description .. word.nodes[1].config.object.config.string[1]
                             end
                         else
@@ -402,7 +386,6 @@ function getRunText:get_hand_editions(cards_table)
                 local loc_nodes = {}
                 local name = g_card.name
                 if g_card.key == card.edition.key and g_card.loc_txt and type(g_card.loc_vars) == 'function' then
-                    sendDebugMessage("g_card: " .. tprint(g_card,1,2))
                     if g_card.loc_vars then
                         local res = g_card:loc_vars(nil,card) or {}
                         loc_args = res.vars or res.loc_txt.text
@@ -436,6 +419,8 @@ function getRunText:get_hand_editions(cards_table)
             ::continue::
             end
         end
+
+        if table.any(cards, function(edition) return edition == edition_desc end) then edition_desc = "" end -- get rid of duplicates
 		cards[#cards+1] = edition_desc
     end
     return cards
@@ -471,13 +456,12 @@ function getRunText:get_hand_enhancements(cards_table)
                     sendErrorMessage("Could not find localize for edition" .. g_card.key)
                 end
 
-                localize{type = 'descriptions', key = g_card.key or key_override, set = g_card.set, nodes = loc_nodes, vars = loc_args} -- doesn't get character's like + idk why, needs to be fixed before shipping though
+                localize{type = 'descriptions', key = g_card.key or key_override, set = g_card.set, nodes = loc_nodes, vars = loc_args} -- doesn't get character's like + idk why as others do, needs to be fixed before releasing though
 
                 local description = "\n -- " .. name .. " : "
                 for _, line in ipairs(loc_nodes) do
                     for _, word in ipairs(line) do
                         if word.nodes ~= nil then
-                            sendDebugMessage(word.nodes[1].config.object.string)
                             description = description .. word.nodes[1].config.object.string
                         else
                             if not word.config.text then break end -- removes table that contains stuff for setting up UI
@@ -491,6 +475,7 @@ function getRunText:get_hand_enhancements(cards_table)
             ::continue::
             end
         end
+        if table.any(cards, function(enhancement) return enhancement == enhancement_desc end) then enhancement_desc = "" end
 		cards[#cards+1] = enhancement_desc
     end
     return cards
@@ -535,7 +520,7 @@ function getRunText:get_hand_seals(cards_table)
             ::continue::
             end
         end
-        if table.any(cards, function(seal) return seal == seal_desc end) then seal_desc = "" end -- remove duplicates
+        if table.any(cards, function(seal) return seal == seal_desc end) then seal_desc = "" end
 		cards[#cards+1] = seal_desc
     end
     return cards
@@ -550,11 +535,6 @@ function getRunText:get_current_hand_modifiers(cards_table)
     local editions_string = "- card editions: " .. editions
     local seals_string = "- card seals: " .. seals
 
-    sendDebugMessage("enhancement: " .. enhancements)
-    sendDebugMessage("editions: " .. editions)
-    sendDebugMessage("seals: " .. seals)
-
-    -- figure out better way to do this because sometimes this doesn't work even if there are no modifiers
     if enhancements == "" or enhancements == nil then
         enhancements_string = "There are no enhancements on your cards"
     end

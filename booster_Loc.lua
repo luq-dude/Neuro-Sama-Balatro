@@ -9,8 +9,8 @@ Spectral_Loc = {
 	c_ouija = {},
 	c_ectoplasm = {},
 	c_immolate = function (card)
-		return {"5", "20"}
-	end, -- extra is a table and these are values not 100% sure if this will work
+		return {"5", "20"} -- these are from extra as it is a table
+	end,
 	c_ankh = {"extra"},
 	c_deja_vu = {"extra", "max_highlighted"},
 	c_hex = {"extra"},
@@ -51,7 +51,6 @@ Tarot_Loc = {
 	c_hanged_man = {"max_highlighted"},
 	c_death = {"max_highlighted"},
 	c_temperance = function (card)
-		sendDebugMessage("card: " .. tprint(card,1,2))
 		return {card.ability.extra, card.ability.money}
 	end,
 	c_devil = function(card)

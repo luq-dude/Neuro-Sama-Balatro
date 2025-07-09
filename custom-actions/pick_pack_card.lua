@@ -91,7 +91,7 @@ local function get_card_context()
     end
 end
 
-local function get_cards_modifiers()
+local function get_pack_cards()
     local cards = {}
     local card_type = {}
     if G.pack_cards == nil or G.pack_cards.cards == nil or G.pack_cards.cards == {} then return end
@@ -152,9 +152,12 @@ function PickCards:_validate_action(data, state)
 
     if #selected_hand_index < 1 then return ExecutionResult.failure("You should either take a card or skip the round") end
 
-	local hand = get_cards_modifiers()
-    local selected_amount = {}
-    local hand_amount = {}
+    local hand = get_pack_cards()
+    if not table.any(hand, function(card)
+            return card == hand
+        end) then
+        return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("cards_index"))
+    end
 
     state["cards_index"] = selected_hand_index
 	return ExecutionResult.success()
