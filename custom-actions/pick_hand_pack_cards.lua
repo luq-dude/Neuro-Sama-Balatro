@@ -177,7 +177,7 @@ function PickHandPackCards:_execute_action(state)
 
     for _, index in ipairs(selected_pack_card) do
         G.pack_cards:add_to_highlighted(pack_cards_hand[index])
-        local button = hand[index].children.use_button.UIRoot.children[1]
+        local button = pack_cards_hand[index].children.use_button.UIRoot.children[2]
         button:click()
 
         cards_picked = cards_picked + 1

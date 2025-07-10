@@ -99,16 +99,22 @@ function PlayingRun:hook_draw_card()
                         return true
                     end
 
-                    if booster.config.center.draw_hand and G.STATE ~= G.STATES.SHOP then
-                        pick_hand_pack_card(20)
-                        skip_pack(20)
-                    elseif not booster.config.center.draw_hand and G.STATE ~= G.STATES.SHOP then
-                        pick_pack_card(20)
-                        skip_pack(20)
-                    else
-                        sendDebugMessage("G.state was not in draw_card hook: " .. G.STATE)
-                        self.HookRan = false
+                    if G.STATE == 999 then -- I'm pretty sure all boosters go through this then become the vanilla state so just using this should be fine
+                        sendDebugMessage("running smods")
+                        tprint(booster.config)
+                        if booster.config.center.draw_hand then
+                            pick_hand_pack_card(20)
+                            skip_pack(20)
+                            return true
+                        else
+                            pick_pack_card(20)
+                            skip_pack(20)
+                            return true
+                        end
                     end
+
+                    sendDebugMessage(G.STATE .. " was not used as a state")
+                    self.HookRan = false
                 return true
             end
         }))

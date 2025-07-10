@@ -29,7 +29,6 @@ function getRunText:get_celestial_details(card_hand)
 		local planet_desc = ""
 
         if card.ability.set == "Planet" then
-            local key_override = nil
             for _, v in pairs(G.P_CENTER_POOLS.Planet) do
                 local loc_args,loc_nodes = {}, {}
                 local name = card.ability.name
@@ -37,19 +36,12 @@ function getRunText:get_celestial_details(card_hand)
                 if v.key ~= card.config.center_key then goto continue end
                 if v.loc_txt and type(v.loc_vars) == 'function' then
                     local res = v:loc_vars() or {}
-                    loc_args = res.vars or {}
-                    loc_args = {  -- not tested
-                    SMODS.PokerHand.obj_table[v.config.hand_type].level,localize(v.config.hand_type, 'poker_hands'), SMODS.PokerHand.obj_table[v.config.hand_type].l_mult, SMODS.PokerHand.obj_table[v.config.hand_type].l_chips,
-                    colours = {(SMODS.PokerHand.obj_table[v.config.hand_type].level==1 and G.C.UI.TEXT_DARK or G.C.HAND_LEVELS[math.min(7, SMODS.PokerHand.obj_table[v.config.hand_type].level)])} -- G.C.HANDLEVELS will probably need to be replaced with an smods var
-                    }
-                    key_override = v.key
                     name = v.loc_txt.name
-				else
-                    loc_args = {
-                    G.GAME.hands[v.config.hand_type].level,localize(v.config.hand_type, 'poker_hands'), G.GAME.hands[v.config.hand_type].l_mult, G.GAME.hands[v.config.hand_type].l_chips,
-                    colours = {(G.GAME.hands[v.config.hand_type].level==1 and G.C.UI.TEXT_DARK or G.C.HAND_LEVELS[math.min(7, G.GAME.hands[v.config.hand_type].level)])}
-                    }
                 end
+                loc_args = {  -- SMODS.PokerHand contains both smods added hands and vanilla (haven't tested modded cards, so it could still break, sorry if so.)
+                    SMODS.PokerHand.obj_table[v.config.hand_type].level,localize(v.config.hand_type, 'poker_hands'), SMODS.PokerHand.obj_table[v.config.hand_type].l_mult, SMODS.PokerHand.obj_table[v.config.hand_type].l_chips,
+                    colours = {(SMODS.PokerHand.obj_table[v.config.hand_type].level==1 and G.C.UI.TEXT_DARK or G.C.HAND_LEVELS[math.min(7, SMODS.PokerHand.obj_table[v.config.hand_type].level)])}
+                    }
 
                 localize{type = 'descriptions', key = v.key, set = v.set, nodes = loc_nodes, vars = loc_args}
 
@@ -192,7 +184,6 @@ function getRunText:get_spectral_details(card_hand)
                 local description = "\n" .. name .. ": "
                 for _, line in ipairs(loc_nodes) do
                     for _, word in ipairs(line) do
-                        sendDebugMessage("Word: " .. tprint(word,1,2))
                         if word.nodes ~= nil then
                             if word.nodes[1].config.text ~= nil then
                                 description = description .. word.nodes[1].config.text
@@ -252,21 +243,15 @@ function getRunText:get_tarot_details(card_hand)
                         table.insert(loc_args,g_card.config[v])
                     end
                 elseif type(loc_lookup) == "function" then
-                    if g_card.key == "c_temperance" then -- value is stored in card, ugly solution but I don't think you can get it from g_card
-                        loc_args = loc_lookup(card)
-                    else
-                        loc_args = loc_lookup(g_card)
-                    end
+                    loc_args = loc_lookup(card)
                 else
                     sendErrorMessage("Could not find localize for card" .. g_card.key)
                 end
-
                 localize{type = 'descriptions', key = g_card.key or key_override, set = g_card.set or card.ability.set, nodes = loc_nodes, vars = loc_args}
 
                 local description = "\n" .. card.ability.name .. ": "
                 for _, line in ipairs(loc_nodes) do
                     for _, word in ipairs(line) do
-                        sendDebugMessage("Word: " .. tprint(word,1,2))
                         if word.nodes ~= nil then
                             if word.nodes[1].config.text ~= nil then
                                 description = description .. word.nodes[1].config.text

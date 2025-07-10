@@ -59,24 +59,17 @@ Tarot_Loc = {
 	c_tower = function(card)
 		return {card.config.max_highlighted, "Stone Card"}
 	end,
-	c_star = {"max_highlighted", "suit_conv"},
-	c_moon = {"max_highlighted", "suit_conv"},
-	c_sun = {"max_highlighted", "suit_conv"},
+	c_star = function (card)
+		return {card.config.center.config.max_highlighted,localize(card.config.center.config.suit_conv, 'suits_plural'),colours = {G.C.SUITS[card.config.center.config.suit_conv]}} -- send colour as text changes with suit colour
+	end,
+	c_moon = function (card)
+		return {card.config.center.config.max_highlighted,localize(card.config.center.config.suit_conv, 'suits_plural'),colours = {G.C.SUITS[card.config.center.config.suit_conv]}}
+	end,
+	c_sun = function (card)
+		return {card.config.center.config.max_highlighted,localize(card.config.center.config.suit_conv, 'suits_plural'),colours = {G.C.SUITS[card.config.center.config.suit_conv]}}
+	end,
 	c_judgement = {},
-	c_world = {"max_highlighted", "suit_conv"},
-}
-
-Celestial_Loc = {
-	c_mercury = {"hand_type"},
-	c_venus = {"hand_type"},
-	c_earth = {"hand_type"},
-	c_mars = {"hand_type"},
-	c_jupiter = {"hand_type"},
-	c_saturn = {"hand_type"},
-	c_uranus = {"hand_type"},
-	c_neptune = {"hand_type"},
-	c_pluto = {"hand_type"},
-	c_planet_x = {"hand_type"},
-	c_ceres = {"hand_type"},
-	c_eris = {"hand_type"},
+	c_world = function (card)
+		return {card.config.center.config.max_highlighted,localize(card.config.center.config.suit_conv, 'suits_plural'),colours = {G.C.SUITS[card.config.center.config.suit_conv]}}
+	end,
 }
