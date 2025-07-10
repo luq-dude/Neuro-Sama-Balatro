@@ -77,9 +77,9 @@ function PlayingRun:hook_draw_card()
     local original_draw_card = draw_card
     function draw_card(from, to, percent, dir, sort, card, delay, mute, stay_flipped, vol, discarded_only)
         original_draw_card(from, to, percent, dir, sort, card, delay, mute, stay_flipped, vol, discarded_only)
-        if self.HookRan then sendDebugMessage("Blocked a hook call") return end -- this stops actions or context being sent multiple times
+        if G.STATE == G.STATES.HAND_PLAYED then return true end
+        if self.HookRan then sendDebugMessage("Blocked a hook call G.state was " .. G.STATE) return true end -- this stops actions or context being sent multiple times
         self.HookRan = true -- this needs to be set back to false after in an actions execute_action
-
         sendDebugMessage("draw_card called")
 
         G.E_MANAGER:add_event(Event({
@@ -87,27 +87,27 @@ function PlayingRun:hook_draw_card()
             blocking = false,
             delay = 8,
             func = function ()
-                    sendDebugMessage("start second event")
-                    if G.STATE == nil or G.STATE == G.STATES.HAND_PLAYED or G.STATE == G.STATES.DRAW_TO_HAND or G.STATE == G.STATES.SHOP then
-                        return true
-                    end
-
-                    if G.STATE == G.STATES.SELECTING_HAND then
+                    if G.STATE == G.STATES.SELECTING_HAND or G.STATE == G.STATES.DRAW_TO_HAND then
                         play_card(14)
                         return true
                     end
 
                     local booster = SMODS.OPENED_BOOSTER
                     if booster == nil then
+                        sendDebugMessage("booster is nil: " .. G.STATE)
+                        self.HookRan = false
                         return true
                     end
 
-                    if booster.config.center.draw_hand and G.STATE ~= G.STATES.SHOP then -- this is if cards from playing hand will be drawn
+                    if booster.config.center.draw_hand and G.STATE ~= G.STATES.SHOP then
                         pick_hand_pack_card(20)
                         skip_pack(20)
-                    else
+                    elseif not booster.config.center.draw_hand and G.STATE ~= G.STATES.SHOP then
                         pick_pack_card(20)
                         skip_pack(20)
+                    else
+                        sendDebugMessage("G.state was not in draw_card hook: " .. G.STATE)
+                        self.HookRan = false
                     end
                 return true
             end

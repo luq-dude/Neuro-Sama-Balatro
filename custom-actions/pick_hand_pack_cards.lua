@@ -177,8 +177,9 @@ function PickHandPackCards:_execute_action(state)
 
     for _, index in ipairs(selected_pack_card) do
         G.pack_cards:add_to_highlighted(pack_cards_hand[index])
-        local button = pack_cards_hand[index].children.use_button.UIRoot.children[2]
+        local button = hand[index].children.use_button.UIRoot.children[1]
         button:click()
+
         cards_picked = cards_picked + 1
         if SMODS.OPENED_BOOSTER.config.center.config.choose > cards_picked then
             pick_hand_pack_card(5,self.hook) -- call action again if more than one pack card can be picked.

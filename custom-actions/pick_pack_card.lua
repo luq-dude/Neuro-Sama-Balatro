@@ -146,12 +146,11 @@ function PickCards:_execute_action(state)
 
     local hand = G.pack_cards.cards
 
-    sendDebugMessage("pack_size: " .. tostring(G.GAME.pack_choices) .. "pack_picked" .. SMODS.OPENED_BOOSTER.config.center_key .. "config: " .. tprint(SMODS.OPENED_BOOSTER.config.center.config,1,2))
-
     for _, index in ipairs(selected_index) do
         G.pack_cards:add_to_highlighted(hand[index])
-        local button = hand[index].children.use_button.UIRoot.children[2]
+        local button = hand[index].children.use_button.UIRoot.children[1]
         button:click()
+
         cards_picked = cards_picked + 1
         if SMODS.OPENED_BOOSTER.config.center.config.choose > cards_picked then
             pick_pack_card(5,self.hook) -- call action again if more than one pack card can be picked
