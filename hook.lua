@@ -2,24 +2,77 @@ local GameHooks = ModCache.load("game-sdk/game_hooks.lua")
 local GamePrep = ModCache.load("game_prep.lua")
 local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
 local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
+
+local SelectDeck = ModCache.load("custom-actions/select_deck.lua")
+local PlayingRun = ModCache.load("playing_run.lua")
+
 local PlayCards = ModCache.load("custom-actions/play_cards.lua")
 local PlayBlind = ModCache.load("custom-actions/play_blind.lua")
 local SkipBlind = ModCache.load("custom-actions/skip_blind.lua")
 
 local GetText = ModCache.load("get_text.lua")
 
+
 local Hook = {}
 Hook.__index = Hook
 
 local should_unlock = NeuroConfig.UNLOCK_ALL
 
-local function play_card(delay)
+local function load_profile(delay)
+    G.E_MANAGER:add_event(Event({
+        trigger = "after",
+        delay = delay or 1,
+        func = function()
+            sendDebugMessage("highlighted profile: " .. G.focused_profile)
+
+            G.PROFILES[neuro_profile].name = "Neuro-Sama"
+            local tab_root = G.OVERLAY_MENU:get_UIE_by_ID("tab_contents").config.object.UIRoot
+
+            -- tabs have a very cursed hierachy, there's definitely a better way to do this
+            local button = tab_root.children[2].children[2].children[2].children[1].children[1]
+            button:click()
+            return true
+        end
+    }))
+end
+
+local function select_profile_tab(delay)
+    G.E_MANAGER:add_event(Event({
+        trigger = "after",
+        delay = delay or 1,
+        func = function()
+            local button = G.OVERLAY_MENU:get_UIE_by_ID("tab_but_" .. neuro_profile)
+            button:click()
+            load_profile(1)
+            return true
+        end
+    }))
+end
+
+local function open_profile_select(delay)
+    G.E_MANAGER:add_event(Event({
+        trigger = "after",
+        delay = delay or 1,
+        func = function()
+            local profile_btn_box_root = G.PROFILE_BUTTON.UIRoot
+            local button = profile_btn_box_root.children[1].children[2].children[1]
+            button:click()
+            -- idk if calling release does anything or not
+            button:release()
+            select_profile_tab(0.2)
+            return true
+        end
+    }))
+end
+
+local function select_deck(delay)
     G.E_MANAGER:add_event(Event({
         trigger = "after",
         delay = delay,
         func = function()
             local window = ActionWindow:new()
-            window:add_action(PlayCards:new(window, nil))
+            window:set_force(0.0, "Pick a deck", "", false)
+            window:add_action(SelectDeck:new(window, nil))
             window:register()
             return true
         end
@@ -160,33 +213,6 @@ local function hook_win()
     end
 end
 
--- call play_card after selecting first bind
-SMODS.Keybind {
-    key = 'test_cards',
-    key_pressed = 'c',
-
-    action = function(self)
-        G.E_MANAGER:add_event(Event({
-            trigger = "after",
-            delay = 0,
-            blocking = false,
-            func = function()
-                G.E_MANAGER:add_event(Event({
-                    trigger = "after",
-                    delay = 0,
-                    blocking = false,
-                    func = function()
-                        sendDebugMessage("start second event")
-                        play_card(2)
-                        return true
-                    end
-                }))
-                return true
-            end
-        }))
-    end
-}
-
 local function hook_blind_select()
     local blind_select = Game.update_blind_select
     function Game:update_blind_select(dt)
@@ -237,6 +263,8 @@ function Hook:hook_game()
     hook_main_menu()
     hook_game_over()
     hook_win()
+    PlayingRun:hook_draw_card()
+
     hook_blind_select()
 end
 

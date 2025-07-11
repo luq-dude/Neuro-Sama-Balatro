@@ -35,3 +35,12 @@ function table.get_keys(t)
     end
     return keys
 end
+
+function table.table_to_string(tbl)
+    local s = ""
+    for i, value in ipairs(tbl) do
+        s = s .. tostring(value)
+        -- if i < #tbl then s = s .. "," end
+    end
+    return s
+end

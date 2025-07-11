@@ -23,6 +23,7 @@ local bit = require"bit"
 local band, bor, bxor = bit.band, bit.bor, bit.bxor
 local shl, shr = bit.lshift, bit.rshift
 local seckey = "osT3F7mvlojIvf3/8uIsJQ=="
+local unpack = table.unpack or unpack -- this is done for compatibility reasons as unpack has been removed in favor of table.unpack in lua versions past 5.2
 
 local OPCODE = {
     CONTINUE = 0,
