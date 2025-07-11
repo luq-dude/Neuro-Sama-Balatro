@@ -1,6 +1,6 @@
-local getRunText = {}
+local GetRunText = {}
 
-function getRunText:get_celestial_names(card_hand)
+function GetRunText:get_celestial_names(card_hand)
     local cards = {}
 
 	for pos, card in ipairs(card_hand) do
@@ -20,9 +20,8 @@ function getRunText:get_celestial_names(card_hand)
     return cards
 end
 
-function getRunText:get_celestial_details(card_hand)
+function GetRunText:get_celestial_details(card_hand)
     local cards = {}
-
 
 	for pos, card in ipairs(card_hand) do
 		sendDebugMessage("start for loop")
@@ -66,7 +65,7 @@ function getRunText:get_celestial_details(card_hand)
     return cards
 end
 
-function getRunText:get_joker_names(card_hand)
+function GetRunText:get_joker_names(card_hand)
     local cards = {}
 	for pos, card in ipairs(card_hand) do
         for _, v in pairs(G.P_CENTER_POOLS.Joker) do
@@ -85,7 +84,7 @@ function getRunText:get_joker_names(card_hand)
     return cards
 end
 
-function getRunText:get_joker_details(card_hand)
+function GetRunText:get_joker_details(card_hand)
     local cards = {}
 
 	for pos, card in ipairs(card_hand) do
@@ -137,7 +136,7 @@ function getRunText:get_joker_details(card_hand)
     return cards
 end
 
-function getRunText:get_spectral_names(card_hand)
+function GetRunText:get_spectral_names(card_hand)
     local cards = {}
 
 	for pos, card in ipairs(card_hand) do
@@ -155,7 +154,7 @@ function getRunText:get_spectral_names(card_hand)
     return cards
 end
 
-function getRunText:get_spectral_details(card_hand)
+function GetRunText:get_spectral_details(card_hand)
     local cards = {}
 
 	for pos, card in ipairs(card_hand) do
@@ -206,7 +205,7 @@ function getRunText:get_spectral_details(card_hand)
     return cards
 end
 
-function getRunText:get_tarot_names(card_hand)
+function GetRunText:get_tarot_names(card_hand)
     local cards = {}
 
 	for pos, card in ipairs(card_hand) do
@@ -224,7 +223,7 @@ function getRunText:get_tarot_names(card_hand)
     return cards
 end
 
-function getRunText:get_tarot_details(card_hand)
+function GetRunText:get_tarot_details(card_hand)
     local cards = {}
 
 	for pos, card in ipairs(card_hand) do
@@ -275,7 +274,7 @@ function getRunText:get_tarot_details(card_hand)
 end
 
 -- playing card stuff
-function getRunText:get_card_modifiers(card_hand) -- TODO: port this to other context stuff
+function GetRunText:get_card_modifiers(card_hand)
     local cards = {}
 
 	for pos, card in ipairs(card_hand) do
@@ -345,7 +344,7 @@ function getRunText:get_card_modifiers(card_hand) -- TODO: port this to other co
     return cards
 end
 
-function getRunText:get_hand_names(cards_table)
+function GetRunText:get_hand_names(cards_table)
     local cards = {}
     for pos, card in ipairs(cards_table) do
         local name = card.base.name
@@ -356,7 +355,7 @@ function getRunText:get_hand_names(cards_table)
 	return cards
 end
 
-function getRunText:get_hand_editions(cards_table)
+function GetRunText:get_hand_editions(cards_table)
 	local cards = {}
 	for _, card in ipairs(cards_table) do
 
@@ -411,7 +410,7 @@ function getRunText:get_hand_editions(cards_table)
     return cards
 end
 
-function getRunText:get_hand_enhancements(cards_table)
+function GetRunText:get_hand_enhancements(cards_table)
     local cards = {}
 	for pos, card in ipairs(cards_table) do
 
@@ -466,7 +465,7 @@ function getRunText:get_hand_enhancements(cards_table)
     return cards
 end
 
-function getRunText:get_hand_seals(cards_table)
+function GetRunText:get_hand_seals(cards_table)
     local cards = {}
 
 	for pos, card in ipairs(cards_table) do
@@ -511,7 +510,7 @@ function getRunText:get_hand_seals(cards_table)
     return cards
 end
 
-function getRunText:get_current_hand_modifiers(cards_table)
+function GetRunText:get_current_hand_modifiers(cards_table)
     local enhancements = table.table_to_string(self:get_hand_enhancements(cards_table))
     local editions = table.table_to_string(self:get_hand_editions(cards_table))
     local seals = table.table_to_string(self:get_hand_seals(cards_table))
@@ -533,4 +532,4 @@ function getRunText:get_current_hand_modifiers(cards_table)
     return enhancements_string,editions_string,seals_string
 end
 
-return getRunText
+return GetRunText

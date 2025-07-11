@@ -100,8 +100,6 @@ function PlayingRun:hook_draw_card()
                     end
 
                     if G.STATE == 999 then -- I'm pretty sure all boosters go through this then become the vanilla state so just using this should be fine
-                        sendDebugMessage("running smods")
-                        tprint(booster.config)
                         if booster.config.center.draw_hand then
                             pick_hand_pack_card(20)
                             skip_pack(20)

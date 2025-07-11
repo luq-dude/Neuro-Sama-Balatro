@@ -19,7 +19,7 @@ function PlayCards:_get_name()
 end
 
 function PlayCards:_get_description()
-    local description = string.format("play a maximum of 5 cards with your current hand." ..
+    local description = string.format("play a maximum of ".. G.hand.config.highlighted_limit .. " cards with your current hand." ..
     "The cards will be ordered by the position they are located in your hand from left to right." ..
     "When defining the card's index the first card will be 1, you should send these in the same order as you send the cards")
 
@@ -112,7 +112,7 @@ function PlayCards:_validate_action(data, state)
 
     if #selected_index == 0 then return ExecutionResult.failure("At least one card must be selected.") end
 
-    if #selected_index > 5 then return ExecutionResult.failure("Cannot play more than 5 cards.") end
+    if #selected_index > G.hand.config.highlighted_limit then return ExecutionResult.failure("Cannot play more than " .. G.hand.config.highlighted_limit .. " cards.") end
 
 	local hand_length = get_hand_length(G.hand.cards)
     local selected_amount = {}
@@ -137,7 +137,7 @@ function PlayCards:_execute_action(state)
     end
 
     G.FUNCS.play_cards_from_highlighted()
-    -- TODO: add logic for removing and reseting actions here
+    -- TODO: add logic for removing and resetting other card actions here
 
     self.hook.HookRan = false
 	return true

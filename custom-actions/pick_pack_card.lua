@@ -148,12 +148,23 @@ function PickCards:_execute_action(state)
 
     for _, index in ipairs(selected_index) do
         G.pack_cards:add_to_highlighted(hand[index])
-        local button = hand[index].children.use_button.UIRoot.children[1]
+        local button = nil
+        for pos, value in ipairs(hand[index].children.use_button.UIRoot.children) do
+            if value.config.button ~= nil then
+                button = hand[index].children.use_button.UIRoot.children[pos]
+                break
+            end
+        end
+        if button == nil then
+            sendErrorMessage("None of the cards have a valid use button")
+            return true
+        end
         button:click()
 
         cards_picked = cards_picked + 1
         if SMODS.OPENED_BOOSTER.config.center.config.choose > cards_picked then
-            pick_pack_card(5,self.hook) -- call action again if more than one pack card can be picked
+            pick_pack_card(5,self.hook) -- call action again if more than one pack card can be picked. This is to reduce cooldown of action being registered
+            return true
         else
             cards_picked = 0
         end

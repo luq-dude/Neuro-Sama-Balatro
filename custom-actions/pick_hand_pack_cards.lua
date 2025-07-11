@@ -151,12 +151,18 @@ function PickHandPackCards:_validate_action(data, state)
         end
     end
 
-    if #selected_hand_index > 5 then return ExecutionResult.failure("You tried to take more cards then you are allowed too.") end
+    if #selected_hand_index > G.hand.config.highlighted_limit then return ExecutionResult.failure("You have selected more cards from your hand then you are allowed too.") end
 
     if #selected_hand_index == 0 then return ExecutionResult.failure("You should either take a card or skip the round.") end
 
     if #selected_pack_card > 1 then return ExecutionResult.failure("You should only pick one pack card at at time.") end
+
     if #selected_pack_card < 0 then return ExecutionResult.failure("You have took a pack card index that is too low.") end
+
+    local card_config = G.pack_cards.cards[selected_pack_card[1]].config.center.config
+    if card_config.max_highlighted ~= nil then
+        if #selected_hand_index ~= card_config.max_highlighted then return ExecutionResult.failure("You have either selected too many cards or to little from your hand comparative to how many the tarot needs.") end
+    end
 
     state["cards_index"] = selected_hand_index
     state["pack_card_index"] = selected_pack_card
@@ -177,12 +183,23 @@ function PickHandPackCards:_execute_action(state)
 
     for _, index in ipairs(selected_pack_card) do
         G.pack_cards:add_to_highlighted(pack_cards_hand[index])
-        local button = pack_cards_hand[index].children.use_button.UIRoot.children[2]
+        local button = nil
+        for pos, value in ipairs(pack_cards_hand[index].children.use_button.UIRoot.children) do
+            if value.config.button ~= nil then
+                button = pack_cards_hand[index].children.use_button.UIRoot.children[pos]
+                break
+            end
+        end
+        if button == nil then
+            sendErrorMessage("None of the cards have a valid use button")
+            return true
+        end
         button:click()
 
         cards_picked = cards_picked + 1
         if SMODS.OPENED_BOOSTER.config.center.config.choose > cards_picked then
-            pick_hand_pack_card(5,self.hook) -- call action again if more than one pack card can be picked.
+            pick_hand_pack_card(5,self.hook)
+            return true
         else
             cards_picked = 0
         end
