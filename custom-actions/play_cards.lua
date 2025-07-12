@@ -1,6 +1,7 @@
+local Context = ModCache.load("game-sdk/messages/outgoing/Context.lua")
 local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
-local GetText = ModCache.load("get_text.lua")
+local GetRunText = ModCache.load("get_run_text.lua")
 
 local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
 
@@ -9,6 +10,7 @@ PlayCards.__index = PlayCards
 
 function PlayCards:new(actionWindow, state)
     local obj = NeuroAction.new(self, actionWindow)
+    obj.hook = state[1]
     return obj
 end
 
@@ -17,40 +19,64 @@ function PlayCards:_get_name()
 end
 
 function PlayCards:_get_description()
-    local description = "play a maximum of 5 cards with your current hand. The cards will be ordered by the position they are located in your hand from left to right"
+    local description = string.format("play a maximum of ".. G.hand.config.highlighted_limit .. " cards with your current hand." ..
+    "The cards will be ordered by the position they are located in your hand from left to right." ..
+    "When defining the card's index the first card will be 1, you should send these in the same order as you send the cards")
 
     return description
 end
 
+local function get_cards_context()
+    local enhancements, editions, seals = GetRunText:get_current_hand_modifiers(G.hand.cards)
 
-local function get_cards_modifiers() -- get names then add appropriate descriptions
-    local cards = GetText:get_hand_names()
-    local editions = GetText:get_hand_editions()
-    local enhancements = GetText:get_hand_enhancements()
-    local seals = GetText:get_hand_seals()
+    Context.send(string.format("These are what the card's modifiers do," ..
+    " there can only be one edition,enhancement and seal on each card: \n" ..
+    enhancements .. "\n" ..
+    editions .. "\n" ..
+    seals),true)
 
-    for i = 1, #cards do
-        local name = cards[i] or ""
-        local edition = editions[i] or ""
-        local enhancement = enhancements[i] or ""
-        local seal = seals[i] or ""
+    Context.send("These are the current cards in your hand and their modifiers: \n" .. table.table_to_string(GetRunText:get_card_modifiers(G.hand.cards)))
+end
 
-        cards[i] = name .. edition .. enhancement .. seal
+local function get_hand_length(card_table)
+    local hand_length = {}
+    for i = 1, #card_table do
+        table.insert(hand_length, i)
     end
-
-    return cards
+    return hand_length
 end
 
 function PlayCards:_get_schema()
+    get_cards_context()
+    local hand_length = get_hand_length(G.hand.cards)
+
     return JsonUtils.wrap_schema({
-        hand = {
-			type = "array",
-            items = {
-				type = "string",
-				enum = get_cards_modifiers()
-			},
-		}
+        cards_index = {
+            type = "array",
+            items ={
+                type = "integer",
+                enum = hand_length
+            }
+        }
     })
+end
+
+local function check_for_duplicates(table)
+    local seen = {}
+    for _, idx in ipairs(table) do
+        if seen[idx] then
+            return false
+        end
+        seen[idx] = true
+    end
+    return true
+end
+
+local function value_in_table(tbl, val)
+    for _, v in ipairs(tbl) do
+        if v == val then return true end
+    end
+    return false
 end
 
 local function increment_card_table(table)
@@ -66,78 +92,54 @@ local function increment_card_table(table)
 end
 
 function PlayCards:_validate_action(data, state)
-    local selected_hand = data:get_object("hand")
-    selected_hand = selected_hand._data
+    local selected_index = data:get_object("cards_index")
+    selected_index = selected_index._data
 
-    if not selected_hand then
-        return ExecutionResult.failure(SDK_Strings.action_failed_missing_required_parameter("hand"))
+    if check_for_duplicates(selected_index) == false then
+        return ExecutionResult.failure("You cannot select the same card index more than once.")
     end
 
-    if #selected_hand == 0 then return ExecutionResult.failure("At least one card must be selected.") end
+    local valid_hand_indices = get_hand_length(G.hand.cards)
+    for _, value in ipairs(selected_index) do
+        if not value_in_table(valid_hand_indices, value) then
+            return ExecutionResult.failure("Selected card index " .. tostring(value) .. " is not valid.")
+        end
+    end
 
-    if #selected_hand > 5 then return ExecutionResult.failure("Cannot play more than 5 cards.") end
+    if not selected_index then
+        return ExecutionResult.failure(SDK_Strings.action_failed_missing_required_parameter("cards_index"))
+    end
 
-	local hand = get_cards_modifiers()
+    if #selected_index == 0 then return ExecutionResult.failure("At least one card must be selected.") end
+
+    if #selected_index > G.hand.config.highlighted_limit then return ExecutionResult.failure("Cannot play more than " .. G.hand.config.highlighted_limit .. " cards.") end
+
+	local hand_length = get_hand_length(G.hand.cards)
     local selected_amount = {}
     local hand_amount = {}
 
-    -- check if card exist
-	for _, selected_card in pairs(selected_hand) do
-        if not table.any(hand, function(hand_card)
-                return hand_card == selected_card
-            end) then
-            return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter(selected_card .. " is not in your hand."))
-        end
-    end
-
-    -- add one for each card that is in the hand
-    hand_amount = increment_card_table(hand)
-
-    -- add one for each card that is in the selected hand
-    selected_amount = increment_card_table(selected_hand)
-
-    -- get if trying to play more cards than in hand
-    for _, card in pairs(selected_hand) do
-        if selected_amount[card] > hand_amount[card] then
-            return ExecutionResult.failure("You can only use the cards given in the hand. You tried to play more " .. card .. "'s when those do not exist")
-        else
-            sendDebugMessage("lowering " .. card .. "by 1")
-            selected_amount[card] = selected_amount[card] - 1
-        end
-    end
-
-    state["hand"] = selected_hand
+    state["cards_index"] = selected_index
     return ExecutionResult.success()
 end
 
--- id play card button: "play_button"
 function PlayCards:_execute_action(state)
-    local selected_hand = state["hand"]
+    local selected_index = state["cards_index"]
 
-    -- local play_button = G.buttons:get_UIE_by_ID('play_button') -- not used
-    local hand_string = get_cards_modifiers()
     local hand = G.hand.cards
-    local selected_amount = increment_card_table(selected_hand)
+    local selected_amount = increment_card_table(selected_index)
 
     local highlighted_cards = {}
 
-    for _, card in pairs(selected_hand) do
-        local card_id = card
-        for index = 1, #hand_string, 1  do
-            if card == hand_string[index] and (highlighted_cards[card_id] or 0) < selected_amount[card] then
-                G.hand:add_to_highlighted(hand[index])
-                highlighted_cards[card_id] = (highlighted_cards[card_id] or 0) + 1
-            end
-        end
+    for _, index in ipairs(selected_index) do
+        local card_id = hand[index]
+        G.hand:add_to_highlighted(hand[index])
+        highlighted_cards[card_id] = (highlighted_cards[card_id] or 0) + 1
     end
 
-    -- shouldn't cause any issues with mods
     G.FUNCS.play_cards_from_highlighted()
+    -- TODO: add logic for removing and resetting other card actions here
 
-    -- couldn't get this to work and I hate ui so function call is good enough for now
-    -- play_button:click() -- Maybe try to make this an event to see if it would work
-    -- G.buttons:get_UIE_by_ID('play_button'):release()
-
+    self.hook.HookRan = false
 	return true
 end
 
