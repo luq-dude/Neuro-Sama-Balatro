@@ -1,6 +1,6 @@
 local GameHooks = ModCache.load("game-sdk/game_hooks.lua")
 local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
-local PlayCards = ModCache.load("custom-actions/play_cards.lua")
+local UseHandCards = ModCache.load("custom-actions/use_hand_cards.lua")
 local PickCard = ModCache.load("custom-actions/pick_pack_card.lua")
 local PickPackCard = ModCache.load("custom-actions/pick_hand_pack_cards.lua")
 local GetRunText = ModCache.load("get_run_text.lua")
@@ -19,7 +19,7 @@ local function play_card(delay)
         blocking = false,
         func = function()
             local window = ActionWindow:new()
-            window:add_action(PlayCards:new(window, {PlayingRun}))
+            window:add_action(UseHandCards:new(window, {PlayingRun}))
             window:register()
             return true
         end

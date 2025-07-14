@@ -5,6 +5,7 @@ local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
 local GetRunText = ModCache.load("get_run_text.lua")
 local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
+local RunHelper = ModCache.load("run_functions_helper.lua")
 
 local NeuroActionHandler = ModCache.load("game-sdk/actions/neuro_action_handler.lua")
 local SkipPack = ModCache.load("custom-actions/skip_pack.lua")
@@ -78,36 +79,10 @@ local function get_pack_context()
     end
 end
 
-local function check_for_duplicates(table)
-    local seen = {}
-    for _, idx in ipairs(table) do
-        if seen[idx] then
-            return false
-        end
-        seen[idx] = true
-    end
-    return true
-end
-
-local function get_hand_length(card_table)
-    local hand_length = {}
-    for i = 1, #card_table do
-        table.insert(hand_length, i)
-    end
-    return hand_length
-end
-
-local function value_in_table(tbl, val)
-    for _, v in ipairs(tbl) do
-        if v == val then return true end
-    end
-    return false
-end
-
 function PickHandPackCards:_get_schema()
     get_pack_context()
-    local hand_length = get_hand_length(G.hand.cards)
-    local pack_hand_length = get_hand_length(G.pack_cards.cards)
+    local hand_length = RunHelper:get_hand_length(G.hand.cards)
+    local pack_hand_length = RunHelper:get_hand_length(G.pack_cards.cards)
 
     return JsonUtils.wrap_schema({
         cards_index = {
@@ -133,20 +108,20 @@ function PickHandPackCards:_validate_action(data, state)
     selected_hand_index = selected_hand_index._data
     selected_pack_card = selected_pack_card._data
 
-    if check_for_duplicates(selected_hand_index) == false then
+    if RunHelper:check_for_duplicates(selected_hand_index) == false then
         return ExecutionResult.failure("You cannot select the same card index more than once.")
     end
 
-    local valid_hand_indices = get_hand_length(G.hand.cards)
+    local valid_hand_indices = RunHelper:get_hand_length(G.hand.cards)
     for _, value in ipairs(selected_hand_index) do
-        if not value_in_table(valid_hand_indices, value) then
+        if not RunHelper:value_in_table(valid_hand_indices, value) then
             return ExecutionResult.failure("Selected card index " .. tostring(value) .. " is not valid.")
         end
     end
 
-    local valid_pack_indices = get_hand_length(G.pack_cards.cards)
+    local valid_pack_indices = RunHelper:get_hand_length(G.pack_cards.cards)
     for _, value in ipairs(selected_pack_card) do
-        if not value_in_table(valid_pack_indices, value) then
+        if not RunHelper:value_in_table(valid_pack_indices, value) then
             return ExecutionResult.failure("Selected card index " .. tostring(value) .. " is not valid.")
         end
     end
