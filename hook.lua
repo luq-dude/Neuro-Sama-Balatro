@@ -6,7 +6,6 @@ local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
 local SelectDeck = ModCache.load("custom-actions/select_deck.lua")
 local PlayingRun = ModCache.load("playing_run.lua")
 
-local PlayCards = ModCache.load("custom-actions/play_cards.lua")
 local PlayBlind = ModCache.load("custom-actions/play_blind.lua")
 local SkipBlind = ModCache.load("custom-actions/skip_blind.lua")
 

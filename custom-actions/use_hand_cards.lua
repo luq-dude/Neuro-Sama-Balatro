@@ -2,24 +2,25 @@ local Context = ModCache.load("game-sdk/messages/outgoing/Context.lua")
 local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
 local GetRunText = ModCache.load("get_run_text.lua")
+local RunHelper = ModCache.load("run_functions_helper.lua")
 
 local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
 
-local PlayCards = setmetatable({}, { __index = NeuroAction })
-PlayCards.__index = PlayCards
+local UseHandCards = setmetatable({}, { __index = NeuroAction })
+UseHandCards.__index = UseHandCards
 
-function PlayCards:new(actionWindow, state)
+function UseHandCards:new(actionWindow, state)
     local obj = NeuroAction.new(self, actionWindow)
     obj.hook = state[1]
     return obj
 end
 
-function PlayCards:_get_name()
-    return "play_cards"
+function UseHandCards:_get_name()
+    return "use_hand_cards"
 end
 
-function PlayCards:_get_description()
-    local description = string.format("play a maximum of ".. G.hand.config.highlighted_limit .. " cards with your current hand." ..
+function UseHandCards:_get_description()
+    local description = string.format("Either play or discard a maximum of ".. G.hand.config.highlighted_limit .. " cards with your current hand." ..
     "The cards will be ordered by the position they are located in your hand from left to right." ..
     "When defining the card's index the first card will be 1, you should send these in the same order as you send the cards")
 
@@ -38,19 +39,18 @@ local function get_cards_context()
     Context.send("These are the current cards in your hand and their modifiers: \n" .. table.table_to_string(GetRunText:get_card_modifiers(G.hand.cards)))
 end
 
-local function get_hand_length(card_table)
-    local hand_length = {}
-    for i = 1, #card_table do
-        table.insert(hand_length, i)
-    end
-    return hand_length
+local function card_action_options()
+	return {"Play","Discard"}
 end
 
-function PlayCards:_get_schema()
+function UseHandCards:_get_schema()
     get_cards_context()
-    local hand_length = get_hand_length(G.hand.cards)
+    local hand_length = RunHelper:get_hand_length(G.hand.cards)
 
     return JsonUtils.wrap_schema({
+		card_action = {
+			enum = card_action_options()
+		},
         cards_index = {
             type = "array",
             items ={
@@ -61,49 +61,32 @@ function PlayCards:_get_schema()
     })
 end
 
-local function check_for_duplicates(table)
-    local seen = {}
-    for _, idx in ipairs(table) do
-        if seen[idx] then
-            return false
-        end
-        seen[idx] = true
-    end
-    return true
-end
-
-local function value_in_table(tbl, val)
-    for _, v in ipairs(tbl) do
-        if v == val then return true end
-    end
-    return false
-end
-
-local function increment_card_table(table)
-    local selected_table = {}
-    for _, card in pairs(table) do
-        if selected_table[card] == nil then
-            selected_table[card] = 1
-        else
-            selected_table[card] = selected_table[card] + 1 -- should increment for each type of card in hand
-        end
-    end
-    return selected_table
-end
-
-function PlayCards:_validate_action(data, state)
+function UseHandCards:_validate_action(data, state)
+	local selected_action = data:get_string("card_action")
     local selected_index = data:get_object("cards_index")
     selected_index = selected_index._data
 
-    if check_for_duplicates(selected_index) == false then
-        return ExecutionResult.failure("You cannot select the same card index more than once.")
+	if not selected_index then
+		sendDebugMessage("issue in not: " .. tprint(selected_action,1,2))
+		return ExecutionResult.failure(SDK_Strings.action_failed_missing_required_parameter("card_action"))
+	end
+
+    local option = card_action_options()
+    if not table.any(option, function(options)
+            return options == selected_action
+        end) then
+        return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("card_action"))
     end
 
-    local valid_hand_indices = get_hand_length(G.hand.cards)
+    local valid_hand_indices = RunHelper:get_hand_length(G.hand.cards)
     for _, value in ipairs(selected_index) do
-        if not value_in_table(valid_hand_indices, value) then
+        if not RunHelper:value_in_table(valid_hand_indices, value) then
             return ExecutionResult.failure("Selected card index " .. tostring(value) .. " is not valid.")
         end
+    end
+
+    if RunHelper:check_for_duplicates(selected_index) == false then
+        return ExecutionResult.failure("You cannot select the same card index more than once.")
     end
 
     if not selected_index then
@@ -114,19 +97,23 @@ function PlayCards:_validate_action(data, state)
 
     if #selected_index > G.hand.config.highlighted_limit then return ExecutionResult.failure("Cannot play more than " .. G.hand.config.highlighted_limit .. " cards.") end
 
-	local hand_length = get_hand_length(G.hand.cards)
+    if G.GAME.current_round.discards_left <= 0 and selected_action == "Discard" then return ExecutionResult.failure("You have no discards left.") end
+
+	local hand_length = RunHelper:get_hand_length(G.hand.cards)
     local selected_amount = {}
     local hand_amount = {}
 
     state["cards_index"] = selected_index
+    state["card_action"] = selected_action
     return ExecutionResult.success()
 end
 
-function PlayCards:_execute_action(state)
+function UseHandCards:_execute_action(state)
     local selected_index = state["cards_index"]
+	local selected_action = state["card_action"]
 
     local hand = G.hand.cards
-    local selected_amount = increment_card_table(selected_index)
+    local selected_amount = RunHelper:increment_card_table(selected_index)
 
     local highlighted_cards = {}
 
@@ -136,12 +123,17 @@ function PlayCards:_execute_action(state)
         highlighted_cards[card_id] = (highlighted_cards[card_id] or 0) + 1
     end
 
-    G.FUNCS.play_cards_from_highlighted()
-    -- TODO: add logic for removing and resetting other card actions here
+	if selected_action == "Play" then
+		G.FUNCS.play_cards_from_highlighted()
+    elseif selected_action == "Discard" then
+		G.FUNCS.discard_cards_from_highlighted()
+    else
+        sendErrorMessage("selected_action equals: " .. tostring(selected_action) .. " How did this get past validation?")
+	end
 
     self.hook.HookRan = false
 	return true
 end
 
 
-return PlayCards
+return UseHandCards

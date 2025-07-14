@@ -4,6 +4,7 @@ local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
 local GetRunText = ModCache.load("get_run_text.lua")
 local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
+local RunHelper = ModCache.load("run_functions_helper.lua")
 
 local NeuroActionHandler = ModCache.load("game-sdk/actions/neuro_action_handler.lua")
 local SkipPack = ModCache.load("custom-actions/skip_pack.lua")
@@ -40,7 +41,7 @@ function PickCards:_get_name()
     return "pick_cards"
 end
 
-function PickCards:_get_description()  -- use G.P_CENTERS.p-buffoon_jumbo_1.config for getting values
+function PickCards:_get_description()
     local description = string.format("Pick cards to add to your deck. You can pick a max of " ..
     SMODS.OPENED_BOOSTER.config.center.config.choose
     .. " cards "
@@ -91,24 +92,9 @@ local function get_card_context()
     end
 end
 
-local function value_in_table(tbl, val)
-    for _, v in ipairs(tbl) do
-        if v == val then return true end
-    end
-    return false
-end
-
-local function get_hand_length(card_table)
-    local hand_length = {}
-    for i = 1, #card_table do
-        table.insert(hand_length, i)
-    end
-    return hand_length
-end
-
 function PickCards:_get_schema()
     get_card_context()
-    local hand_length = get_hand_length(G.pack_cards.cards)
+    local hand_length = RunHelper:get_hand_length(G.pack_cards.cards)
 
     return JsonUtils.wrap_schema({
         cards_index = {
@@ -125,9 +111,9 @@ function PickCards:_validate_action(data, state)
     local selected_hand_index = data:get_object("cards_index")
     selected_hand_index = selected_hand_index._data
 
-    local valid_hand_indices = get_hand_length(G.pack_cards.cards)
+    local valid_hand_indices = RunHelper:get_hand_length(G.pack_cards.cards)
     for _, value in ipairs(selected_hand_index) do
-        if not value_in_table(valid_hand_indices, value) then
+        if not RunHelper:value_in_table(valid_hand_indices, value) then
             return ExecutionResult.failure("Selected card index " .. tostring(value) .. " is not valid.")
         end
     end
@@ -140,7 +126,6 @@ function PickCards:_validate_action(data, state)
 	return ExecutionResult.success()
 end
 
--- id play card button: "play_button"
 function PickCards:_execute_action(state)
     local selected_index = state["cards_index"]
 
