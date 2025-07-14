@@ -97,11 +97,14 @@ function UseHandCards:_validate_action(data, state)
 
     if #selected_index > G.hand.config.highlighted_limit then return ExecutionResult.failure("Cannot play more than " .. G.hand.config.highlighted_limit .. " cards.") end
 
+    if G.GAME.current_round.discards_left <= 0 and selected_action == "Discard" then return ExecutionResult.failure("You have no discards left.") end
+
 	local hand_length = RunHelper:get_hand_length(G.hand.cards)
     local selected_amount = {}
     local hand_amount = {}
 
     state["cards_index"] = selected_index
+    state["card_action"] = selected_action
     return ExecutionResult.success()
 end
 
@@ -122,8 +125,10 @@ function UseHandCards:_execute_action(state)
 
 	if selected_action == "Play" then
 		G.FUNCS.play_cards_from_highlighted()
-	else
+    elseif selected_action == "Discard" then
 		G.FUNCS.discard_cards_from_highlighted()
+    else
+        sendErrorMessage("selected_action equals: " .. tostring(selected_action) .. " How did this get past validation?")
 	end
 
     self.hook.HookRan = false
