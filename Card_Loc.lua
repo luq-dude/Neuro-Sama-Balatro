@@ -13,7 +13,8 @@ Enhancement_Loc = {
 	m_glass = {"Xmult", "extra"},
 	m_stone = {"bonus"},
 	m_gold = {"h_dollars"},
-	m_lucky = {"mult","p_dollars"}
+	m_lucky = {"mult","p_dollars"},
+	m_steel = {"h_x_mult"}
 }
 
 Seal_Loc = {

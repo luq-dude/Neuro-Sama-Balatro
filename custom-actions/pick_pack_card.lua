@@ -92,24 +92,9 @@ local function get_card_context()
     end
 end
 
-local function value_in_table(tbl, val)
-    for _, v in ipairs(tbl) do
-        if v == val then return true end
-    end
-    return false
-end
-
-local function get_hand_length(card_table)
-    local hand_length = {}
-    for i = 1, #card_table do
-        table.insert(hand_length, i)
-    end
-    return hand_length
-end
-
 function PickCards:_get_schema()
     get_card_context()
-    local hand_length = get_hand_length(G.pack_cards.cards)
+    local hand_length = RunHelper:get_hand_length(G.pack_cards.cards)
 
     return JsonUtils.wrap_schema({
         cards_index = {
@@ -126,9 +111,9 @@ function PickCards:_validate_action(data, state)
     local selected_hand_index = data:get_object("cards_index")
     selected_hand_index = selected_hand_index._data
 
-    local valid_hand_indices = get_hand_length(G.pack_cards.cards)
+    local valid_hand_indices = RunHelper:get_hand_length(G.pack_cards.cards)
     for _, value in ipairs(selected_hand_index) do
-        if not value_in_table(valid_hand_indices, value) then
+        if not RunHelper:value_in_table(valid_hand_indices, value) then
             return ExecutionResult.failure("Selected card index " .. tostring(value) .. " is not valid.")
         end
     end
