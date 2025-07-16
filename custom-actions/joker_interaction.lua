@@ -98,10 +98,14 @@ function JokerInteraction:_execute_action(state)
     local register_delay = 2
     if selected_action == "Move" then
         G.jokers.cards[selected_hand_index[1]].states.drag.is = true
-        G.jokers.cards[selected_hand_index[1]].T.x = hand[selected_hand_index[2]].T.x + 0.1 -- The game interpolates between T and the shown position itself
+        if selected_hand_index[1] > selected_hand_index[2] then-- The game interpolates between T and the shown position itself
+            G.jokers.cards[selected_hand_index[1]].T.x = hand[selected_hand_index[2]].T.x - 0.1
+        else
+            G.jokers.cards[selected_hand_index[1]].T.x = hand[selected_hand_index[2]].T.x + 0.1
+        end
         G.E_MANAGER:add_event(Event({
             trigger = "after",
-            delay = 2, -- this could probably be lower as moving does not account for displayed position but im too lazy to test anything else.
+            delay = 2,
             blocking = false,
             func = function ()
                 G.jokers.cards[selected_hand_index[2]].states.drag.is = false
