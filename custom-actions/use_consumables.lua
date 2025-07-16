@@ -44,7 +44,7 @@ function UseConsumable:_get_schema()
 		consumable_index = {
 			enum = pack_hand_length
 		},
-        cards_index = {
+        cards_index = { -- when adding context messages, make sure neuro knows to send an empty array if she wants to highlight no cards
             type = "array",
             items ={
                 type = "integer",
@@ -60,9 +60,15 @@ function UseConsumable:_validate_action(data, state)
     local selected_hand_index = data:get_object("cards_index")
     selected_hand_index = selected_hand_index._data
 
+    local indexs = RunHelper:get_hand_length(G.consumeables.cards)
+    if not table.any(indexs, function(options) -- check Neuro doesn't send a invalid index
+            return options == selected_consumable
+        end) then
+        return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("consumable_index"))
+    end
+
     local card_config = G.consumeables.cards[tonumber(selected_consumable)].config.center.config
 
-	sendDebugMessage(selected_consumable)
 	if not selected_consumable then
 		return ExecutionResult.failure("issue with selected_consumable")
 	end
@@ -112,10 +118,6 @@ function UseConsumable:_execute_action(state)
     local hand = G.hand.cards
 	local consumable_hand = G.consumeables.cards
 
-    for _, index in ipairs(selected_index) do
-        G.hand:add_to_highlighted(hand[index])
-    end
-
 	for pos, card in ipairs(consumable_hand) do
 		sendDebugMessage("for pos: " .. pos .. "  selected_consumable: " .. selected_consumable)
 		if pos == selected_consumable then
@@ -125,6 +127,10 @@ function UseConsumable:_execute_action(state)
             for _, children in ipairs(use_button_child.children) do -- one of the children is the use button the other is sell
                 if selected_action == "Use" then
                     if children.children[1].children[1].config.button == "use_card" then
+                        for _, index in ipairs(selected_index) do
+                            G.hand:add_to_highlighted(hand[index])
+                        end
+
                         button = children.children[1].children[1]
                         break
                     else

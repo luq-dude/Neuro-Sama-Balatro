@@ -62,6 +62,13 @@ function JokerInteraction:_validate_action(data, state)
         end
     end
 
+    local indexs = RunHelper:get_hand_length(G.jokers.cards)
+    if not table.any(indexs, function(options)
+            return options == selected_hand_index
+        end) then
+        return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("cards_index"))
+    end
+
     local option = joker_action_options()
     if not table.any(option, function(options)
             return options == selected_action
@@ -72,14 +79,16 @@ function JokerInteraction:_validate_action(data, state)
     if #selected_hand_index == 0 then return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("selected_hand_index")) end
 
     if selected_action == "Move" then
+        if #selected_hand_index < 2 then return ExecutionResult.failure("You have not selected enough cards to move, you should only select two cards.") end
+
         if #selected_hand_index > 2 then return ExecutionResult.failure("You have selected more cards from your hand then you are allowed when you are moving cards.") end
 
         if not G.jokers.cards[selected_hand_index[1]].states.drag.can then
-        return ExecutionResult.failure("You can not drag the card in the " .. selected_hand_index[2] .. " position.")
+            return ExecutionResult.failure("You can not drag the card in the " .. selected_hand_index[1] .. " position.")
         end
 
         if not G.jokers.cards[selected_hand_index[2]].states.drag.can then
-        return ExecutionResult.failure("You can not drag the card in the " .. selected_hand_index[1] .. " position.")
+            return ExecutionResult.failure("You can not drag the card in the " .. selected_hand_index[2] .. " position.")
         end
     else
         if #selected_hand_index > #G.jokers.cards then return ExecutionResult.failure("You have selected more cards then are in your hand.") end
