@@ -101,6 +101,7 @@ function UseHandCards:_validate_action(data, state)
 
     state["card_action"] = selected_action
     state["cards_index"] = selected_index
+    state["card_action"] = selected_action
     return ExecutionResult.success()
 end
 
@@ -121,11 +122,11 @@ function UseHandCards:_execute_action(state)
 
 	if selected_action == "Play" then
 		G.FUNCS.play_cards_from_highlighted()
-	elseif selected_action == "Discard" then
+    elseif selected_action == "Discard" then
 		G.FUNCS.discard_cards_from_highlighted()
     else
         sendErrorMessage("selected_action equals: " .. tostring(selected_action) .. " How did this get past validation?")
-    end
+	end
 
     self.hook.HookRan = false
 	return true
