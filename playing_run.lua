@@ -1,6 +1,8 @@
 local GameHooks = ModCache.load("game-sdk/game_hooks.lua")
 local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
 local UseHandCards = ModCache.load("custom-actions/use_hand_cards.lua")
+local JokerInteraction = ModCache.load("custom-actions/joker_interaction.lua")
+local UseConsumable = ModCache.load("custom-actions/use_consumables.lua")
 local PickCard = ModCache.load("custom-actions/pick_pack_card.lua")
 local PickPackCard = ModCache.load("custom-actions/pick_hand_pack_cards.lua")
 local GetRunText = ModCache.load("get_run_text.lua")
@@ -12,6 +14,16 @@ local PlayingRun = {}
 
 PlayingRun.HookRan = false
 
+local function extra_card_action_check(window)
+    if #G.jokers.cards > 0 then
+        window:add_action(JokerInteraction:new(window, {PlayingRun}))
+    end
+
+    if #G.consumeables.cards > 0 then
+        window:add_action(UseConsumable:new(window, {PlayingRun}))
+    end
+end
+
 local function play_card(delay)
     G.E_MANAGER:add_event(Event({
         trigger = "after",
@@ -20,6 +32,8 @@ local function play_card(delay)
         func = function()
             local window = ActionWindow:new()
             window:add_action(UseHandCards:new(window, {PlayingRun}))
+            extra_card_action_check(window)
+
             window:register()
             return true
         end
@@ -34,7 +48,10 @@ local function pick_pack_card(delay)
         blocking = false,
         func = function()
             local window = ActionWindow:new()
+
             window:add_action(PickCard:new(window, {PlayingRun}))
+            extra_card_action_check(window)
+
             window:register()
             return true
         end
@@ -50,7 +67,10 @@ local function pick_hand_pack_card(delay)
         blocking = false,
         func = function()
             local window = ActionWindow:new()
+
             window:add_action(PickPackCard:new(window, {PlayingRun}))
+            extra_card_action_check(window)
+
             window:register()
             return true
         end
@@ -118,6 +138,26 @@ function PlayingRun:hook_draw_card()
         }))
     end
     return true
+end
+
+function PlayingRun:register_play_actions(delay,hook)
+    G.E_MANAGER:add_event(Event({
+        trigger = "after",
+        delay = delay,
+        blocking = false,
+        func = function()
+            local window = ActionWindow:new()
+            if G.STATE == G.STATES.SELECTING_HAND or G.STATE == G.STATES.DRAW_TO_HAND then
+                window:add_action(UseHandCards:new(window, {hook}))
+            end
+
+            extra_card_action_check(window)
+
+            window:register()
+            return true
+        end
+    }
+    ))
 end
 
 return PlayingRun

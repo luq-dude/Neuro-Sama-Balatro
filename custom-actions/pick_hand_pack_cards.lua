@@ -108,6 +108,8 @@ function PickHandPackCards:_validate_action(data, state)
     selected_hand_index = selected_hand_index._data
     selected_pack_card = selected_pack_card._data
 
+    local card_config = G.pack_cards.cards[selected_pack_card[1]].config.center.config
+
     if RunHelper:check_for_duplicates(selected_hand_index) == false then
         return ExecutionResult.failure("You cannot select the same card index more than once.")
     end
@@ -128,13 +130,13 @@ function PickHandPackCards:_validate_action(data, state)
 
     if #selected_hand_index > G.hand.config.highlighted_limit then return ExecutionResult.failure("You have selected more cards from your hand then you are allowed too.") end
 
-    if #selected_hand_index == 0 then return ExecutionResult.failure("You should either take a card or skip the round.") end
+    -- should fix issue with certain cards (mainly spectral) not needing highlighted cards
+    if #selected_hand_index == 0 and card_config.max_highlighted ~= nil then return ExecutionResult.failure("You should either take a card or skip the round.") end
 
     if #selected_pack_card > 1 then return ExecutionResult.failure("You should only pick one pack card at at time.") end
 
     if #selected_pack_card < 0 then return ExecutionResult.failure("You have took a pack card index that is too low.") end
 
-    local card_config = G.pack_cards.cards[selected_pack_card[1]].config.center.config
     if card_config.max_highlighted ~= nil then
         if #selected_hand_index ~= card_config.max_highlighted then return ExecutionResult.failure("You have either selected too many cards or to little from your hand comparative to how many the tarot needs.") end
     end

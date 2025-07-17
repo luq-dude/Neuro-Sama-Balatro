@@ -99,10 +99,7 @@ function UseHandCards:_validate_action(data, state)
 
     if G.GAME.current_round.discards_left <= 0 and selected_action == "Discard" then return ExecutionResult.failure("You have no discards left.") end
 
-	local hand_length = RunHelper:get_hand_length(G.hand.cards)
-    local selected_amount = {}
-    local hand_amount = {}
-
+    state["card_action"] = selected_action
     state["cards_index"] = selected_index
     state["card_action"] = selected_action
     return ExecutionResult.success()
