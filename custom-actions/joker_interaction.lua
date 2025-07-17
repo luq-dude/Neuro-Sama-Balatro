@@ -62,13 +62,6 @@ function JokerInteraction:_validate_action(data, state)
         end
     end
 
-    local indexs = RunHelper:get_hand_length(G.jokers.cards)
-    if not table.any(indexs, function(options)
-            return options == selected_hand_index
-        end) then
-        return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("cards_index"))
-    end
-
     local option = joker_action_options()
     if not table.any(option, function(options)
             return options == selected_action
