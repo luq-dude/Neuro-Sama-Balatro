@@ -1,0 +1,14 @@
+[manifest]
+version = "1.0.0"
+priority = -20
+
+[[patches]]
+[patches.pattern]
+target = "main.lua"
+pattern = "if love.timer then"
+position = "after"
+payload = '''
+love.event.push("keypressed","r")
+'''
+match_indent = true
+times = 1
