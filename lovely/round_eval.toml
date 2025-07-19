@@ -1,0 +1,17 @@
+[manifest]
+dump_lua = true
+version = "1.0.0"
+priority = 0
+
+[[patches]]
+[patches.pattern]
+target = "functions/common_events.lua"
+pattern = "local scale = 0.9"
+position = "after"
+payload = '''
+if config then
+	ROUND_EVAL[#ROUND_EVAL + 1] = {config.name,config.dollars}
+end
+'''
+match_indent = true
+times = 1
