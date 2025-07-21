@@ -263,6 +263,7 @@ function Hook:hook_game()
     hook_game_over()
     hook_win()
     PlayingRun:hook_draw_card()
+    PlayingRun:hook_round_eval()
 
     hook_blind_select()
 end

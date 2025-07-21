@@ -140,6 +140,49 @@ function PlayingRun:hook_draw_card()
     return true
 end
 
+local function get_round_info(round_eval)
+    local context = "This is how much money you have made in the blind: "
+    table.reverse(round_eval)
+    for index, value in pairs(round_eval) do
+        local name = value[1]
+        local money = value[2]
+        if string.match(name,"blind") ~= nil then name = "Blind" end -- otherwise name would be 'blind1'
+        if string.match(name,"bottom") ~= nil then
+            context = context .. "\nIn total you have made $" .. money
+            goto continue
+        end
+        if string.match(name,"custom") ~= nil then name = round_eval.text end -- added by smods for modded rows
+
+        context = context .. "\nFrom " .. name .. " you have made $" .. money
+        ::continue::
+    end
+
+    return context
+end
+
+ROUND_EVAL = {} -- we set this in round_eval.toml
+function PlayingRun:hook_round_eval()
+    local update_round = add_round_eval_row
+    function add_round_eval_row(config)
+        update_round(config)
+        local round_eval = ROUND_EVAL
+
+        if config.name == "bottom" then -- bottom is the total
+            Context.send(get_round_info(round_eval))
+            G.E_MANAGER:add_event(Event({
+                trigger = "after",
+                delay = 5 * G.SPEEDFACTOR,
+                blocking = false,
+                func = function()
+                    G.FUNCS.cash_out({ config = {} })
+                    return true
+                end
+            }
+            ))
+        end
+    end
+end
+
 function PlayingRun:register_play_actions(delay,hook)
     G.E_MANAGER:add_event(Event({
         trigger = "after",
