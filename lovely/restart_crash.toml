@@ -5,10 +5,15 @@ priority = -20
 [[patches]]
 [patches.pattern]
 target = "main.lua"
-pattern = "if love.timer then"
-position = "after"
+pattern = '''
+if love.timer then
+    love.timer.sleep(0.1)
+end
+''' # This is added by smods and can only be found in dumps
+position = "before"
 payload = '''
-love.event.push("keypressed","r")
+WEBSOCKET._client:close()
+SMODS.restart_game()
 '''
 match_indent = true
 times = 1
