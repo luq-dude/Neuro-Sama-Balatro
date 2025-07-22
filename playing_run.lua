@@ -182,15 +182,6 @@ function PlayingRun:hook_round_eval()
         end
     end
 end
-
-SMODS.Keybind{
-    key_pressed = 'c',
-    action = function (self)
-        sendDebugMessage("running keybind")
-        G.deck[1]:click()
-    end
-}
-
 function PlayingRun:register_play_actions(delay,hook)
     G.E_MANAGER:add_event(Event({
         trigger = "after",
