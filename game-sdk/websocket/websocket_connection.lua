@@ -144,4 +144,5 @@ function WebsocketConnection:_send_internal(data)
 end
 
 WebsocketConnection._instance = WebsocketConnection:new()
+WEBSOCKET = WebsocketConnection._instance -- This is used in restart_crash.toml
 return WebsocketConnection._instance

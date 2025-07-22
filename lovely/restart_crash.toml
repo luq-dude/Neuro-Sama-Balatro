@@ -1,0 +1,21 @@
+[manifest]
+version = "1.0.0"
+priority = -20
+
+[[patches]]
+[patches.pattern]
+target = "main.lua"
+pattern = '''
+if love.timer then
+    love.timer.sleep(0.1)
+end
+''' # This is added by smods and can only be found in dumps made by lovely
+position = "before"
+payload = '''
+WEBSOCKET._client:close()
+if G.can_restart then
+    SMODS.restart_game()
+end
+'''
+match_indent = true
+times = 1

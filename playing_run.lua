@@ -182,7 +182,6 @@ function PlayingRun:hook_round_eval()
         end
     end
 end
-
 function PlayingRun:register_play_actions(delay,hook)
     G.E_MANAGER:add_event(Event({
         trigger = "after",

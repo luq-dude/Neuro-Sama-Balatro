@@ -17,6 +17,8 @@ Hook.__index = Hook
 
 local should_unlock = NeuroConfig.UNLOCK_ALL
 
+G.can_restart = NeuroConfig.CAN_RESTART_ON_CRASH
+
 local function load_profile(delay)
     G.E_MANAGER:add_event(Event({
         trigger = "after",
