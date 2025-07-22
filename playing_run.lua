@@ -140,6 +140,7 @@ function PlayingRun:hook_draw_card()
     return true
 end
 
+ROUND_EVAL = {} -- we set this in round_eval.toml
 local function get_round_info(round_eval)
     local context = "This is how much money you have made in the blind: "
     table.reverse(round_eval)
@@ -157,10 +158,10 @@ local function get_round_info(round_eval)
         ::continue::
     end
 
+    ROUND_EVAL = {}
     return context
 end
 
-ROUND_EVAL = {} -- we set this in round_eval.toml
 function PlayingRun:hook_round_eval()
     local update_round = add_round_eval_row
     function add_round_eval_row(config)
