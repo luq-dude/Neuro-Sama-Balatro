@@ -9,11 +9,13 @@ pattern = '''
 if love.timer then
     love.timer.sleep(0.1)
 end
-''' # This is added by smods and can only be found in dumps
+''' # This is added by smods and can only be found in dumps made by lovely
 position = "before"
 payload = '''
 WEBSOCKET._client:close()
-SMODS.restart_game()
+if G.can_restart then
+    SMODS.restart_game()
+end
 '''
 match_indent = true
 times = 1
