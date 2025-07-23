@@ -7,6 +7,12 @@ local PickCard = ModCache.load("custom-actions/pick_pack_card.lua")
 local PickPackCard = ModCache.load("custom-actions/pick_hand_pack_cards.lua")
 local GetRunText = ModCache.load("get_run_text.lua")
 local SkipPack = ModCache.load("custom-actions/skip_pack.lua")
+local RerollShop = ModCache.load("custom-actions/reroll_shop.lua")
+local ExitShop = ModCache.load("custom-actions/exit_shop.lua")
+local BuyShopCard = ModCache.load("custom-actions/buy_shop_card.lua")
+local BuyShopBooster = ModCache.load("custom-actions/buy_shop_booster.lua")
+local BuyShopVoucher = ModCache.load("custom-actions/buy_shop_voucher.lua")
+
 
 local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
 
@@ -176,6 +182,7 @@ function PlayingRun:hook_round_eval()
                 blocking = false,
                 func = function()
                     G.FUNCS.cash_out({ config = {} })
+                    self:register_store_actions(2 * G.SPEEDFACTOR)
                     return true
                 end
             }
@@ -183,6 +190,16 @@ function PlayingRun:hook_round_eval()
         end
     end
 end
+
+function PlayingRun:hook_reroll_shop()
+    local reroll_shop = G.FUNCS.reroll_shop
+    function G.FUNCS.reroll_shop(e)
+        reroll_shop(e)
+        -- TODO: send context here
+        PlayingRun:register_store_actions(2 * G.SPEEDFACTOR,PlayingRun)
+    end
+end
+
 function PlayingRun:register_play_actions(delay,hook)
     G.E_MANAGER:add_event(Event({
         trigger = "after",
@@ -195,6 +212,35 @@ function PlayingRun:register_play_actions(delay,hook)
             end
 
             extra_card_action_check(window)
+
+            window:register()
+            return true
+        end
+    }
+    ))
+end
+
+function PlayingRun:register_store_actions(delay,hook)
+    G.E_MANAGER:add_event(Event({
+        trigger = "after",
+        delay = delay,
+        blocking = false,
+        func = function()
+            local window = ActionWindow:new()
+
+            window:add_action(ExitShop:new(window,{self}))
+            if G.GAME.dollars > G.GAME.current_round.reroll_cost or G.GAME.current_round.free_rerolls > 0 then
+                window:add_action(RerollShop:new(window,{self}))
+            end
+            if #G.shop_jokers.cards > 0 then
+                window:add_action(BuyShopCard:new(window,{self}))
+            end
+            if #G.shop_booster.cards > 0 then
+                window:add_action(BuyShopBooster:new(window,{self}))
+            end
+            if #G.shop_vouchers.cards > 0 then
+                window:add_action(BuyShopVoucher:new(window,{self}))
+            end
 
             window:register()
             return true
