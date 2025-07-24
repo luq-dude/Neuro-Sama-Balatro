@@ -162,8 +162,10 @@ function PlayingRun:hook_play_cards()
     function G.FUNCS.play_cards_from_highlighted(e)
         play_cards(e)
 
-        if PlayingRun.HookRan then PlayingRun.HookRan = false end
-        unregister_run_action()
+        if PlayingRun.HookRan then
+            PlayingRun.HookRan = false
+            unregister_run_action()
+        end
     end
 end
 
@@ -172,8 +174,10 @@ function PlayingRun:hook_discard_cards()
     function G.FUNCS.discard_cards_from_highlighted(e)
         discard_cards(e)
 
-        if PlayingRun.HookRan then PlayingRun.HookRan = false end
-        unregister_run_action()
+        if PlayingRun.HookRan then
+            PlayingRun.HookRan = false
+            unregister_run_action()
+        end
     end
 end
 
