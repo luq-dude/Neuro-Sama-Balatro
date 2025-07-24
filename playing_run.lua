@@ -160,7 +160,7 @@ end
 function PlayingRun:hook_play_cards()
     local play_cards = G.FUNCS.play_cards_from_highlighted
     function G.FUNCS.play_cards_from_highlighted(e)
-        G.FUNCS.play_cards_from_highlighted(e)
+        play_cards(e)
 
         if PlayingRun.HookRan then PlayingRun.HookRan = false end
         unregister_run_action()
