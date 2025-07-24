@@ -1,5 +1,9 @@
 local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
+local NeuroActionHandler = ModCache.load("game-sdk/actions/neuro_action_handler.lua")
+
+local JokerInteraction = ModCache.load("custom-actions/joker_interaction.lua")
+local UseConsumables = ModCache.load("custom-actions/use_consumables.lua")
 
 local ExitShop = setmetatable({}, { __index = NeuroAction })
 ExitShop.__index = ExitShop

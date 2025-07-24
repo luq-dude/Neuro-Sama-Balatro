@@ -1,5 +1,7 @@
 local GameHooks = ModCache.load("game-sdk/game_hooks.lua")
 local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
+local NeuroActionHandler = ModCache.load("game-sdk/actions/neuro_action_handler.lua")
+
 local UseHandCards = ModCache.load("custom-actions/use_hand_cards.lua")
 local JokerInteraction = ModCache.load("custom-actions/joker_interaction.lua")
 local UseConsumable = ModCache.load("custom-actions/use_consumables.lua")
@@ -7,11 +9,12 @@ local PickCard = ModCache.load("custom-actions/pick_pack_card.lua")
 local PickPackCard = ModCache.load("custom-actions/pick_hand_pack_cards.lua")
 local GetRunText = ModCache.load("get_run_text.lua")
 local SkipPack = ModCache.load("custom-actions/skip_pack.lua")
-local RerollShop = ModCache.load("custom-actions/reroll_shop.lua")
-local ExitShop = ModCache.load("custom-actions/exit_shop.lua")
-local BuyShopCard = ModCache.load("custom-actions/buy_shop_card.lua")
-local BuyShopBooster = ModCache.load("custom-actions/buy_shop_booster.lua")
-local BuyShopVoucher = ModCache.load("custom-actions/buy_shop_voucher.lua")
+
+local ExitShop = ModCache.load("custom-actions/shop-actions/exit_shop.lua")
+local RerollShop = ModCache.load("custom-actions/shop-actions/reroll_shop.lua")
+local BuyShopCard = ModCache.load("custom-actions/shop-actions/buy_shop_card.lua")
+local BuyShopBooster = ModCache.load("custom-actions/shop-actions/buy_shop_booster.lua")
+local BuyShopVoucher = ModCache.load("custom-actions/shop-actions/buy_shop_voucher.lua")
 
 
 local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
@@ -111,7 +114,7 @@ function PlayingRun:hook_draw_card()
         G.E_MANAGER:add_event(Event({
             trigger = "after",
             blocking = false,
-            delay = 8,
+            delay = 2.5 * G.SPEEDFACTOR,
             func = function ()
                     if G.STATE == G.STATES.SELECTING_HAND or G.STATE == G.STATES.DRAW_TO_HAND then
                         play_card(14)
@@ -144,6 +147,34 @@ function PlayingRun:hook_draw_card()
         }))
     end
     return true
+end
+
+local function unregister_run_action()
+    local unregister_actions = {UseHandCards}
+    if #G.jokers.cards > 0 then unregister_actions[#unregister_actions+1] = JokerInteraction end
+    if #G.consumeables.cards > 0 then unregister_actions[#unregister_actions+1] = UseConsumable end
+    NeuroActionHandler.unregister_actions(unregister_actions)
+end
+
+-- these two are for testing
+function PlayingRun:hook_play_cards()
+    local play_cards = G.FUNCS.play_cards_from_highlighted
+    function G.FUNCS.play_cards_from_highlighted(e)
+        G.FUNCS.play_cards_from_highlighted(e)
+
+        if PlayingRun.HookRan then PlayingRun.HookRan = false end
+        unregister_run_action()
+    end
+end
+
+function PlayingRun:hook_discard_cards()
+    local discard_cards = G.FUNCS.discard_cards_from_highlighted
+    function G.FUNCS.discard_cards_from_highlighted(e)
+        discard_cards(e)
+
+        if PlayingRun.HookRan then PlayingRun.HookRan = false end
+        unregister_run_action()
+    end
 end
 
 ROUND_EVAL = {} -- we set this in round_eval.toml
@@ -229,6 +260,7 @@ function PlayingRun:register_store_actions(delay,hook)
             local window = ActionWindow:new()
 
             window:add_action(ExitShop:new(window,{self}))
+
             if G.GAME.dollars > G.GAME.current_round.reroll_cost or G.GAME.current_round.free_rerolls > 0 then
                 window:add_action(RerollShop:new(window,{self}))
             end
@@ -241,6 +273,8 @@ function PlayingRun:register_store_actions(delay,hook)
             if #G.shop_vouchers.cards > 0 then
                 window:add_action(BuyShopVoucher:new(window,{self}))
             end
+
+            extra_card_action_check(window)
 
             window:register()
             return true

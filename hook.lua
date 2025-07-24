@@ -267,6 +267,8 @@ function Hook:hook_game()
     PlayingRun:hook_draw_card()
     PlayingRun:hook_round_eval()
     PlayingRun:hook_reroll_shop()
+    PlayingRun:hook_play_cards()
+    PlayingRun:hook_discard_cards()
 
     hook_blind_select()
 end
