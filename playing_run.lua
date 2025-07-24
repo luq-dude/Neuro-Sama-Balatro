@@ -114,7 +114,7 @@ function PlayingRun:hook_draw_card()
         G.E_MANAGER:add_event(Event({
             trigger = "after",
             blocking = false,
-            delay = 2.5 * G.SPEEDFACTOR,
+            delay = 2 * G.SPEEDFACTOR,
             func = function ()
                     if G.STATE == G.STATES.SELECTING_HAND or G.STATE == G.STATES.DRAW_TO_HAND then
                         play_card(14)
@@ -160,24 +160,24 @@ end
 function PlayingRun:hook_play_cards()
     local play_cards = G.FUNCS.play_cards_from_highlighted
     function G.FUNCS.play_cards_from_highlighted(e)
-        play_cards(e)
-
         if PlayingRun.HookRan then
             PlayingRun.HookRan = false
             unregister_run_action()
         end
+
+        play_cards(e)
     end
 end
 
 function PlayingRun:hook_discard_cards()
     local discard_cards = G.FUNCS.discard_cards_from_highlighted
     function G.FUNCS.discard_cards_from_highlighted(e)
-        discard_cards(e)
-
         if PlayingRun.HookRan then
             PlayingRun.HookRan = false
             unregister_run_action()
         end
+
+        discard_cards(e)
     end
 end
 
