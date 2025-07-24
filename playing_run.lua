@@ -213,7 +213,7 @@ function PlayingRun:hook_round_eval()
                 blocking = false,
                 func = function()
                     G.FUNCS.cash_out({ config = {} })
-                    self:register_store_actions(2 * G.SPEEDFACTOR)
+                    self:register_store_actions(2)
                     return true
                 end
             }
@@ -222,12 +222,23 @@ function PlayingRun:hook_round_eval()
     end
 end
 
+function PlayingRun:hook_end_consumeable()
+    local end_consumeable = G.FUNCS.end_consumeable
+    function G.FUNCS.end_consumeable(e,s)
+        if G.shop and G.booster_pack then -- this is for boosters
+            PlayingRun:register_store_actions(2,PlayingRun)
+        end
+
+        end_consumeable(e,s)
+    end
+end
+
 function PlayingRun:hook_reroll_shop()
     local reroll_shop = G.FUNCS.reroll_shop
     function G.FUNCS.reroll_shop(e)
         reroll_shop(e)
         -- TODO: send context here
-        PlayingRun:register_store_actions(2 * G.SPEEDFACTOR,PlayingRun)
+        PlayingRun:register_store_actions(2,PlayingRun)
     end
 end
 
@@ -254,7 +265,7 @@ end
 function PlayingRun:register_store_actions(delay,hook)
     G.E_MANAGER:add_event(Event({
         trigger = "after",
-        delay = delay,
+        delay = delay * G.SPEEDFACTOR,
         blocking = false,
         func = function()
             local window = ActionWindow:new()

@@ -37,21 +37,25 @@ function UseConsumable:_get_schema()
     local hand_length = RunHelper:get_hand_length(G.hand.cards)
     local pack_hand_length = RunHelper:get_hand_length(G.consumeables.cards)
 
-    return JsonUtils.wrap_schema({
+    local schema = {
 		card_action = {
 			enum = get_card_actions()
 		},
 		consumable_index = {
 			enum = pack_hand_length
-		},
-        cards_index = { -- when adding context messages, make sure neuro knows to send an empty array if she wants to highlight no cards
+		}
+	}
+
+    if #hand_length ~= 0 then -- else will not work in shops
+        schema["cards_index"] = { -- when adding context messages, make sure neuro knows to send an empty array if she wants to highlight no cards
             type = "array",
             items ={
                 type = "integer",
                 enum = hand_length
             }
-        },
-	})
+        }
+    end
+    return JsonUtils.wrap_schema(schema)
 end
 
 function UseConsumable:_validate_action(data, state)
@@ -154,7 +158,11 @@ function UseConsumable:_execute_action(state)
 	end
 
     self.hook.HookRan = false
-    self.hook:register_play_actions(2,self.hook) -- could cause issues with if a consumable calls draw_card and it is delayed but I don't think that happens in the base game
+    if G.shop then
+        self.hook:register_store_actions(2,self.hook)
+    else
+        self.hook:register_play_actions(2,self.hook) -- could cause issues with if a consumable calls draw_card and it is delayed but I don't think that happens in the base game
+    end
 	return true
 end
 

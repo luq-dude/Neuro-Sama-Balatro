@@ -54,8 +54,6 @@ function BuyBooster:_execute_action(state)
 	local booster = G.shop_booster.cards[selected_index]
 
 	booster.children.buy_button.definition.nodes[1].config.button_UIE:click()
-
-	self.hook:register_store_actions(2 * G.SPEEDFACTOR,self.hook)
 end
 
 return BuyBooster
