@@ -58,7 +58,11 @@ function BuyShopCard:_validate_action(data, state)
         return ExecutionResult.failure("You do not have the money to buy this card")
     end
 
-    if card.children.buy_and_use_button == nil and selected_action == "buy_and_use" then
+    if card.children.buy_button == nil and selected_action == "buy" then
+        return ExecutionResult.failure("You can not buy this card, maybe try to buy and use it.")
+    end
+
+    if card.children.buy_and_use_button == nil and selected_action == "buy and use" then
         return ExecutionResult.failure("You can only buy this card")
     end
 
@@ -70,7 +74,7 @@ function BuyShopCard:_validate_action(data, state)
         return ExecutionResult.failure("You can not store this card, due to there already being too many consumables stored. You should either use of some of the stored consumables or just buy this one.")
     end
 
-    if card.ability.set ~= "Joker" and selected_action == "buy_and_use" and card.children.buy_and_use_button.states.visible == false then
+    if card.ability.set ~= "Joker" and selected_action == "buy and use" and card.children.buy_and_use_button.states.visible == false then
         return ExecutionResult.failure("You can not buy and use this card, as it does not allow it. You should try to buy it")
     end
 
