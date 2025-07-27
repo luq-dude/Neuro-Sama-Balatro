@@ -101,8 +101,14 @@ function UseHandCards:_validate_action(data, state)
 
     state["card_action"] = selected_action
     state["cards_index"] = selected_index
-    state["card_action"] = selected_action
-    return ExecutionResult.success()
+    local cards = {}
+    for index, value in ipairs(selected_index) do
+        table.insert(cards,"\n" .. G.hand.cards[value].base.name)
+    end
+    if selected_action == "Discard" then
+        return ExecutionResult.success("You have discarded: " .. table.concat(cards," ",1,#cards))
+    end
+    return ExecutionResult.success("You have played: " .. table.concat(cards," ",1,#cards))
 end
 
 function UseHandCards:_execute_action(state)

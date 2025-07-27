@@ -23,25 +23,25 @@ local PlayingRun = {}
 
 PlayingRun.HookRan = false
 
-local function extra_card_action_check(window)
+local function extra_card_action_check(window,actions)
     if #G.jokers.cards > 0 then
-        window:add_action(JokerInteraction:new(window, {PlayingRun}))
+        window:add_action(JokerInteraction:new(window, {PlayingRun,actions,UseConsumable}))
     end
 
     if #G.consumeables.cards > 0 then
-        window:add_action(UseConsumable:new(window, {PlayingRun}))
+        window:add_action(UseConsumable:new(window, {PlayingRun,actions,JokerInteraction}))
     end
 end
 
 local function play_card(delay)
     G.E_MANAGER:add_event(Event({
         trigger = "after",
-        delay = delay,
+        delay = delay * G.SPEEDFACTOR,
         blocking = false,
         func = function()
             local window = ActionWindow:new()
             window:add_action(UseHandCards:new(window, {PlayingRun}))
-            extra_card_action_check(window)
+            extra_card_action_check(window,{UseHandCards})
 
             window:register()
             return true
@@ -53,14 +53,13 @@ end
 local function pick_pack_card(delay)
     G.E_MANAGER:add_event(Event({
         trigger = "after",
-        delay = delay,
+        delay = delay * G.SPEEDFACTOR,
         blocking = false,
         func = function()
             local window = ActionWindow:new()
-
             window:add_action(PickCard:new(window, {PlayingRun}))
-            extra_card_action_check(window)
-
+            window:add_action(SkipPack:new(window, {PlayingRun}))
+            extra_card_action_check(window,{PickCard,SkipPack})
             window:register()
             return true
         end
@@ -72,29 +71,13 @@ end
 local function pick_hand_pack_card(delay)
     G.E_MANAGER:add_event(Event({
         trigger = "after",
-        delay = delay,
+        delay = delay * G.SPEEDFACTOR,
         blocking = false,
         func = function()
             local window = ActionWindow:new()
-
             window:add_action(PickPackCard:new(window, {PlayingRun}))
-            extra_card_action_check(window)
-
-            window:register()
-            return true
-        end
-    }
-    ))
-end
-
-local function skip_pack(delay)
-    G.E_MANAGER:add_event(Event({
-        trigger = "after",
-        delay = delay,
-        blocking = false,
-        func = function()
-            local window = ActionWindow:new()
-            window:add_action(SkipPack:new(window, {PickCard,PickPackCard,PlayingRun}))
+            window:add_action(SkipPack:new(window, {PlayingRun}))
+            extra_card_action_check(window,{PickPackCard,SkipPack})
             window:register()
             return true
         end
@@ -117,7 +100,9 @@ function PlayingRun:hook_draw_card()
             delay = 2 * G.SPEEDFACTOR,
             func = function ()
                     if G.STATE == G.STATES.SELECTING_HAND or G.STATE == G.STATES.DRAW_TO_HAND then
-                        play_card(14)
+                        Context.send("You now have the option to select a hand, you have " .. tostring(G.GAME.current_round.hands_left) .. " hands left and " .. tostring(G.GAME.current_round.discards_left) .. " discards left")
+                        Context.send("You have " .. tostring(#G.deck.cards) .. " cards remaining in your deck that have the ability to be drawn, out of the " .. tostring(G.deck.config.card_limit) .. " cards in it.")
+                        play_card(3)
                         return true
                     end
 
@@ -130,12 +115,11 @@ function PlayingRun:hook_draw_card()
 
                     if G.STATE == 999 then -- I'm pretty sure all boosters go through this then become the vanilla state so just using this should be fine
                         if booster.config.center.draw_hand then
-                            pick_hand_pack_card(20)
-                            skip_pack(20)
+                            pick_hand_pack_card(5)
                             return true
                         else
-                            pick_pack_card(20)
-                            skip_pack(20)
+                            sendDebugMessage("running pick_pakc")
+                            pick_pack_card(5)
                             return true
                         end
                     end
@@ -203,6 +187,25 @@ local function get_round_info(round_eval)
     return context
 end
 
+function PlayingRun:hook_evaluate_play()
+    local eval = G.FUNCS.evaluate_play
+    function G.FUNCS.evaluate_play(e)
+        local _,disp_text,_,_ = G.FUNCS.get_poker_hand_info(G.play.cards)
+        eval(e)
+        local chip_total = hand_chips * mult
+        if G.GAME.chips + chip_total >= tonumber(G.GAME.blind.chips) then
+            Context.send("Congratulations! You just won the blind with the hand type: " .. disp_text .. ", you scored " .. G.GAME.chips + chip_total .. " chips this blind. You had to score " .. G.GAME.blind.chips .. " chips to win this blind.")
+            return
+        end
+
+        if G.GAME.current_round.hands_left < 1 then
+            return -- context handled by losing run hook
+        end
+
+        Context.send("This hand, you scored: " .. chip_total .. " chips, with the hand type: " .. disp_text .. ". This blind you have a total of: " .. G.GAME.chips + chip_total ..  " chips. You need to score a total of: " .. G.GAME.blind.chips .. " chips to win this blind")
+    end
+end
+
 function PlayingRun:hook_round_eval()
     local update_round = add_round_eval_row
     function add_round_eval_row(config)
@@ -218,6 +221,7 @@ function PlayingRun:hook_round_eval()
                 func = function()
                     G.FUNCS.cash_out({ config = {} })
                     self:register_store_actions(2)
+                    Context.send("You are now in the shop, you should buy whatever you think will help you in this run.")
                     return true
                 end
             }
@@ -246,26 +250,6 @@ function PlayingRun:hook_reroll_shop()
     end
 end
 
-function PlayingRun:register_play_actions(delay,hook)
-    G.E_MANAGER:add_event(Event({
-        trigger = "after",
-        delay = delay,
-        blocking = false,
-        func = function()
-            local window = ActionWindow:new()
-            if G.STATE == G.STATES.SELECTING_HAND or G.STATE == G.STATES.DRAW_TO_HAND then
-                window:add_action(UseHandCards:new(window, {hook}))
-            end
-
-            extra_card_action_check(window)
-
-            window:register()
-            return true
-        end
-    }
-    ))
-end
-
 function PlayingRun:register_store_actions(delay,hook)
     G.E_MANAGER:add_event(Event({
         trigger = "after",
@@ -274,22 +258,26 @@ function PlayingRun:register_store_actions(delay,hook)
         func = function()
             local window = ActionWindow:new()
 
-            window:add_action(ExitShop:new(window,{self}))
+            local actions = {ExitShop}
 
             if G.GAME.dollars > G.GAME.current_round.reroll_cost or G.GAME.current_round.free_rerolls > 0 then
-                window:add_action(RerollShop:new(window,{self}))
+                actions[#actions+1] = RerollShop
             end
             if #G.shop_jokers.cards > 0 then
-                window:add_action(BuyShopCard:new(window,{self}))
+                actions[#actions+1] = BuyShopCard
             end
             if #G.shop_booster.cards > 0 then
-                window:add_action(BuyShopBooster:new(window,{self}))
+                actions[#actions+1] = BuyShopBooster
             end
             if #G.shop_vouchers.cards > 0 then
-                window:add_action(BuyShopVoucher:new(window,{self}))
+                actions[#actions+1] = BuyShopVoucher
             end
 
-            extra_card_action_check(window)
+            extra_card_action_check(window,actions)
+
+            for index, action in ipairs(actions) do
+                window:add_action(action:new(window,{self}))
+            end
 
             window:register()
             return true

@@ -16,6 +16,8 @@ UseConsumable.__index = UseConsumable
 function UseConsumable:new(actionWindow, state)
     local obj = NeuroAction.new(self, actionWindow)
     obj.hook = state[1]
+    obj.actions = state[2]
+    obj.joker = state[3]
     return obj
 end
 
@@ -99,10 +101,13 @@ function UseConsumable:_validate_action(data, state)
         return ExecutionResult.failure("You cannot select the same card index more than once.")
     end
 
+    if G.STATE == G.STATES.SHOP and card_config.max_highlighted ~= nil then
+        return ExecutionResult.failure("You cannot use this card in the shop as selecting cards is needed for it to work.")
+    end
+
     if #selected_hand_index > G.hand.config.highlighted_limit then return ExecutionResult.failure("You can only highlight a max of " .. G.hand.config.highlighted_limit .. "card per action.") end
 
     if #selected_hand_index > 0 and card_config.max_highlighted == nil then return ExecutionResult.failure("The card you selected does not require cards to be highlighted") end
-
 
     if card_config.max_highlighted ~= nil then
         if #selected_hand_index ~= card_config.max_highlighted and selected_action == "Use" then return ExecutionResult.failure("You have either selected too many cards or to little from your hand comparative to how many the tarot needs.") end
@@ -137,6 +142,13 @@ function UseConsumable:_execute_action(state)
 
                         button = children.children[1].children[1]
                         break
+                    elseif children.children[1].children[1].config.button == nil then -- this is for if the cards need to be selected before the button will be able to be clicked
+                        for _, index in ipairs(selected_index) do
+                            G.hand:add_to_highlighted(hand[index])
+                        end
+
+                        button = children.children[1].children[1]
+                        break
                     else
                     end
                 elseif selected_action == "Sell" then
@@ -152,17 +164,30 @@ function UseConsumable:_execute_action(state)
 				self.hook.HookRan = false
 				return true
 			end
-			button:click()
-            break
+            G.E_MANAGER:add_event(Event({
+            trigger = "after",
+            delay = 0.25 * G.SPEEDFACTOR, -- else tarot's that need a card to be selected wont work. The delay does not need to be this high but lower can look a bit jank
+            blocking = false,
+            func = function()
+                button:click()
+                return true
+            end}))
 		end
 	end
 
     self.hook.HookRan = false
-    if G.shop then
-        self.hook:register_store_actions(2,self.hook)
-    else
-        self.hook:register_play_actions(2,self.hook) -- could cause issues with if a consumable calls draw_card and it is delayed but I don't think that happens in the base game
+    local window = ActionWindow:new()
+    for index, action in ipairs(self.actions) do
+        window:add_action(action:new(window, {self.hook}))
     end
+    if #G.jokers.cards > 0 then
+        window:add_action(self.joker:new(window, {self.hook,self.actions,UseConsumable}))
+    end
+
+    if #G.consumeables.cards > 0 then
+        window:add_action(UseConsumable:new(window, {self.hook,self.actions,self.joker}))
+    end
+    window:register()
 	return true
 end
 

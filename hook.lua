@@ -270,6 +270,7 @@ function Hook:hook_game()
     PlayingRun:hook_reroll_shop()
     PlayingRun:hook_play_cards()
     PlayingRun:hook_discard_cards()
+    PlayingRun:hook_evaluate_play()
 
     hook_blind_select()
 end
