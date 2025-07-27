@@ -273,6 +273,23 @@ function GetRunText:get_tarot_details(card_hand)
     return cards
 end
 
+function GetRunText:get_consumeables_text(cards)
+    local cards_details = {}
+
+    for index, card in ipairs(cards) do
+        local details
+        if card.ability.set == "Planet" then
+            cards_details[#cards_details+1] = GetRunText:get_celestial_details({card})[1]
+        elseif card.ability.set == "Tarot" then
+            cards_details[#cards_details+1] = GetRunText:get_tarot_details({card})[1]
+        elseif card.ability.set == "Spectral" then
+            cards_details[#cards_details+1] = GetRunText:get_spectral_details({card})[1]
+        end
+    end
+
+    return cards_details
+end
+
 -- playing card stuff
 function GetRunText:get_card_modifiers(card_hand)
     local cards = {}

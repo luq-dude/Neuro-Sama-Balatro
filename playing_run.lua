@@ -16,7 +16,6 @@ local BuyShopCard = ModCache.load("custom-actions/shop-actions/buy_shop_card.lua
 local BuyShopBooster = ModCache.load("custom-actions/shop-actions/buy_shop_booster.lua")
 local BuyShopVoucher = ModCache.load("custom-actions/shop-actions/buy_shop_voucher.lua")
 
-
 local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
 
 local PlayingRun = {}
@@ -83,6 +82,27 @@ local function pick_hand_pack_card(delay)
         end
     }
     ))
+end
+
+function PlayingRun:hook_new_round()
+    local round = new_round
+    function new_round()
+        round()
+        local jokers = table.table_to_string(GetRunText:get_joker_details(G.jokers.cards))
+        local consumeables = table.table_to_string(GetRunText:get_consumeables_text(G.consumeables.cards))
+
+        if #jokers > 0 then
+            Context.send("These are the jokers in your hand and their abilites: " .. jokers)
+        else
+            Context.send("You do not have any jokers as of right now.")
+        end
+
+        if #consumeables > 0 then
+            Context.send("These are the consumeables in your hand and their abililties: " .. consumeables)
+        else
+            Context.send("You do not have any consumeables as of right now.")
+        end
+    end
 end
 
 function PlayingRun:hook_draw_card()
