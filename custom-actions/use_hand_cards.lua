@@ -27,24 +27,11 @@ function UseHandCards:_get_description()
     return description
 end
 
-local function get_cards_context()
-    local enhancements, editions, seals = GetRunText:get_current_hand_modifiers(G.hand.cards)
-
-    Context.send(string.format("These are what the card's modifiers do," ..
-    " there can only be one edition,enhancement and seal on each card: \n" ..
-    enhancements .. "\n" ..
-    editions .. "\n" ..
-    seals),true)
-
-    Context.send("These are the current cards in your hand and their modifiers: \n" .. table.table_to_string(GetRunText:get_card_modifiers(G.hand.cards)))
-end
-
 local function card_action_options()
 	return {"Play","Discard"}
 end
 
 function UseHandCards:_get_schema()
-    get_cards_context()
     local hand_length = RunHelper:get_hand_length(G.hand.cards)
 
     return JsonUtils.wrap_schema({

@@ -3,7 +3,6 @@ local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
 local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
 local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
-local UseHandCards = ModCache.load("custom-actions/use_hand_cards.lua")
 local RunHelper = ModCache.load("run_functions_helper.lua")
 
 local NeuroActionHandler = ModCache.load("game-sdk/actions/neuro_action_handler.lua")
@@ -175,26 +174,26 @@ function UseConsumable:_execute_action(state)
 		end
 	end
 
-    self.hook.HookRan = false
     G.E_MANAGER:add_event(Event({
-            trigger = "after",
-            delay = 1 * G.SPEEDFACTOR,
-            blocking = false,
-            func = function()
-                local window = ActionWindow:new()
-                for index, action in ipairs(self.actions) do
-                    window:add_action(action:new(window, {self.hook}))
-                end
-                if #G.jokers.cards > 0 then
-                    window:add_action(self.joker:new(window, {self.hook,self.actions,UseConsumable}))
-                end
+        trigger = "after",
+        delay = 1 * G.SPEEDFACTOR,
+        blocking = false,
+        func = function()
+            local window = ActionWindow:new()
+            for index, action in ipairs(self.actions) do
+                window:add_action(action:new(window, {self.hook}))
+            end
 
-                if #G.consumeables.cards > 0 then
-                    window:add_action(UseConsumable:new(window, {self.hook,self.actions,self.joker}))
-                end
-                window:register()
-                return true
-            end}))
+            if #G.jokers.cards > 0 then
+                window:add_action(self.joker:new(window, {self.hook,self.actions,UseConsumable}))
+            end
+
+            if #G.consumeables.cards > 0 then
+                window:add_action(UseConsumable:new(window, {self.hook,self.actions,self.joker}))
+            end
+            window:register()
+            return true
+        end}))
 	return true
 end
 
