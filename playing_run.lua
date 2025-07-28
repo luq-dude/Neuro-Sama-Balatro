@@ -22,6 +22,20 @@ local PlayingRun = {}
 
 PlayingRun.HookRan = false
 
+local function get_cards_context()
+    sendDebugMessage("running get cards context: ")
+    print(debug.traceback("stack trace: \n"))
+    local enhancements, editions, seals = GetRunText:get_current_hand_modifiers(G.hand.cards)
+
+    Context.send(string.format("These are what the card's modifiers do," ..
+    " there can only be one edition,enhancement and seal on each card: \n" ..
+    enhancements .. "\n" ..
+    editions .. "\n" ..
+    seals),true)
+
+    Context.send("These are the current cards in your hand and their modifiers: \n" .. table.table_to_string(GetRunText:get_card_modifiers(G.hand.cards)))
+end
+
 local function extra_card_action_check(window,actions)
     if #G.jokers.cards > 0 then
         window:add_action(JokerInteraction:new(window, {PlayingRun,actions,UseConsumable}))
@@ -43,6 +57,7 @@ local function play_card(delay)
             extra_card_action_check(window,{UseHandCards})
 
             window:register()
+            get_cards_context()
             return true
         end
     }

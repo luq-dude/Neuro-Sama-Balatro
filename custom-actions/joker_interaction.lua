@@ -163,31 +163,30 @@ function JokerInteraction:_execute_action(state)
         event_delay = 0.5
     end
 
-    self.hook.HookRan = false
     G.E_MANAGER:add_event(Event({
-            trigger = "after",
-            delay = event_delay, -- we mutiply by length selected_hand_index for if Neuro sells mutiple cards.
-            blocking = false,
-            func = function()
-                local window = ActionWindow:new()
-                for index, action in ipairs(self.actions) do
-                    window:add_action(action:new(window, {self.hook}))
-                end
-                if #G.jokers.cards > 0 then
-                    window:add_action(JokerInteraction:new(window, {self.hook,self.actions,self.consumable}))
-                end
+        trigger = "after",
+        delay = event_delay, -- we mutiply by length selected_hand_index for if Neuro sells mutiple cards.
+        blocking = false,
+        func = function()
+            local window = ActionWindow:new()
+            for index, action in ipairs(self.actions) do
+                window:add_action(action:new(window, {self.hook}))
+            end
+            if #G.jokers.cards > 0 then
+                window:add_action(JokerInteraction:new(window, {self.hook,self.actions,self.consumable}))
+            end
 
-                if #G.consumeables.cards > 0 then
-                    window:add_action(self.consumable:new(window, {self.hook,self.actions,JokerInteraction}))
-                end
-                window:register()
-                local cards = {}
-                for index, value in ipairs(G.jokers.cards) do
-                    table.insert(cards,"\n" .. tostring(index) .. ": " .. value.config.center.name)
-                end
-                Context.send("These are the positions of your jokers now: " .. table.concat(cards," ",1,#cards))
-                return true
-            end}))
+            if #G.consumeables.cards > 0 then
+                window:add_action(self.consumable:new(window, {self.hook,self.actions,JokerInteraction}))
+            end
+            window:register()
+            local cards = {}
+            for index, value in ipairs(G.jokers.cards) do
+                table.insert(cards,"\n" .. tostring(index) .. ": " .. value.config.center.name)
+            end
+            Context.send("These are the positions of your jokers now: " .. table.concat(cards," ",1,#cards))
+            return true
+        end}))
     return true
 end
 
