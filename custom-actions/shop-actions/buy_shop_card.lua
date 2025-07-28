@@ -74,13 +74,23 @@ function BuyShopCard:_validate_action(data, state)
         return ExecutionResult.failure("You can not store this card, due to there already being too many consumables stored. You should either use of some of the stored consumables or just buy this one.")
     end
 
-    if card.ability.set ~= "Joker" and selected_action == "buy and use" and card.children.buy_and_use_button.states.visible == false then
-        return ExecutionResult.failure("You can not buy and use this card, as it does not allow it. You should try to buy it")
-    end
+    -- we do this to load buy_and_use_button as visible is only set after being highlighted and because cards buy_button visible are only set to true if they are highlighted
+    G.shop_jokers:add_to_highlighted(card,true) -- need to wait a frame after this is called for card:draw to create the button hence the event
+    G.E_MANAGER:add_event(Event({
+        trigger = "before",
+        blocking = false,
+        function ()
+            if card.ability.set ~= "Joker" and selected_action == "buy and use" and card.children.buy_and_use_button.states.visible == false then
+                G.shop_jokers:unhighlight_all()
+                return ExecutionResult.failure("You can not buy and use this card, as it does not allow it. You should try to buy it")
+            end
 
-    if card.ability.set ~= "Joker" and selected_action == "buy" and card.children.buy_button.states.visible == false then
-        return ExecutionResult.failure("You can not buy this card, as it does not allow it. You should try to buy and use it")
-    end
+            if card.ability.set ~= "Joker" and selected_action == "buy" and card.children.buy_button.states.visible == false then
+                G.shop_jokers:unhighlight_all()
+                return ExecutionResult.failure("You can not buy this card, as it does not allow it. You should try to buy and use it")
+            end
+            G.shop_jokers:unhighlight_all()
+        end}))
 
     state["selected_action"] = selected_action
     state["selected_index"] = selected_index
@@ -99,7 +109,7 @@ function BuyShopCard:_execute_action(state)
         card.children.buy_and_use_button.definition.nodes[1].config.button_UIE:click()
     end
 
-    self.hook:register_store_actions(2 * G.SPEEDFACTOR,self.hook)
+    self.hook:register_store_actions(3,self.hook)
 end
 
 return BuyShopCard

@@ -176,18 +176,25 @@ function UseConsumable:_execute_action(state)
 	end
 
     self.hook.HookRan = false
-    local window = ActionWindow:new()
-    for index, action in ipairs(self.actions) do
-        window:add_action(action:new(window, {self.hook}))
-    end
-    if #G.jokers.cards > 0 then
-        window:add_action(self.joker:new(window, {self.hook,self.actions,UseConsumable}))
-    end
+    G.E_MANAGER:add_event(Event({
+            trigger = "after",
+            delay = 1 * G.SPEEDFACTOR,
+            blocking = false,
+            func = function()
+                local window = ActionWindow:new()
+                for index, action in ipairs(self.actions) do
+                    window:add_action(action:new(window, {self.hook}))
+                end
+                if #G.jokers.cards > 0 then
+                    window:add_action(self.joker:new(window, {self.hook,self.actions,UseConsumable}))
+                end
 
-    if #G.consumeables.cards > 0 then
-        window:add_action(UseConsumable:new(window, {self.hook,self.actions,self.joker}))
-    end
-    window:register()
+                if #G.consumeables.cards > 0 then
+                    window:add_action(UseConsumable:new(window, {self.hook,self.actions,self.joker}))
+                end
+                window:register()
+                return true
+            end}))
 	return true
 end
 
