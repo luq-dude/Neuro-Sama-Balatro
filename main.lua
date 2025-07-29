@@ -4,6 +4,7 @@ assert(SMODS.load_file("game-sdk/sdk_string_consts.lua"))()
 
 assert(SMODS.load_file("booster_loc.lua"))()
 assert(SMODS.load_file("Card_loc.lua"))()
+assert(SMODS.load_file("voucher_loc.lua"))()
 
 
 ModCache = assert(SMODS.load_file("module_cache.lua"))()
