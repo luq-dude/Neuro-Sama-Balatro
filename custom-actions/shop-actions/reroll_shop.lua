@@ -1,5 +1,6 @@
 local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
+local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
 
 local RerollShop = setmetatable({}, { __index = NeuroAction })
 RerollShop.__index = RerollShop
@@ -20,7 +21,7 @@ function RerollShop:_get_description()
 end
 
 function RerollShop:_get_schema()
-    return nil
+    return JsonUtils.wrap_schema({})
 end
 
 function RerollShop:_validate_action(data, state)

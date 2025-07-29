@@ -1,6 +1,7 @@
 local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
 local NeuroActionHandler = ModCache.load("game-sdk/actions/neuro_action_handler.lua")
+local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
 
 local JokerInteraction = ModCache.load("custom-actions/joker_interaction.lua")
 local UseConsumables = ModCache.load("custom-actions/use_consumables.lua")
@@ -23,7 +24,7 @@ function ExitShop:_get_description()
 end
 
 function ExitShop:_get_schema()
-    return nil
+    return JsonUtils.wrap_schema({})
 end
 
 function ExitShop:_validate_action(data, state)
