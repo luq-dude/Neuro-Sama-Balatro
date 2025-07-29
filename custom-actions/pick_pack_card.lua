@@ -123,7 +123,7 @@ function PickCards:_validate_action(data, state)
     if #selected_hand_index < 1 then return ExecutionResult.failure("You should either take a card or skip the round") end
 
     state["cards_index"] = selected_hand_index
-	return ExecutionResult.success()
+	return ExecutionResult.success("Taking the " .. G.pack_cards.cards[selected_hand_index[1]].config.center.name .. " card.")
 end
 
 function PickCards:_execute_action(state)
@@ -154,12 +154,10 @@ function PickCards:_execute_action(state)
             cards_picked = 0
         end
         self.hook.HookRan = false
-        NeuroActionHandler.unregister_actions({SkipPack})
         return true
     end
 
     self.hook.HookRan = false
-    NeuroActionHandler.unregister_actions({SkipPack})
 	return true
 end
 

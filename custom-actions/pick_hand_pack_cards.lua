@@ -143,7 +143,7 @@ function PickHandPackCards:_validate_action(data, state)
 
     state["cards_index"] = selected_hand_index
     state["pack_card_index"] = selected_pack_card
-    return ExecutionResult.success()
+    return ExecutionResult.success("Using the " .. G.pack_cards.cards[selected_pack_card[1]].config.center.name .. " card.")
 end
 
 function PickHandPackCards:_execute_action(state)
@@ -181,12 +181,10 @@ function PickHandPackCards:_execute_action(state)
             cards_picked = 0
         end
         self.hook.HookRan = false
-        NeuroActionHandler.unregister_actions({SkipPack})
         return true
     end
 
     self.hook.HookRan = false
-    NeuroActionHandler.unregister_actions({SkipPack})
 	return true
 end
 

@@ -24,29 +24,29 @@ Spectral_Loc = {
 Tarot_Loc = {
 	c_fool = {},
 	c_magician = function (card)
-		return {card.config.max_highlighted,"Lucky Card"}
+		return {card.config.center.config.max_highlighted,"Lucky Card"}
 	end,
 	c_high_priestess = {"planets"},
 	c_empress = function (card)
-		return {card.config.max_highlighted,"Mult Card"}
+		return {card.config.center.config.max_highlighted,"Mult Card"}
 	end,
 	c_emperor = {"tarots"},
 	c_heirophant = function (card)
-		return {card.config.max_highlighted,"Bonus Card"}
+		return {card.config.center.config.max_highlighted,"Bonus Card"}
 	end,
 	c_lovers = function(card)
-		return {card.config.max_highlighted,"Wild Card",}
+		return {card.config.center.config.max_highlighted,"Wild Card",}
 	end,
 	c_chariot = function(card)
-		return {card.config.max_highlighted,"Steel Card"}
+		return {card.config.center.config.max_highlighted,"Steel Card"}
 	end,
 	c_justice = function(card)
-		return {card.config.max_highlighted,"Glass Card"}
+		return {card.config.center.config.max_highlighted,"Glass Card"}
 	end,
 	c_hermit = {"extra"},
 	c_wheel_of_fortune = {"extra"},
 	c_strength = function(card)
-		return {card.config.max_highlighted,"1"}
+		return {card.config.center.config.max_highlighted,"1"}
 	end,
 	c_hanged_man = {"max_highlighted"},
 	c_death = {"max_highlighted"},
@@ -54,10 +54,10 @@ Tarot_Loc = {
 		return {card.ability.extra, card.ability.money}
 	end,
 	c_devil = function(card)
-		return {card.config.max_highlighted,"Gold Card"}
+		return {card.config.center.config.max_highlighted,"Gold Card"}
 	end,
 	c_tower = function(card)
-		return {card.config.max_highlighted, "Stone Card"}
+		return {card.config.center.config.max_highlighted, "Stone Card"}
 	end,
 	c_star = function (card)
 		return {card.config.center.config.max_highlighted,localize(card.config.center.config.suit_conv, 'suits_plural'),colours = {G.C.SUITS[card.config.center.config.suit_conv]}} -- send colour as text changes with suit colour

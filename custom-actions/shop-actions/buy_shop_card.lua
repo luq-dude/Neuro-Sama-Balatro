@@ -13,7 +13,6 @@ function BuyShopCard:new(actionWindow, state)
     return obj
 end
 
-
 function BuyShopCard:_get_name()
     return "buy_card"
 end
@@ -23,15 +22,15 @@ function BuyShopCard:_get_description()
 end
 
 local function card_actions()
-    return {"buy","buy and use"}
+    return { "buy", "buy and use" }
 end
 
 function BuyShopCard:_get_schema()
     local hand_length = RunHelper:get_hand_length(G.shop_jokers.cards)
     return JsonUtils.wrap_schema({
-		card_action = {
-			enum = card_actions()
-		},
+        card_action = {
+            enum = card_actions()
+        },
         card_index = {
             enum = hand_length
         }
@@ -43,12 +42,12 @@ function BuyShopCard:_validate_action(data, state)
     local selected_index = data._data["card_index"]
 
     local option = card_actions()
-    if not RunHelper:value_in_table(option,selected_action) then
+    if not RunHelper:value_in_table(option, selected_action) then
         return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("card_action"))
     end
 
     local valid_hand_indices = RunHelper:get_hand_length(G.shop_jokers.cards)
-    if not RunHelper:value_in_table(valid_hand_indices,selected_index) then
+    if not RunHelper:value_in_table(valid_hand_indices, selected_index) then
         return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("card_index"))
     end
 
@@ -58,11 +57,10 @@ function BuyShopCard:_validate_action(data, state)
         return ExecutionResult.failure("You do not have the money to buy this card")
     end
 
-    if card.children.buy_button == nil and selected_action == "buy" then
+    if not card.children.buy_button and selected_action == "buy" then
         return ExecutionResult.failure("You can not buy this card, maybe try to buy and use it.")
     end
-
-    if card.children.buy_and_use_button == nil and selected_action == "buy and use" then
+    if not card.children.buy_and_use_button and selected_action == "buy and use" then
         return ExecutionResult.failure("You can only buy this card")
     end
 
@@ -71,15 +69,12 @@ function BuyShopCard:_validate_action(data, state)
     end
 
     if card.ability.set ~= "Joker" and selected_action == "buy" and #G.consumeables.cards >= G.consumeables.config.card_limit then -- might cause issues with modded sets if they don't use G.consumeables
-        return ExecutionResult.failure("You can not store this card, due to there already being too many consumables stored. You should either use of some of the stored consumables or just buy this one.")
+        return ExecutionResult.failure(
+            "You can not store this card, due to there already being too many consumables stored. You should either use of some of the stored consumables or just buy this one.")
     end
 
-    if card.ability.set ~= "Joker" and selected_action == "buy and use" and card.children.buy_and_use_button.states.visible == false then
-        return ExecutionResult.failure("You can not buy and use this card, as it does not allow it. You should try to buy it")
-    end
-
-    if card.ability.set ~= "Joker" and selected_action == "buy" and card.children.buy_button.states.visible == false then
-        return ExecutionResult.failure("You can not buy this card, as it does not allow it. You should try to buy and use it")
+    if selected_action == "buy and use" and not card:can_use_consumeable() then
+        return ExecutionResult.failure("You can't buy and use this card. Try just buying it.")
     end
 
     state["selected_action"] = selected_action
@@ -99,7 +94,7 @@ function BuyShopCard:_execute_action(state)
         card.children.buy_and_use_button.definition.nodes[1].config.button_UIE:click()
     end
 
-    self.hook:register_store_actions(2 * G.SPEEDFACTOR,self.hook)
+    self.hook:register_store_actions(3, self.hook)
 end
 
 return BuyShopCard

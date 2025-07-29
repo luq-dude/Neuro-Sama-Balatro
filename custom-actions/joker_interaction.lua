@@ -1,6 +1,8 @@
 local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
 local RunHelper = ModCache.load("run_functions_helper.lua")
+local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
+local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
 
 local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
 
@@ -10,6 +12,8 @@ JokerInteraction.__index = JokerInteraction
 function JokerInteraction:new(actionWindow, state)
     local obj = NeuroAction.new(self, actionWindow)
     obj.hook = state[1]
+    obj.actions = state[2]
+    obj.consumable = state[3]
     return obj
 end
 
@@ -18,9 +22,15 @@ function JokerInteraction:_get_name()
 end
 
 function JokerInteraction:_get_description()
-    local description = "This allows you to either move your jokers in a different order to try and increase the score they give you." ..
-    "Or to sell your jokers. You can only move two jokers at a time, however you can sell a variable amount of jokers from either 1 or your whole hand"
+    local cards = {}
+    for index, value in ipairs(G.jokers.cards) do
+        table.insert(cards,"\n" .. tostring(index) .. ": " .. value.config.center.name)
+    end
 
+    local description = "This allows you to either move your jokers in a different order." ..
+    " Or to sell your jokers. You can only move two jokers at a time, however you can sell a variable amount of jokers from either 1 or your whole hand." ..
+    "These are the jokers in your hand: " ..
+    table.concat(cards,"",1,#cards)
 
     return description
 end
@@ -97,7 +107,6 @@ function JokerInteraction:_execute_action(state)
     local selected_action = state["card_action"]
 
     local hand = G.jokers.cards
-    local register_delay = 2
     if selected_action == "Move" then
         G.jokers.cards[selected_hand_index[1]].states.drag.is = true
         if selected_hand_index[1] > selected_hand_index[2] then-- The game interpolates between T and the shown position itself
@@ -126,18 +135,18 @@ function JokerInteraction:_execute_action(state)
             hand = G.jokers.cards
             local event_delay = 0
             if G.SPEEDFACTOR > 1 then -- as delay is reliant on game speed and I don't want to cause issues with long waits with lower delays
-                event_delay = pos * 5 + G.SPEEDFACTOR * 5 -- this makes the first run take a while but it should be fine
-                register_delay = register_delay + event_delay + G.SPEEDFACTOR
+                event_delay = pos * G.SPEEDFACTOR
             else
                 event_delay = pos * 2 + G.SPEEDFACTOR + 1
-                register_delay = register_delay + event_delay + G.SPEEDFACTOR
+            end
+            if pos == 1 then
+                event_delay = 0.75 * G.SPEEDFACTOR
             end
             G.E_MANAGER:add_event(Event({
             trigger = "after",
             delay = event_delay,
             blocking = false,
             func = function ()
-                local event_hand = hand
                 G.jokers:add_to_highlighted(hand[index - pos])
                 button = hand[index - pos].children.use_button.UIRoot.children[1].children[1].children[1].children[1]
                 button:click()
@@ -147,9 +156,38 @@ function JokerInteraction:_execute_action(state)
         end
     end
 
-    self.hook.HookRan = false
-    self.hook:register_play_actions(register_delay,self.hook) -- TODO: probably better way to register actions, I can't think of another way that has less downsides then this though.
+    local event_delay = 0
+    if selected_action == "Sell" then
+        event_delay = #selected_hand_index * G.SPEEDFACTOR + 3
+    else
+        event_delay = 0.5
+    end
+
+    G.E_MANAGER:add_event(Event({
+        trigger = "after",
+        delay = event_delay, -- we mutiply by length selected_hand_index for if Neuro sells mutiple cards.
+        blocking = false,
+        func = function()
+            local window = ActionWindow:new()
+            for index, action in ipairs(self.actions) do
+                window:add_action(action:new(window, {self.hook}))
+            end
+            if #G.jokers.cards > 0 then
+                window:add_action(JokerInteraction:new(window, {self.hook,self.actions,self.consumable}))
+            end
+
+            if #G.consumeables.cards > 0 then
+                window:add_action(self.consumable:new(window, {self.hook,self.actions,JokerInteraction}))
+            end
+            window:register()
+            local cards = {}
+            for index, value in ipairs(G.jokers.cards) do
+                table.insert(cards,"\n" .. tostring(index) .. ": " .. value.config.center.name)
+            end
+            Context.send("These are the positions of your jokers now: " .. table.concat(cards," ",1,#cards))
+            return true
+        end}))
     return true
-end -- should probably send context of where the jokers have been moved as Neuro may get confused with where the card replaced goes.
+end
 
 return JokerInteraction

@@ -27,24 +27,11 @@ function UseHandCards:_get_description()
     return description
 end
 
-local function get_cards_context()
-    local enhancements, editions, seals = GetRunText:get_current_hand_modifiers(G.hand.cards)
-
-    Context.send(string.format("These are what the card's modifiers do," ..
-    " there can only be one edition,enhancement and seal on each card: \n" ..
-    enhancements .. "\n" ..
-    editions .. "\n" ..
-    seals),true)
-
-    Context.send("These are the current cards in your hand and their modifiers: \n" .. table.table_to_string(GetRunText:get_card_modifiers(G.hand.cards)))
-end
-
 local function card_action_options()
 	return {"Play","Discard"}
 end
 
 function UseHandCards:_get_schema()
-    get_cards_context()
     local hand_length = RunHelper:get_hand_length(G.hand.cards)
 
     return JsonUtils.wrap_schema({
@@ -101,8 +88,14 @@ function UseHandCards:_validate_action(data, state)
 
     state["card_action"] = selected_action
     state["cards_index"] = selected_index
-    state["card_action"] = selected_action
-    return ExecutionResult.success()
+    local cards = {}
+    for index, value in ipairs(selected_index) do
+        table.insert(cards,"\n" .. G.hand.cards[value].base.name)
+    end
+    if selected_action == "Discard" then
+        return ExecutionResult.success("You have discarded: " .. table.concat(cards," ",1,#cards))
+    end
+    return ExecutionResult.success("You have played: " .. table.concat(cards," ",1,#cards))
 end
 
 function UseHandCards:_execute_action(state)
