@@ -24,7 +24,7 @@ function ExitShop:_get_description()
 end
 
 function ExitShop:_get_schema()
-    return JsonUtils.wrap_schema({})
+    return JsonUtils.wrap_schema({},false)
 end
 
 function ExitShop:_validate_action(data, state)
