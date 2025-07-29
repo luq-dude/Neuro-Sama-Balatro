@@ -22,10 +22,8 @@ local PlayingRun = {}
 
 PlayingRun.HookRan = false
 
-local function get_cards_context()
-    sendDebugMessage("running get cards context: ")
-    print(debug.traceback("stack trace: \n"))
-    local enhancements, editions, seals = GetRunText:get_current_hand_modifiers(G.hand.cards)
+function PlayingRun:get_cards_context(card_table)
+    local enhancements, editions, seals = GetRunText:get_current_hand_modifiers(card_table)
 
     Context.send(string.format("These are what the card's modifiers do," ..
     " there can only be one edition,enhancement and seal on each card: \n" ..
@@ -33,7 +31,7 @@ local function get_cards_context()
     editions .. "\n" ..
     seals),true)
 
-    Context.send("These are the current cards in your hand and their modifiers: \n" .. table.table_to_string(GetRunText:get_card_modifiers(G.hand.cards)))
+    Context.send("These are the current cards in your hand and their modifiers: \n" .. table.table_to_string(GetRunText:get_card_modifiers(card_table)))
 end
 
 local function extra_card_action_check(window,actions)
@@ -57,7 +55,7 @@ local function play_card(delay)
             extra_card_action_check(window,{UseHandCards})
 
             window:register()
-            get_cards_context()
+            PlayingRun:get_cards_context(G.hand.cards)
             return true
         end
     }
