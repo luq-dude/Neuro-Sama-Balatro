@@ -24,11 +24,11 @@ end
 function JokerInteraction:_get_description()
     local cards = {}
     for index, value in ipairs(G.jokers.cards) do
-        table.insert(cards,"\n" .. tostring(index) .. ": " .. value.config.center.name)
+        table.insert(cards,"\n" .. tostring(index) .. ": " .. value.config.center.name .. " sell value: " .. value.sell_cost) -- could also use sell_cost_label
     end
 
-    local description = "This allows you to either move your jokers in a different order." ..
-    " Or to sell your jokers. You can only move two jokers at a time, however you can sell a variable amount of jokers from either 1 or your whole hand." ..
+    local description = "This allows you to either move your jokers in a different order," ..
+    " or to sell your jokers. You can only move two jokers at a time, however you can sell a variable amount of jokers from either 1 or your whole hand." ..
     "These are the jokers in your hand: " ..
     table.concat(cards,"",1,#cards)
 

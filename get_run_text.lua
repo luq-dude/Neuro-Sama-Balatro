@@ -1,5 +1,12 @@
 local GetRunText = {}
 
+local function add_card_buy_cost(description,card)
+    if not card.config.center.cost then return end
+
+    description = description .. ". Buy cost: " .. card.config.center.cost
+    return description
+end
+
 function GetRunText:get_celestial_names(card_hand)
     local cards = {}
 
@@ -20,7 +27,8 @@ function GetRunText:get_celestial_names(card_hand)
     return cards
 end
 
-function GetRunText:get_celestial_details(card_hand)
+function GetRunText:get_celestial_details(card_hand,add_cost)
+    add_cost = add_cost or false
     local cards = {}
 
 	for pos, card in ipairs(card_hand) do
@@ -56,6 +64,7 @@ function GetRunText:get_celestial_details(card_hand)
                     end
                 end
 
+                if add_cost then description = add_card_buy_cost(description,card) end
                 planet_desc = description
             ::continue::
             end
@@ -84,7 +93,8 @@ function GetRunText:get_joker_names(card_hand)
     return cards
 end
 
-function GetRunText:get_joker_details(card_hand)
+function GetRunText:get_joker_details(card_hand,add_cost)
+    add_cost = add_cost or false
     local cards = {}
 
 	for pos, card in ipairs(card_hand) do
@@ -127,6 +137,7 @@ function GetRunText:get_joker_details(card_hand)
                     end
                 end
 
+                if add_cost then description = add_card_buy_cost(description,card) end
                 joker_desc = description
             ::continue::
             end
@@ -154,7 +165,8 @@ function GetRunText:get_spectral_names(card_hand)
     return cards
 end
 
-function GetRunText:get_spectral_details(card_hand)
+function GetRunText:get_spectral_details(card_hand,add_cost)
+    add_cost = add_cost or false
     local cards = {}
 
 	for pos, card in ipairs(card_hand) do
@@ -198,6 +210,7 @@ function GetRunText:get_spectral_details(card_hand)
                     end
                 end
 
+                if add_cost then description = add_card_buy_cost(description,card) end
                 spectral_desc = description
             ::continue::
             end
@@ -225,7 +238,8 @@ function GetRunText:get_tarot_names(card_hand)
     return cards
 end
 
-function GetRunText:get_tarot_details(card_hand)
+function GetRunText:get_tarot_details(card_hand,add_cost)
+    add_cost = add_cost or false
     local cards = {}
 
 	for pos, card in ipairs(card_hand) do
@@ -269,6 +283,7 @@ function GetRunText:get_tarot_details(card_hand)
                     end
                 end
 
+                if add_cost then description = add_card_buy_cost(description,card) end
                 tarot_desc = description
             ::continue::
             end
@@ -278,7 +293,8 @@ function GetRunText:get_tarot_details(card_hand)
     return cards
 end
 
-function GetRunText:get_booster_details(boosters)
+function GetRunText:get_booster_details(boosters,add_cost)
+    add_cost = add_cost or false
     local shop_boosters = {}
 
 	for pos, booster in ipairs(boosters) do
@@ -321,6 +337,7 @@ function GetRunText:get_booster_details(boosters)
                     end
                 end
 
+                if add_cost then description = add_card_buy_cost(description,booster) end
                 booster_desc = description
             ::continue::
             end
@@ -330,7 +347,8 @@ function GetRunText:get_booster_details(boosters)
     return shop_boosters
 end
 
-function GetRunText:get_voucher_details(voucher_table)
+function GetRunText:get_voucher_details(voucher_table,add_cost)
+    add_cost = add_cost or false
     local vouchers = {}
 
 	for pos, voucher in ipairs(voucher_table) do
@@ -372,6 +390,7 @@ function GetRunText:get_voucher_details(voucher_table)
                     end
                 end
 
+                if add_cost then description = add_card_buy_cost(description,voucher) end
                 voucher_desc = description
             ::continue::
             end
@@ -381,29 +400,32 @@ function GetRunText:get_voucher_details(voucher_table)
     return vouchers
 end
 
-function GetRunText:get_shop_text(card_table)
+function GetRunText:get_shop_text(card_table,add_cost)
+    add_cost = add_cost or false
     local card = card_table[1]
+
     if card.ability.set == "Booster" then
-        return GetRunText:get_booster_details(card_table)
+        return GetRunText:get_booster_details(card_table,add_cost)
     elseif card.ability.set == "Voucher" then
-        return GetRunText:get_voucher_details(card_table)
+        return GetRunText:get_voucher_details(card_table,add_cost)
     elseif card.ability.set == "Joker" then
-        return GetRunText:get_joker_details(card_table)
+        return GetRunText:get_joker_details(card_table,add_cost)
     end
 end
 
-function GetRunText:get_consumeables_text(cards)
+function GetRunText:get_consumeables_text(cards,add_cost)
+    add_cost = add_cost or false
     local cards_details = {}
 
     for index, card in ipairs(cards) do
         if card.ability.set == "Planet" then
-            cards_details[#cards_details+1] = GetRunText:get_celestial_details({card})[1]
+            cards_details[#cards_details+1] = GetRunText:get_celestial_details({card},add_cost)[1]
         elseif card.ability.set == "Tarot" then
-            cards_details[#cards_details+1] = GetRunText:get_tarot_details({card})[1]
+            cards_details[#cards_details+1] = GetRunText:get_tarot_details({card},add_cost)[1]
         elseif card.ability.set == "Spectral" then
-            cards_details[#cards_details+1] = GetRunText:get_spectral_details({card})[1]
+            cards_details[#cards_details+1] = GetRunText:get_spectral_details({card},add_cost)[1]
         elseif card.ability.set == "Joker" then
-            cards_details[#cards_details+1] = GetRunText:get_joker_details({card})[1]
+            cards_details[#cards_details+1] = GetRunText:get_joker_details({card},add_cost)[1]
         end
     end
 

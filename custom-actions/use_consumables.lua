@@ -27,7 +27,14 @@ function UseConsumable:_get_name()
 end
 
 function UseConsumable:_get_description()
-    local description = string.format("use consumable card")
+    local cards = {}
+    for index, value in ipairs(G.consumeables.cards) do
+        table.insert(cards,"\n" .. tostring(index) .. ": " .. value.config.center.name .. " sell value: " .. value.sell_cost)
+    end
+
+    local description = string.format("Use a consumable in your consumable hand. This can either be planet, spectral or tarot cards," ..
+    " Each type will affect the game in it's own unique way" ..
+    table.concat(cards,"",1,#cards))
 
     return description
 end
