@@ -291,7 +291,7 @@ function PlayingRun:register_store_actions(delay,hook)
             local window = ActionWindow:new()
 
             local actions = {ExitShop}
-
+            Context.send("You currently have $" .. G.GAME.dollars .. " to spend.")
             if G.GAME.dollars > G.GAME.current_round.reroll_cost or G.GAME.current_round.free_rerolls > 0 then
                 actions[#actions+1] = RerollShop
             end
