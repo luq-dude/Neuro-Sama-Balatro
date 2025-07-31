@@ -31,7 +31,7 @@ function PlayingRun:get_cards_context(card_table)
     editions .. "\n" ..
     seals),true)
 
-    Context.send("These are the current cards in your hand and their modifiers: \n" .. table.table_to_string(GetRunText:get_card_modifiers(card_table)))
+    Context.send("These are the current cards in your hand, their modifiers and if they are debuffed: \n" .. table.table_to_string(GetRunText:get_card_modifiers(card_table,G.GAME.blind.boss)))
 end
 
 local function extra_card_action_check(window,actions)
