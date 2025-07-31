@@ -1,5 +1,12 @@
 local GetRunText = {}
 
+local function add_card_buy_cost(description,card)
+    if not card.config.center.cost then return end
+
+    description = description .. ". Buy cost: " .. card.config.center.cost
+    return description
+end
+
 function GetRunText:get_celestial_names(card_hand)
     local cards = {}
 
@@ -20,7 +27,8 @@ function GetRunText:get_celestial_names(card_hand)
     return cards
 end
 
-function GetRunText:get_celestial_details(card_hand)
+function GetRunText:get_celestial_details(card_hand,add_cost)
+    add_cost = add_cost or false
     local cards = {}
 
 	for pos, card in ipairs(card_hand) do
@@ -56,6 +64,7 @@ function GetRunText:get_celestial_details(card_hand)
                     end
                 end
 
+                if add_cost then description = add_card_buy_cost(description,card) end
                 planet_desc = description
             ::continue::
             end
@@ -84,7 +93,8 @@ function GetRunText:get_joker_names(card_hand)
     return cards
 end
 
-function GetRunText:get_joker_details(card_hand)
+function GetRunText:get_joker_details(card_hand,add_cost)
+    add_cost = add_cost or false
     local cards = {}
 
 	for pos, card in ipairs(card_hand) do
@@ -127,6 +137,7 @@ function GetRunText:get_joker_details(card_hand)
                     end
                 end
 
+                if add_cost then description = add_card_buy_cost(description,card) end
                 joker_desc = description
             ::continue::
             end
@@ -154,7 +165,8 @@ function GetRunText:get_spectral_names(card_hand)
     return cards
 end
 
-function GetRunText:get_spectral_details(card_hand)
+function GetRunText:get_spectral_details(card_hand,add_cost)
+    add_cost = add_cost or false
     local cards = {}
 
 	for pos, card in ipairs(card_hand) do
@@ -174,6 +186,8 @@ function GetRunText:get_spectral_details(card_hand)
                     end
                 elseif type(loc_lookup) == "function" then
                     loc_args = loc_lookup(g_card)
+                elseif g_card.mod then
+                    name = g_card.loc_txt.name
                 else
                     sendErrorMessage("Could not find localize for card" .. g_card.key)
                 end
@@ -196,6 +210,7 @@ function GetRunText:get_spectral_details(card_hand)
                     end
                 end
 
+                if add_cost then description = add_card_buy_cost(description,card) end
                 spectral_desc = description
             ::continue::
             end
@@ -223,7 +238,8 @@ function GetRunText:get_tarot_names(card_hand)
     return cards
 end
 
-function GetRunText:get_tarot_details(card_hand)
+function GetRunText:get_tarot_details(card_hand,add_cost)
+    add_cost = add_cost or false
     local cards = {}
 
 	for pos, card in ipairs(card_hand) do
@@ -243,12 +259,15 @@ function GetRunText:get_tarot_details(card_hand)
                     end
                 elseif type(loc_lookup) == "function" then
                     loc_args = loc_lookup(card)
+                elseif g_card.mod then
+                    name = g_card.loc_txt.name
                 else
                     sendErrorMessage("Could not find localize for card" .. g_card.key)
                 end
+
                 localize{type = 'descriptions', key = g_card.key or key_override, set = g_card.set or card.ability.set, nodes = loc_nodes, vars = loc_args}
 
-                local description = "\n" .. card.ability.name .. ": "
+                local description = "\n" .. name .. ": "
                 for _, line in ipairs(loc_nodes) do
                     for _, word in ipairs(line) do
                         if word.nodes ~= nil then
@@ -264,6 +283,7 @@ function GetRunText:get_tarot_details(card_hand)
                     end
                 end
 
+                if add_cost then description = add_card_buy_cost(description,card) end
                 tarot_desc = description
             ::continue::
             end
@@ -273,17 +293,139 @@ function GetRunText:get_tarot_details(card_hand)
     return cards
 end
 
-function GetRunText:get_consumeables_text(cards)
+function GetRunText:get_booster_details(boosters,add_cost)
+    add_cost = add_cost or false
+    local shop_boosters = {}
+
+	for pos, booster in ipairs(boosters) do
+		local booster_desc = ""
+
+        if booster.ability.set == 'Booster' then
+            local key_override = nil
+            for card_id, g_card in pairs(G.P_CENTER_POOLS.Booster) do
+                local loc_args = {}
+                local loc_nodes = {}
+                local name = booster.ability.name
+                if g_card.key ~= booster.config.center_key then goto continue end
+                if g_card.mod then
+                    local res = g_card:loc_vars(nil,booster) or {}
+                    name = g_card.loc_txt.name
+                    loc_args = res.vars
+                    key_override = g_card.key
+                else
+                    name = booster.ability.name
+                    local key = "" .. string.sub(booster.config.center_key,1,#booster.config.center_key - 2) -- need to remove the booster's number from the key to use in localize
+                    key_override = key
+                    loc_args = {booster.config.center.config.choose,booster.config.center.config.extra}
+                end
+
+                localize{type = 'descriptions', key = key_override, set = "Other" or booster.ability.set, nodes = loc_nodes, vars = loc_args}
+
+                local description = "\n" .. name .. ": "
+                for _, line in ipairs(loc_nodes) do
+                    for _, word in ipairs(line) do
+                        if word.nodes ~= nil then
+                            if word.nodes[1].config.text ~= nil then
+                                description = description .. word.nodes[1].config.text
+                            elseif word.nodes[1].config.object ~= nil then
+                                description = description .. word.nodes[1].config.object.config.string[1]
+                            end
+                        else
+                            description = description .. word.config.text
+                        end
+                        description = description .. " "
+                    end
+                end
+
+                if add_cost then description = add_card_buy_cost(description,booster) end
+                booster_desc = description
+            ::continue::
+            end
+        end
+		shop_boosters[#shop_boosters+1] = booster_desc
+    end
+    return shop_boosters
+end
+
+function GetRunText:get_voucher_details(voucher_table,add_cost)
+    add_cost = add_cost or false
+    local vouchers = {}
+
+	for pos, voucher in ipairs(voucher_table) do
+		local voucher_desc = ""
+
+        if voucher.ability.set == 'Voucher' then
+            local key_override = nil
+            for card_id, g_card in pairs(G.P_CENTER_POOLS.Voucher) do
+                local loc_lookup = Voucher_Loc[g_card.key]
+                local loc_args = {}
+                local loc_nodes = {}
+                local name = voucher.ability.name
+                if g_card.key ~= voucher.config.center_key then goto continue end
+                if type(loc_lookup) == "table" then
+                    for _, v in ipairs(loc_lookup) do
+                        table.insert(loc_args,g_card.config[v])
+                    end
+                elseif type(loc_lookup) == "function" then
+                    loc_args = loc_lookup(g_card)
+                else
+                    sendErrorMessage("Could not find localize for card" .. g_card.key)
+                end
+
+                localize{type = 'descriptions', key = g_card.key, set = g_card.set, nodes = loc_nodes, vars = loc_args}
+
+                local description = "\n" .. name .. ": "
+                for _, line in ipairs(loc_nodes) do
+                    for _, word in ipairs(line) do
+                        if word.nodes ~= nil then
+                            if word.nodes[1].config.text ~= nil then
+                                description = description .. word.nodes[1].config.text
+                            elseif word.nodes[1].config.object ~= nil then
+                                description = description .. word.nodes[1].config.object.config.string[1]
+                            end
+                        else
+                            description = description .. word.config.text
+                        end
+                        description = description .. " "
+                    end
+                end
+
+                if add_cost then description = add_card_buy_cost(description,voucher) end
+                voucher_desc = description
+            ::continue::
+            end
+        end
+		vouchers[#vouchers+1] = voucher_desc
+    end
+    return vouchers
+end
+
+function GetRunText:get_shop_text(card_table,add_cost)
+    add_cost = add_cost or false
+    local card = card_table[1]
+
+    if card.ability.set == "Booster" then
+        return GetRunText:get_booster_details(card_table,add_cost)
+    elseif card.ability.set == "Voucher" then
+        return GetRunText:get_voucher_details(card_table,add_cost)
+    elseif card.ability.set == "Joker" then
+        return GetRunText:get_joker_details(card_table,add_cost)
+    end
+end
+
+function GetRunText:get_consumeables_text(cards,add_cost)
+    add_cost = add_cost or false
     local cards_details = {}
 
     for index, card in ipairs(cards) do
-        local details
         if card.ability.set == "Planet" then
-            cards_details[#cards_details+1] = GetRunText:get_celestial_details({card})[1]
+            cards_details[#cards_details+1] = GetRunText:get_celestial_details({card},add_cost)[1]
         elseif card.ability.set == "Tarot" then
-            cards_details[#cards_details+1] = GetRunText:get_tarot_details({card})[1]
+            cards_details[#cards_details+1] = GetRunText:get_tarot_details({card},add_cost)[1]
         elseif card.ability.set == "Spectral" then
-            cards_details[#cards_details+1] = GetRunText:get_spectral_details({card})[1]
+            cards_details[#cards_details+1] = GetRunText:get_spectral_details({card},add_cost)[1]
+        elseif card.ability.set == "Joker" then
+            cards_details[#cards_details+1] = GetRunText:get_joker_details({card},add_cost)[1]
         end
     end
 

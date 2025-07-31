@@ -20,7 +20,7 @@ function PlayBlind:_get_description()
 end
 
 function PlayBlind:_get_schema()
-    return nil
+    return JsonUtils.wrap_schema({},false)
 end
 
 function PlayBlind:_validate_action()

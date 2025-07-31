@@ -278,7 +278,6 @@ function PlayingRun:hook_reroll_shop()
     local reroll_shop = G.FUNCS.reroll_shop
     function G.FUNCS.reroll_shop(e)
         reroll_shop(e)
-        -- TODO: send context here
         PlayingRun:register_store_actions(2,PlayingRun)
     end
 end
@@ -292,17 +291,20 @@ function PlayingRun:register_store_actions(delay,hook)
             local window = ActionWindow:new()
 
             local actions = {ExitShop}
-
+            Context.send("You currently have $" .. G.GAME.dollars .. " to spend.")
             if G.GAME.dollars > G.GAME.current_round.reroll_cost or G.GAME.current_round.free_rerolls > 0 then
                 actions[#actions+1] = RerollShop
             end
             if #G.shop_jokers.cards > 0 then
+                Context.send("These are the cards in the shop right now: " .. table.table_to_string(GetRunText:get_consumeables_text(G.shop_jokers.cards,true)))
                 actions[#actions+1] = BuyShopCard
             end
             if #G.shop_booster.cards > 0 then
+                Context.send("These are the booster packs in the shop: " .. table.table_to_string(GetRunText:get_shop_text(G.shop_booster.cards,true)))
                 actions[#actions+1] = BuyShopBooster
             end
             if #G.shop_vouchers.cards > 0 then
+                Context.send("This is the voucher in the shop: " .. table.table_to_string(GetRunText:get_shop_text(G.shop_vouchers.cards,true)))
                 actions[#actions+1] = BuyShopVoucher
             end
 

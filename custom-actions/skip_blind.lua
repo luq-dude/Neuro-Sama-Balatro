@@ -2,7 +2,7 @@ local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
 local PlayBlind = ModCache.load("custom-actions/play_blind.lua")
 local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
-
+local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
 local SkipBlind = setmetatable({}, { __index = NeuroAction })
 SkipBlind.__index = SkipBlind
 
@@ -20,7 +20,7 @@ function SkipBlind:_get_description()
 end
 
 function SkipBlind:_get_schema()
-    return nil
+    return JsonUtils.wrap_schema({},false)
 end
 
 function SkipBlind:_validate_action()

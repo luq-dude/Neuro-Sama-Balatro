@@ -23,7 +23,7 @@ end
 
 function BuyVoucher:_get_schema()
 	local hand_length = RunHelper:get_hand_length(G.shop_vouchers.cards)
-    return nil
+    return JsonUtils.wrap_schema({},false)
 end
 
 function BuyVoucher:_validate_action(data, state)
