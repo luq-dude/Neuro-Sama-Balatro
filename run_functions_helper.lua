@@ -56,4 +56,12 @@ function RunHelper:register_actions(delay,actions,hook)
     }
     ))
 end
+
+function RunHelper:reorder_hand(new_indicies)
+    G.hand.cards = table.reorder_list(G.hand.cards, new_indicies)
+    G.hand:set_ranks()
+    G.hand:align_cards()
+    G.hand:hard_set_cards()
+end
+
 return RunHelper
