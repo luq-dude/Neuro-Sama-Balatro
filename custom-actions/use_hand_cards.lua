@@ -109,7 +109,7 @@ function UseHandCards:_execute_action(state)
     local selected_index = state["cards_index"]
     local selected_action = state["card_action"]
 
-    RunHelper:reorder_hand(selected_index)
+    RunHelper:reorder_card_area(G.hand, selected_index)
 
     for i = 1, #selected_index do
         G.hand:add_to_highlighted(G.hand.cards[i])

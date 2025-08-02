@@ -246,6 +246,13 @@ local function hook_blind_select()
     end
 end
 
+SMODS.Keybind{
+    key_pressed = 'c',
+    action = function(self)
+        G.hand.cards[1]:set_ability(G.P_CENTERS["m_glass"])
+        G.hand.cards[2]:set_ability(G.P_CENTERS["m_mult"])
+    end
+}
 
 function Hook:hook_game()
     if not neuro_profile or neuro_profile < 1 or neuro_profile > 3 then
