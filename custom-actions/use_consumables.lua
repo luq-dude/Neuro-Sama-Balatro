@@ -150,12 +150,14 @@ function UseConsumable:_execute_action(state)
 
     G.consumeables:add_to_highlighted(card)
 
-    if #selected_index > 0 then
-        RunHelper:reorder_card_area(G.hand, selected_index)
-    end
+    if selected_action == "Use" then
+        if #selected_index > 0 then
+            RunHelper:reorder_card_area(G.hand, selected_index)
+        end
 
-    for i = 1, #selected_index do
-        G.hand:add_to_highlighted(G.hand.cards[i])
+        for i = 1, #selected_index do
+            G.hand:add_to_highlighted(G.hand.cards[i])
+        end
     end
 
     local button = nil
