@@ -107,21 +107,47 @@ function UseHandCards:_execute_action(state)
 
     local highlighted_cards = {}
 
-    for _, index in ipairs(selected_index) do
-        local card_id = hand[index]
-        G.hand:add_to_highlighted(hand[index])
-        highlighted_cards[card_id] = (highlighted_cards[card_id] or 0) + 1
+    for table_index, index in ipairs(selected_index) do
+        highlighted_cards[#highlighted_cards+1] = hand[index]
     end
 
-    self.hook.HookRan = false
-	if selected_action == "Play" then
-		G.FUNCS.play_cards_from_highlighted()
-    elseif selected_action == "Discard" then
-		G.FUNCS.discard_cards_from_highlighted()
+    for index, card in ipairs(highlighted_cards) do
+        card.states.drag.is = true
+
+        card.T.x = G.hand.cards[index].T.x - 0.5
+
+        G.E_MANAGER:add_event(Event({
+            trigger = "after",
+            delay = 0.4 * G.SPEEDFACTOR,
+            blocking = false,
+            func = function ()
+                card.states.drag.is = false
+                return true
+            end
+        }))
     end
+
+    G.E_MANAGER:add_event(Event({
+            trigger = "after",
+            delay = 3 * G.SPEEDFACTOR,
+            blocking = false,
+            func = function ()
+                for table_index, index in ipairs(selected_index) do
+                    local card = hand[table_index]
+                    G.hand:add_to_highlighted(hand[table_index])
+                end
+
+                self.hook.HookRan = false
+                if selected_action == "Play" then
+                    G.FUNCS.play_cards_from_highlighted()
+                elseif selected_action == "Discard" then
+                    G.FUNCS.discard_cards_from_highlighted()
+                end
+                return true
+            end
+            }))
 
 	return true
 end
-
 
 return UseHandCards

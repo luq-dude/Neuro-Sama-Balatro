@@ -143,17 +143,39 @@ function UseConsumable:_execute_action(state)
 			local button = nil
             for _, children in ipairs(use_button_child.children) do -- one of the children is the use button the other is sell
                 if selected_action == "Use" then
-                    if children.children[1].children[1].config.button == "use_card" then
-                        for _, index in ipairs(selected_index) do
-                            G.hand:add_to_highlighted(hand[index])
+                    if children.children[1].children[1].config.button == "use_card" or children.children[1].children[1].config.button == nil then -- or is needed if the cards need to be selected before the button will be able to be clicked
+                        local highlighted_cards = {}
+                        for _, value in ipairs(selected_index) do
+                            highlighted_cards[#highlighted_cards+1] = G.hand.cards[value]
                         end
 
-                        button = children.children[1].children[1]
-                        break
-                    elseif children.children[1].children[1].config.button == nil then -- this is for if the cards need to be selected before the button will be able to be clicked
-                        for _, index in ipairs(selected_index) do
-                            G.hand:add_to_highlighted(hand[index])
+                        for index, highlight_card in ipairs(highlighted_cards) do
+                            highlight_card.states.drag.is = true
+
+                            highlight_card.T.x = G.hand.cards[index].T.x - 0.5
+
+                            G.E_MANAGER:add_event(Event({
+                                trigger = "after",
+                                delay = 0.25 * G.SPEEDFACTOR,
+                                blocking = false,
+                                func = function ()
+                                    highlight_card.states.drag.is = false
+                                    return true
+                                end
+                            }))
                         end
+
+                        G.E_MANAGER:add_event(Event({
+                                trigger = "after",
+                                delay = 0.4 * G.SPEEDFACTOR,
+                                blocking = false,
+                                func = function ()
+                                    for index, _ in ipairs(selected_index) do
+                                        G.hand:add_to_highlighted(hand[index])
+                                    end
+                                    return true
+                                end
+                            }))
 
                         button = children.children[1].children[1]
                         break
@@ -172,9 +194,11 @@ function UseConsumable:_execute_action(state)
 				self.hook.HookRan = false
 				return true
 			end
+            local delay = 0.25
+            if #selected_index > 0 then delay = #selected_index + 0.5 end -- chuck an extra 0.5 on there for fun
             G.E_MANAGER:add_event(Event({
             trigger = "after",
-            delay = 0.25 * G.SPEEDFACTOR, -- else tarot's that need a card to be selected wont work. The delay does not need to be this high but lower can look a bit jank
+            delay = delay * G.SPEEDFACTOR, -- else tarot's that need a card to be selected wont work. The delay does not need to be this high but lower can look a bit jank
             blocking = false,
             func = function()
                 button:click()
@@ -183,11 +207,14 @@ function UseConsumable:_execute_action(state)
 		end
 	end
 
+    local delay = 1
+    if #selected_action > 1 then delay = #selected_action + 2 end
     G.E_MANAGER:add_event(Event({
         trigger = "after",
-        delay = 1 * G.SPEEDFACTOR,
+        delay = delay * G.SPEEDFACTOR,
         blocking = false,
         func = function()
+            G.FUNCS.sort_hand_value({}) -- too lazy to set the position of cards back myself so we do this
             local window = ActionWindow:new()
             for index, action in ipairs(self.actions) do
                 window:add_action(action:new(window, {self.hook}))

@@ -51,3 +51,12 @@ function table.reverse(tbl)
     end
     return tbl
 end
+
+function table.index_of(tbl,val)
+    for index, value in ipairs(tbl) do
+        if value == val then
+            return index
+        end
+    end
+    return nil
+end

@@ -116,7 +116,7 @@ function JokerInteraction:_execute_action(state)
         end
         G.E_MANAGER:add_event(Event({
             trigger = "after",
-            delay = 2,
+            delay = 0.5 * G.SPEEDFACTOR,
             blocking = false,
             func = function ()
                 G.jokers.cards[selected_hand_index[2]].states.drag.is = false
