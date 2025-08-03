@@ -123,7 +123,7 @@ function PickHandPackCards:_execute_action(state)
     G.pack_cards:add_to_highlighted(consumable)
 
     -- only select cards in hand if they are required
-    if consumable.config.center.config.highlighted_limit ~= nil then
+    if consumable.config.center.config.max_highlighted ~= nil then
         if #selected_index > 0 then
             RunHelper:reorder_card_area(G.hand, selected_index)
         end
