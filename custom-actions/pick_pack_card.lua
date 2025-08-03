@@ -2,14 +2,12 @@ local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
 
 local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
-local GetRunText = ModCache.load("get_run_text.lua")
-local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
 local RunHelper = ModCache.load("run_functions_helper.lua")
 
-local NeuroActionHandler = ModCache.load("game-sdk/actions/neuro_action_handler.lua")
 local SkipPack = ModCache.load("custom-actions/skip_pack.lua")
 
 local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
+local RunContext = ModCache.load("run_context.lua")
 
 local PickCards = setmetatable({}, { __index = NeuroAction })
 PickCards.__index = PickCards
@@ -25,6 +23,7 @@ local function pick_pack_card(delay,hook)
             local window = ActionWindow:new()
             window:add_action(PickCards:new(window, {hook}))
             window:register()
+            RunContext:no_hand_booster()
             return true
         end
     }
@@ -51,49 +50,7 @@ function PickCards:_get_description()
     return description
 end
 
-local function get_card_context()
-    if G.pack_cards == nil or G.pack_cards.cards == nil or G.pack_cards.cards == {} then return end
-    if SMODS.OPENED_BOOSTER.config.center.kind == "Buffoon" or G.pack_cards.cards[1].ability.set == "Joker" then
-            local hand = table.table_to_string(GetRunText:get_joker_details(G.pack_cards.cards))
-
-            Context.send(string.format("This is the hand of cards that are in this pack: " ..
-            hand .. "\n" ..
-            "These cards will give passive bonuses after each hand played, these range from increasing the chips" ..
-            " increasing the mult of a hand or giving money or consumables after certain actions."))
-
-    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Celestial" or G.pack_cards.cards[1].ability.set == "Celestial" then
-        local hand = table.table_to_string(GetRunText:get_celestial_details(G.pack_cards.cards))
-
-        Context.send(string.format("This is the hand of cards that are in this pack: " ..
-        hand .. "\n" ..
-        "These cards will level up a poker hand and improve the scoring that you will receive for playing them."))
-    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Standard" or G.pack_cards.cards[1].ability.set == "Base" then
-        local hand, enhancements, editions, seals = table.table_to_string(GetRunText:get_card_modifiers(G.pack_cards.cards)),GetRunText:get_current_hand_modifiers(G.pack_cards.cards)
-
-        Context.send(string.format("This is the hand of cards that are in this pack: " ..
-        hand .. "\n" ..
-        "These are the card modifiers that are on the cards right now," ..
-        " there can only be one edition,enhancement and seal on each card: \n" ..
-        enhancements .. "\n" ..
-        editions .. "\n" ..
-        seals),true)
-    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Spectral" or G.pack_cards.cards[1].ability.set == "Spectral" then
-        sendDebugMessage("Spectral should not be called from pick_pack_card")
-        return
-    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Arcana" or G.pack_cards.cards[1].ability.set == "Tarot" then
-        sendDebugMessage("Arcana should not be called from pick_pack_card")
-        return
-    else -- modded packs that dont contain contain a default set or if there is something I forgot
-        sendDebugMessage("card table: " .. tprint(G.pack_cards.cards,1,2))
-        local hand = table.table_to_string(GetRunText:get_hand_names(G.pack_cards.cards))
-
-        Context.send(string.format("This is the hand of cards that are in this pack: " ..
-        hand))
-    end
-end
-
 function PickCards:_get_schema()
-    get_card_context()
     local hand_length = RunHelper:get_hand_length(G.pack_cards.cards)
 
     return JsonUtils.wrap_schema({

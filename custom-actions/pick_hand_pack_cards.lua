@@ -1,16 +1,14 @@
-local GameHooks = ModCache.load("game-sdk/game_hooks.lua")
 local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
 
 local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
-local GetRunText = ModCache.load("get_run_text.lua")
-local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
 local RunHelper = ModCache.load("run_functions_helper.lua")
 
 local NeuroActionHandler = ModCache.load("game-sdk/actions/neuro_action_handler.lua")
 local SkipPack = ModCache.load("custom-actions/skip_pack.lua")
 
 local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
+local RunContext = ModCache.load("run_context.lua")
 
 local PickHandPackCards = setmetatable({}, { __index = NeuroAction })
 PickHandPackCards.__index = PickHandPackCards
@@ -27,6 +25,7 @@ local function pick_hand_pack_card(delay, hook)
             local window = ActionWindow:new()
             window:add_action(PickHandPackCards:new(window, { hook }))
             window:register()
+            RunContext:hand_pack_booster()
             return true
         end
     }
@@ -55,35 +54,7 @@ function PickHandPackCards:_get_description()
     return description
 end
 
-local function get_pack_context()
-    if #G.hand.cards > 0 then
-        local hand, enhancements, editions, seals = table.table_to_string(GetRunText:get_card_modifiers(G.hand.cards)),
-            GetRunText:get_current_hand_modifiers(G.hand.cards)
-
-        Context.send(string.format(
-            "These are the playing cards in your hand \n" .. hand .. "\n" ..
-            "These are the card modifiers that are on the cards right now," ..
-            " there can only be one edition,enhancement and seal on each card: \n" ..
-            enhancements .. "\n" ..
-            editions .. "\n" ..
-            seals), true)
-    end
-
-    if G.pack_cards == nil or G.pack_cards.cards == nil or G.pack_cards.cards == {} then return end
-    if SMODS.OPENED_BOOSTER.config.center.kind == "Spectral" then
-        local pack_hand = table.table_to_string(GetRunText:get_spectral_details(G.pack_cards.cards))
-        Context.send(string.format("This is the hand of cards that are in this pack: " .. pack_hand))
-    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Arcana" then
-        local pack_hand = table.table_to_string(GetRunText:get_tarot_details(G.pack_cards.cards))
-        Context.send(string.format("This is the hand of cards that are in this pack: " .. pack_hand))
-    else -- modded packs that dont contain contain a default set or if there is something I forgot
-        local pack_hand = table.table_to_string(GetRunText:get_hand_details(G.pack_cards.cards))
-        Context.send(string.format("This is the hand of cards that are in this pack: " .. pack_hand))
-    end
-end
-
 function PickHandPackCards:_get_schema()
-    get_pack_context()
     local hand_length = RunHelper:get_hand_length(G.hand.cards)
     local pack_hand_length = RunHelper:get_hand_length(G.pack_cards.cards)
 
