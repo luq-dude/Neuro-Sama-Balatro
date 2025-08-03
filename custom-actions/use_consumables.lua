@@ -29,18 +29,20 @@ end
 function UseConsumable:_get_description()
     local cards = {}
     for index, value in ipairs(G.consumeables.cards) do
-        table.insert(cards,"\n" .. tostring(index) .. ": " .. value.config.center.name .. " sell value: " .. value.sell_cost)
+        table.insert(cards,
+            "\n" .. tostring(index) .. ": " .. value.config.center.name .. " sell value: " .. value.sell_cost)
     end
 
-    local description = string.format("Use a consumable in your consumable hand. This can either be planet, spectral or tarot cards," ..
-    " Each type will affect the game in it's own unique way" ..
-    table.concat(cards,"",1,#cards))
+    local description = string.format(
+        "Use a consumable in your consumable hand. This can either be planet, spectral or tarot cards," ..
+        " Each type will affect the game in it's own unique way" ..
+        table.concat(cards, "", 1, #cards))
 
     return description
 end
 
 local function get_card_actions()
-	return {"Use","Sell"}
+    return { "Use", "Sell" }
 end
 
 function UseConsumable:_get_schema()
@@ -48,18 +50,18 @@ function UseConsumable:_get_schema()
     local pack_hand_length = RunHelper:get_hand_length(G.consumeables.cards)
 
     local schema = {
-		card_action = {
-			enum = get_card_actions()
-		},
-		consumable_index = {
-			enum = pack_hand_length
-		}
-	}
+        card_action = {
+            enum = get_card_actions()
+        },
+        consumable_index = {
+            enum = pack_hand_length
+        }
+    }
 
-    if #hand_length ~= 0 then -- else will not work in shops
+    if #hand_length ~= 0 then     -- else will not work in shops
         schema["cards_index"] = { -- when adding context messages, make sure neuro knows to send an empty array if she wants to highlight no cards
             type = "array",
-            items ={
+            items = {
                 type = "integer",
                 enum = hand_length
             }
@@ -69,8 +71,8 @@ function UseConsumable:_get_schema()
 end
 
 function UseConsumable:_validate_action(data, state)
-	local selected_action = data:get_string("card_action")
-	local selected_consumable = data._data["consumable_index"]
+    local selected_action = data:get_string("card_action")
+    local selected_consumable = data._data["consumable_index"]
     local selected_hand_index = data:get_object("cards_index")
     selected_hand_index = selected_hand_index._data
 
@@ -83,13 +85,13 @@ function UseConsumable:_validate_action(data, state)
 
     local card_config = G.consumeables.cards[tonumber(selected_consumable)].config.center.config
 
-	if not selected_consumable then
-		return ExecutionResult.failure("issue with selected_consumable")
-	end
+    if not selected_consumable then
+        return ExecutionResult.failure("issue with selected_consumable")
+    end
 
-	if not selected_action then
-		return ExecutionResult.failure("issue with selected_consumable")
-	end
+    if not selected_action then
+        return ExecutionResult.failure("issue with selected_consumable")
+    end
 
     local option = get_card_actions()
     if not table.any(option, function(options)
@@ -110,104 +112,107 @@ function UseConsumable:_validate_action(data, state)
     end
 
     if G.STATE == G.STATES.SHOP and card_config.max_highlighted ~= nil then
-        return ExecutionResult.failure("You cannot use this card in the shop as selecting cards is needed for it to work.")
+        return ExecutionResult.failure(
+            "You cannot use this card in the shop as selecting cards is needed for it to work.")
     end
 
-    if #selected_hand_index > G.hand.config.highlighted_limit then return ExecutionResult.failure("You can only highlight a max of " .. G.hand.config.highlighted_limit .. "card per action.") end
+    if #selected_hand_index > G.hand.config.highlighted_limit then
+        return ExecutionResult.failure(
+            "You can only highlight a max of " .. G.hand.config.highlighted_limit .. "card per action.")
+    end
 
-    if #selected_hand_index > 0 and card_config.max_highlighted == nil then return ExecutionResult.failure("The card you selected does not require cards to be highlighted") end
+    if #selected_hand_index > 0 and card_config.max_highlighted == nil then
+        return ExecutionResult.failure(
+            "The card you selected does not require cards to be highlighted")
+    end
 
     if card_config.max_highlighted ~= nil then
-        if #selected_hand_index ~= card_config.max_highlighted and selected_action == "Use" then return ExecutionResult.failure("You have either selected too many cards or to little from your hand comparative to how many the tarot needs.") end
+        if #selected_hand_index ~= card_config.max_highlighted and selected_action == "Use" then
+            return ExecutionResult
+                .failure(
+                    "You have either selected too many cards or to little from your hand comparative to how many the tarot needs.")
+        end
     end
 
-	state["card_action"] = selected_action
-	state["consumable_index"] = selected_consumable
+    state["card_action"] = selected_action
+    state["consumable_index"] = selected_consumable
     state["cards_index"] = selected_hand_index
-	return ExecutionResult.success()
+    return ExecutionResult.success()
 end
 
 function UseConsumable:_execute_action(state)
     local selected_index = state["cards_index"]
-	local selected_consumable = state["consumable_index"]
-	local selected_action = state["card_action"]
+    local selected_consumable = state["consumable_index"]
+    local selected_action = state["card_action"]
 
-    local hand = G.hand.cards
-	local consumable_hand = G.consumeables.cards
+    local consumable_hand = G.consumeables.cards
+    local card = consumable_hand[selected_consumable]
 
-	for pos, card in ipairs(consumable_hand) do
-		sendDebugMessage("for pos: " .. pos .. "  selected_consumable: " .. selected_consumable)
-		if pos == selected_consumable then
-			G.consumeables:add_to_highlighted(card)
-			local use_button_child = card.children.use_button.UIRoot.children[1]
-			local button = nil
-            for _, children in ipairs(use_button_child.children) do -- one of the children is the use button the other is sell
-                if selected_action == "Use" then
-                    if children.children[1].children[1].config.button == "use_card" then
-                        for _, index in ipairs(selected_index) do
-                            G.hand:add_to_highlighted(hand[index])
-                        end
+    G.consumeables:add_to_highlighted(card)
 
-                        button = children.children[1].children[1]
-                        break
-                    elseif children.children[1].children[1].config.button == nil then -- this is for if the cards need to be selected before the button will be able to be clicked
-                        for _, index in ipairs(selected_index) do
-                            G.hand:add_to_highlighted(hand[index])
-                        end
+    if selected_action == "Use" then
+        if #selected_index > 0 then
+            RunHelper:reorder_card_area(G.hand, selected_index)
+        end
 
-                        button = children.children[1].children[1]
-                        break
-                    else
-                    end
-                elseif selected_action == "Sell" then
-                    if children.children[1].children[1].config.button == "sell_card" then
-                        button = children.children[1].children[1]
-                        break
-                    else
-                    end
-                end
-            end
-			if button == nil then
-				sendErrorMessage("None of the cards have a valid use button: ")
-				self.hook.HookRan = false
-				return true
-			end
-            G.E_MANAGER:add_event(Event({
-            trigger = "after",
-            delay = 0.25 * G.SPEEDFACTOR, -- else tarot's that need a card to be selected wont work. The delay does not need to be this high but lower can look a bit jank
-            blocking = false,
-            func = function()
-                button:click()
-                return true
-            end}))
-		end
-	end
+        for i = 1, #selected_index do
+            G.hand:add_to_highlighted(G.hand.cards[i])
+        end
+    end
+
+    local button = nil
+    for _, children in ipairs(card.children.use_button.UIRoot.children[1].children) do
+        local button_label = children.children[1].children[1].config.button
+        if (selected_action == "Sell" and button_label == "sell_card")
+            or (selected_action == "Use" and (button_label == "use_card" or button_label == nil)) then
+            button = children.children[1].children[1]
+            break
+        end
+    end
+
+    if button == nil then
+        sendErrorMessage("Can't find the sell or use button")
+        self.hook.HookRan = false
+        return true
+    end
+
+    G.E_MANAGER:add_event(Event({
+        trigger = "after",
+        delay = 0.25 * G.SPEEDFACTOR, -- else tarot's that need a card to be selected wont work. The delay does not need to be this high but lower can look a bit jank
+        blocking = false,
+        func = function()
+            button:click()
+            return true
+        end
+    }))
 
     G.E_MANAGER:add_event(Event({
         trigger = "after",
         delay = 1 * G.SPEEDFACTOR,
         blocking = false,
         func = function()
+            G.FUNCS.sort_hand_value({})
             local window = ActionWindow:new()
-            for index, action in ipairs(self.actions) do
-                window:add_action(action:new(window, {self.hook}))
+            for _, action in ipairs(self.actions) do
+                window:add_action(action:new(window, { self.hook }))
                 if action == UseHandCards or action == PickHandPackCards then
                     self.hook:get_cards_context(G.hand.cards)
                 end
             end
 
             if #G.jokers.cards > 0 then
-                window:add_action(self.joker:new(window, {self.hook,self.actions,UseConsumable}))
+                window:add_action(self.joker:new(window, { self.hook, self.actions, UseConsumable }))
             end
 
             if #G.consumeables.cards > 0 then
-                window:add_action(UseConsumable:new(window, {self.hook,self.actions,self.joker}))
+                window:add_action(UseConsumable:new(window, { self.hook, self.actions, self.joker }))
             end
             window:register()
             return true
-        end}))
-	return true
-end
+        end
+    }))
 
+    return true
+end
 
 return UseConsumable

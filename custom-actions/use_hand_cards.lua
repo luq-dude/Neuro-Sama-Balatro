@@ -20,27 +20,28 @@ function UseHandCards:_get_name()
 end
 
 function UseHandCards:_get_description()
-    local description = string.format("Either play or discard a maximum of ".. G.hand.config.highlighted_limit .. " cards with your current hand." ..
-    "The cards will be ordered by the position they are located in your hand from left to right." ..
-    "When defining the card's index the first card will be 1, you should send these in the same order as you send the cards")
+    local description = string.format("Either play or discard a maximum of " ..
+        G.hand.config.highlighted_limit .. " cards with your current hand." ..
+        "The cards will be ordered by the position they are located in your hand from left to right." ..
+        "When defining the card's index the first card will be 1, you should send these in the same order as you send the cards")
 
     return description
 end
 
 local function card_action_options()
-	return {"Play","Discard"}
+    return { "Play", "Discard" }
 end
 
 function UseHandCards:_get_schema()
     local hand_length = RunHelper:get_hand_length(G.hand.cards)
 
     return JsonUtils.wrap_schema({
-		card_action = {
-			enum = card_action_options()
-		},
+        card_action = {
+            enum = card_action_options()
+        },
         cards_index = {
             type = "array",
-            items ={
+            items = {
                 type = "integer",
                 enum = hand_length
             }
@@ -49,14 +50,14 @@ function UseHandCards:_get_schema()
 end
 
 function UseHandCards:_validate_action(data, state)
-	local selected_action = data:get_string("card_action")
+    local selected_action = data:get_string("card_action")
     local selected_index = data:get_object("cards_index")
     selected_index = selected_index._data
 
-	if not selected_index then
-		sendDebugMessage("issue in not: " .. tprint(selected_action,1,2))
-		return ExecutionResult.failure(SDK_Strings.action_failed_missing_required_parameter("card_action"))
-	end
+    if not selected_index then
+        sendDebugMessage("issue in not: " .. tprint(selected_action, 1, 2))
+        return ExecutionResult.failure(SDK_Strings.action_failed_missing_required_parameter("card_action"))
+    end
 
     local option = card_action_options()
     if not table.any(option, function(options)
@@ -82,46 +83,45 @@ function UseHandCards:_validate_action(data, state)
 
     if #selected_index == 0 then return ExecutionResult.failure("At least one card must be selected.") end
 
-    if #selected_index > G.hand.config.highlighted_limit then return ExecutionResult.failure("Cannot play more than " .. G.hand.config.highlighted_limit .. " cards.") end
+    if #selected_index > G.hand.config.highlighted_limit then
+        return ExecutionResult.failure("Cannot play more than " ..
+            G.hand.config.highlighted_limit .. " cards.")
+    end
 
-    if G.GAME.current_round.discards_left <= 0 and selected_action == "Discard" then return ExecutionResult.failure("You have no discards left.") end
+    if G.GAME.current_round.discards_left <= 0 and selected_action == "Discard" then
+        return ExecutionResult.failure(
+            "You have no discards left.")
+    end
 
     state["card_action"] = selected_action
     state["cards_index"] = selected_index
     local cards = {}
     for index, value in ipairs(selected_index) do
-        table.insert(cards,"\n" .. G.hand.cards[value].base.name)
+        table.insert(cards, "\n" .. G.hand.cards[value].base.name)
     end
     if selected_action == "Discard" then
-        return ExecutionResult.success("You have discarded: " .. table.concat(cards," ",1,#cards))
+        return ExecutionResult.success("You have discarded: " .. table.concat(cards, " ", 1, #cards))
     end
-    return ExecutionResult.success("You have played: " .. table.concat(cards," ",1,#cards))
+    return ExecutionResult.success("You have played: " .. table.concat(cards, " ", 1, #cards))
 end
 
 function UseHandCards:_execute_action(state)
     local selected_index = state["cards_index"]
-	local selected_action = state["card_action"]
+    local selected_action = state["card_action"]
 
-    local hand = G.hand.cards
-    local selected_amount = RunHelper:increment_card_table(selected_index)
+    RunHelper:reorder_card_area(G.hand, selected_index)
 
-    local highlighted_cards = {}
-
-    for _, index in ipairs(selected_index) do
-        local card_id = hand[index]
-        G.hand:add_to_highlighted(hand[index])
-        highlighted_cards[card_id] = (highlighted_cards[card_id] or 0) + 1
+    for i = 1, #selected_index do
+        G.hand:add_to_highlighted(G.hand.cards[i])
     end
 
     self.hook.HookRan = false
-	if selected_action == "Play" then
-		G.FUNCS.play_cards_from_highlighted()
+    if selected_action == "Play" then
+        G.FUNCS.play_cards_from_highlighted()
     elseif selected_action == "Discard" then
-		G.FUNCS.discard_cards_from_highlighted()
+        G.FUNCS.discard_cards_from_highlighted()
     end
-
-	return true
+    return true
 end
-
 
 return UseHandCards

@@ -17,6 +17,7 @@ local BuyShopBooster = ModCache.load("custom-actions/shop-actions/buy_shop_boost
 local BuyShopVoucher = ModCache.load("custom-actions/shop-actions/buy_shop_voucher.lua")
 
 local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
+local RunContext = ModCache.load("run_context.lua")
 
 local PlayingRun = {}
 
@@ -31,7 +32,7 @@ function PlayingRun:get_cards_context(card_table)
     editions .. "\n" ..
     seals),true)
 
-    Context.send("These are the current cards in your hand and their modifiers: \n" .. table.table_to_string(GetRunText:get_card_modifiers(card_table)))
+    Context.send("These are the current cards in your hand, their modifiers and if they are debuffed: " .. table.table_to_string(GetRunText:get_card_modifiers(card_table,G.GAME.blind.boss)))
 end
 
 local function extra_card_action_check(window,actions)
@@ -73,6 +74,7 @@ local function pick_pack_card(delay)
             window:add_action(SkipPack:new(window, {PlayingRun}))
             extra_card_action_check(window,{PickCard,SkipPack})
             window:register()
+            RunContext:no_hand_booster()
             return true
         end
     }
@@ -91,6 +93,7 @@ local function pick_hand_pack_card(delay)
             window:add_action(SkipPack:new(window, {PlayingRun}))
             extra_card_action_check(window,{PickPackCard,SkipPack})
             window:register()
+            RunContext:hand_pack_booster()
             return true
         end
     }
@@ -151,7 +154,6 @@ function PlayingRun:hook_draw_card()
                             pick_hand_pack_card(5)
                             return true
                         else
-                            sendDebugMessage("running pick_pakc")
                             pick_pack_card(5)
                             return true
                         end

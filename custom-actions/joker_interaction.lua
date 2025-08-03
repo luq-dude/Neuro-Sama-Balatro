@@ -27,9 +27,10 @@ function JokerInteraction:_get_description()
         table.insert(cards,"\n" .. tostring(index) .. ": " .. value.config.center.name .. " sell value: " .. value.sell_cost) -- could also use sell_cost_label
     end
 
-    local description = "This allows you to either move your jokers in a different order," ..
-    " or to sell your jokers. You can only move two jokers at a time, however you can sell a variable amount of jokers from either 1 or your whole hand." ..
-    "These are the jokers in your hand: " ..
+    local description = "This allows you to either re-order your jokers, or sell any number of them. " ..
+    "When re-ordering, specify where you want each joker to be based off their index. " ..
+    "So [3,1,2] means put joker 3 first, joker 1 second, then joker 2 third. " ..
+    "Any jokers not specified will just be put at the end. These are the jokers in your hand: " ..
     table.concat(cards,"",1,#cards)
 
     return description
@@ -80,22 +81,8 @@ function JokerInteraction:_validate_action(data, state)
     end
 
     if #selected_hand_index == 0 then return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("selected_hand_index")) end
-
-    if selected_action == "Move" then
-        if #selected_hand_index < 2 then return ExecutionResult.failure("You have not selected enough cards to move, you should only select two cards.") end
-
-        if #selected_hand_index > 2 then return ExecutionResult.failure("You have selected more cards from your hand then you are allowed when you are moving cards.") end
-
-        if not G.jokers.cards[selected_hand_index[1]].states.drag.can then
-            return ExecutionResult.failure("You can not drag the card in the " .. selected_hand_index[1] .. " position.")
-        end
-
-        if not G.jokers.cards[selected_hand_index[2]].states.drag.can then
-            return ExecutionResult.failure("You can not drag the card in the " .. selected_hand_index[2] .. " position.")
-        end
-    else
-        if #selected_hand_index > #G.jokers.cards then return ExecutionResult.failure("You have selected more cards then are in your hand.") end
-    end
+    if #G.jokers.cards == 1 then return ExecutionResult.failure("You only have 1 joker.") end
+    if #selected_hand_index > #G.jokers.cards then return ExecutionResult.failure("You have selected more cards then are in your hand.") end
 
     state["cards_index"] = selected_hand_index
     state["card_action"] = selected_action
@@ -108,21 +95,7 @@ function JokerInteraction:_execute_action(state)
 
     local hand = G.jokers.cards
     if selected_action == "Move" then
-        G.jokers.cards[selected_hand_index[1]].states.drag.is = true
-        if selected_hand_index[1] > selected_hand_index[2] then-- The game interpolates between T and the shown position itself
-            G.jokers.cards[selected_hand_index[1]].T.x = hand[selected_hand_index[2]].T.x - 0.1
-        else
-            G.jokers.cards[selected_hand_index[1]].T.x = hand[selected_hand_index[2]].T.x + 0.1
-        end
-        G.E_MANAGER:add_event(Event({
-            trigger = "after",
-            delay = 2,
-            blocking = false,
-            func = function ()
-                G.jokers.cards[selected_hand_index[2]].states.drag.is = false
-                return true
-            end
-            }))
+        RunHelper:reorder_card_area(G.jokers, selected_hand_index)
     else
         G.jokers:add_to_highlighted(hand[selected_hand_index[1]])
         local use_button_child = hand[selected_hand_index[1]].children.use_button.UIRoot.children[1].children[1].children[1].children[1]

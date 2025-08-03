@@ -433,11 +433,12 @@ function GetRunText:get_consumeables_text(cards,add_cost)
 end
 
 -- playing card stuff
-function GetRunText:get_card_modifiers(card_hand)
+function GetRunText:get_card_modifiers(card_hand,add_debuff_state)
+    add_debuff_state = add_debuff_state or false
     local cards = {}
 
 	for pos, card in ipairs(card_hand) do
-		local card_desc = pos .. ": " .. card.base.name
+		local card_desc = "\n" .. "- " .. pos .. ": " .. card.base.name
 
         if card.edition then
             for _, v in ipairs(G.P_CENTER_POOLS.Edition) do
@@ -496,7 +497,11 @@ function GetRunText:get_card_modifiers(card_hand)
             end
         end
 
-        cards[#cards+1] = "- " .. card_desc .. "\n"
+        if add_debuff_state then
+            card_desc = card_desc .. ", Debuffed: " .. tostring(card.debuff) -- this is a boolean
+        end
+
+        cards[#cards+1] = card_desc
     end
 
 

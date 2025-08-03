@@ -56,4 +56,10 @@ function RunHelper:register_actions(delay,actions,hook)
     }
     ))
 end
+
+function RunHelper:reorder_card_area(card_area, new_indicies)
+    card_area.cards = table.reorder_list(card_area.cards, new_indicies)
+    card_area:align_cards()
+end
+
 return RunHelper
