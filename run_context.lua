@@ -72,4 +72,25 @@ function RunContext:hand_pack_booster()
     end
 end
 
+function RunContext:hand_type_information()
+    local context_hands = {}
+    for name, hand in pairs(G.GAME.hands) do
+        if hand.visible then
+            local description = name .. ": " .. "level: " .. tostring(hand.level) .. " chips: " .. tostring(hand.chips) .. " mult: " .. tostring(hand.mult) .. " description: "
+
+            local loc_nodes = G.localization.misc.poker_hand_descriptions[SMODS.PokerHand.obj_table[name].original_key]
+            local temp_desc = ""
+            for index, desc in ipairs(loc_nodes) do
+                if index <= #loc_nodes - 1 then
+                    desc = desc .. " "
+                end
+                temp_desc = temp_desc .. desc
+            end
+            description = description .. temp_desc
+            context_hands[#context_hands+1] = description
+        end
+    end
+    return context_hands
+end
+
 return RunContext
