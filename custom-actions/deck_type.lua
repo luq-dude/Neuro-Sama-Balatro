@@ -82,6 +82,10 @@ function DeckInfo:_execute_action(state)
 	table.sort(type_strings)
 	Context.send(context_string .. table.concat(type_strings,"\n"))
 
+	if G.STATE == G.STATES.SHOP then
+        self.hook:register_store_actions(0)
+        return
+    end
 	self.hook:play_card(0,false)
 end
 

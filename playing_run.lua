@@ -10,7 +10,7 @@ local PickPackCard = ModCache.load("custom-actions/pick_hand_pack_cards.lua")
 local GetRunText = ModCache.load("get_run_text.lua")
 local SkipPack = ModCache.load("custom-actions/skip_pack.lua")
 local DeckTypes = ModCache.load("custom-actions/deck_type.lua")
-local PlanetInfo = ModCache.load("custom-actions/get_planet_info.lua")
+local PokerHandInfo = ModCache.load("custom-actions/get_poker_hand_info.lua")
 
 local ExitShop = ModCache.load("custom-actions/shop-actions/exit_shop.lua")
 local RerollShop = ModCache.load("custom-actions/shop-actions/reroll_shop.lua")
@@ -57,8 +57,8 @@ function PlayingRun:play_card(delay,send_context)
             local window = ActionWindow:new()
             window:add_action(UseHandCards:new(window, {PlayingRun}))
             window:add_action(DeckTypes:new(window,{PlayingRun}))
-            window:add_action(PlanetInfo:new(window,{PlayingRun}))
-            extra_card_action_check(window,{UseHandCards,DeckTypes,PlanetInfo})
+            window:add_action(PokerHandInfo:new(window,{PlayingRun}))
+            extra_card_action_check(window,{UseHandCards,DeckTypes,PokerHandInfo})
 
             window:register()
             return true
@@ -313,6 +313,9 @@ function PlayingRun:register_store_actions(delay,hook)
                 Context.send("This is the voucher in the shop: " .. table.table_to_string(GetRunText:get_shop_text(G.shop_vouchers.cards,true)))
                 actions[#actions+1] = BuyShopVoucher
             end
+
+            actions[#actions+1] = DeckTypes
+            actions[#actions+1] = PokerHandInfo
 
             extra_card_action_check(window,actions)
 
