@@ -10,8 +10,6 @@ DeckInfo.__index = DeckInfo
 function DeckInfo:new(actionWindow, state)
     local obj = NeuroAction.new(self, actionWindow)
 	obj.hook = state[1]
-	obj.actions = state[2]
-	obj.extra = state[3]
     return obj
 end
 
@@ -84,7 +82,7 @@ function DeckInfo:_execute_action(state)
 	table.sort(type_strings)
 	Context.send(context_string .. table.concat(type_strings,"\n"))
 
-	RunHelper:register_actions_extra(0,self.hook,self.actions,self.extra)
+	self.hook:play_card(0,false)
 end
 
 return DeckInfo

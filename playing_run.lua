@@ -10,6 +10,7 @@ local PickPackCard = ModCache.load("custom-actions/pick_hand_pack_cards.lua")
 local GetRunText = ModCache.load("get_run_text.lua")
 local SkipPack = ModCache.load("custom-actions/skip_pack.lua")
 local DeckTypes = ModCache.load("custom-actions/deck_type.lua")
+local PlanetInfo = ModCache.load("custom-actions/get_planet_info.lua")
 
 local ExitShop = ModCache.load("custom-actions/shop-actions/exit_shop.lua")
 local RerollShop = ModCache.load("custom-actions/shop-actions/reroll_shop.lua")
@@ -46,7 +47,8 @@ local function extra_card_action_check(window,actions)
     end
 end
 
-local function play_card(delay)
+function PlayingRun:play_card(delay,send_context)
+    send_context = send_context or true
     G.E_MANAGER:add_event(Event({
         trigger = "after",
         delay = delay * G.SPEEDFACTOR,
@@ -54,11 +56,11 @@ local function play_card(delay)
         func = function()
             local window = ActionWindow:new()
             window:add_action(UseHandCards:new(window, {PlayingRun}))
-            window:add_action(DeckTypes:new(window,{PlayingRun,{UseHandCards,DeckTypes},{JokerInteraction,UseConsumable}}))
-            extra_card_action_check(window,{UseHandCards,DeckTypes})
+            window:add_action(DeckTypes:new(window,{PlayingRun}))
+            window:add_action(PlanetInfo:new(window,{PlayingRun}))
+            extra_card_action_check(window,{UseHandCards,DeckTypes,PlanetInfo})
 
             window:register()
-            PlayingRun:get_cards_context(G.hand.cards)
             return true
         end
     }
@@ -120,8 +122,6 @@ function PlayingRun:hook_new_round()
         else
             Context.send("You do not have any consumeables as of right now.")
         end
-
-        Context.send(table.concat(RunContext:hand_type_information(),"\n"))
     end
 end
 
@@ -142,7 +142,7 @@ function PlayingRun:hook_draw_card()
                     if G.STATE == G.STATES.SELECTING_HAND or G.STATE == G.STATES.DRAW_TO_HAND then
                         Context.send("You now have the option to select a hand, you have " .. tostring(G.GAME.current_round.hands_left) .. " hands left and " .. tostring(G.GAME.current_round.discards_left) .. " discards left")
                         Context.send("You have " .. tostring(#G.deck.cards) .. " cards remaining in your deck that have the ability to be drawn, out of the " .. tostring(G.deck.config.card_limit) .. " cards in it.")
-                        play_card(3)
+                        self:play_card(3)
                         return true
                     end
 
