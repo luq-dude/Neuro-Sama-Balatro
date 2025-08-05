@@ -40,23 +40,6 @@ function RunHelper:check_for_duplicates(table)
     return true
 end
 
-function RunHelper:register_actions(delay,actions,hook)
-    G.E_MANAGER:add_event(Event({
-        trigger = "after",
-        delay = delay,
-        blocking = false,
-        func = function()
-            local window = ActionWindow:new()
-            for _, value in ipairs(actions) do
-                window:add_action(value:new(window, {hook}))
-            end
-            window:register()
-            return true
-        end
-    }
-    ))
-end
-
 function RunHelper:reorder_card_area(card_area, new_indicies)
     card_area.cards = table.reorder_list(card_area.cards, new_indicies)
     card_area:align_cards()
