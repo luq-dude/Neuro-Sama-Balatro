@@ -118,6 +118,8 @@ function PlayingRun:hook_new_round()
         else
             Context.send("You do not have any consumeables as of right now.")
         end
+
+        Context.send(table.concat(RunContext:hand_type_information(),"\n"))
     end
 end
 
