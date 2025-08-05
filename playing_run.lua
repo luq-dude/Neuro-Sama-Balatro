@@ -61,6 +61,9 @@ function PlayingRun:play_card(delay,send_context)
             extra_card_action_check(window,{UseHandCards,DeckTypes,PokerHandInfo})
 
             window:register()
+            if send_context then
+                PlayingRun:get_cards_context(G.hand.cards)
+            end
             return true
         end
     }
