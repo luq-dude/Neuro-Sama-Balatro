@@ -148,6 +148,8 @@ function UseConsumable:_execute_action(state)
     local consumable_hand = G.consumeables.cards
     local card = consumable_hand[selected_consumable]
 
+    local start_state = G.STATE
+
     G.consumeables:add_to_highlighted(card)
 
     if selected_action == "Use" then
@@ -204,7 +206,7 @@ function UseConsumable:_execute_action(state)
             if #G.consumeables.cards > 0 then
                 window:add_action(UseConsumable:new(window, { self.hook, self.actions, self.joker }))
             end
-            local query,state = RunHelper:get_query_string()
+            local query,state = RunHelper:get_query_string(start_state)
             window:set_force(0.0, query, state, true)
             window:register()
             return true
