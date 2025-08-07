@@ -20,22 +20,11 @@ local BuyShopVoucher = ModCache.load("custom-actions/shop-actions/buy_shop_vouch
 
 local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
 local RunContext = ModCache.load("run_context.lua")
+local RunHelper = ModCache.load("run_functions_helper.lua")
 
 local PlayingRun = {}
 
 PlayingRun.HookRan = false
-
-function PlayingRun:get_cards_context(card_table)
-    local enhancements, editions, seals = GetRunText:get_current_hand_modifiers(card_table)
-
-    Context.send(string.format("These are what the card's modifiers do," ..
-    " there can only be one edition,enhancement and seal on each card: \n" ..
-    enhancements .. "\n" ..
-    editions .. "\n" ..
-    seals),true)
-
-    Context.send("These are the current cards in your hand, their modifiers and if they are debuffed: " .. table.table_to_string(GetRunText:get_card_modifiers(card_table,G.GAME.blind.boss)))
-end
 
 local function extra_card_action_check(window,actions)
     if #G.jokers.cards > 0 then
@@ -47,23 +36,20 @@ local function extra_card_action_check(window,actions)
     end
 end
 
-function PlayingRun:play_card(delay,send_context)
-    send_context = send_context or true
+function PlayingRun:play_card(delay)
     G.E_MANAGER:add_event(Event({
         trigger = "after",
         delay = delay * G.SPEEDFACTOR,
         blocking = false,
         func = function()
             local window = ActionWindow:new()
+            local query,state = RunHelper:get_query_string()
+            window:set_force(0.0, query, state, true)
             window:add_action(UseHandCards:new(window, {PlayingRun}))
             window:add_action(DeckTypes:new(window,{PlayingRun}))
             window:add_action(PokerHandInfo:new(window,{PlayingRun}))
             extra_card_action_check(window,{UseHandCards,DeckTypes,PokerHandInfo})
-
             window:register()
-            if send_context then
-                PlayingRun:get_cards_context(G.hand.cards)
-            end
             return true
         end
     }
@@ -77,11 +63,12 @@ local function pick_pack_card(delay)
         blocking = false,
         func = function()
             local window = ActionWindow:new()
+            local query,state = RunHelper:get_query_string()
+            window:set_force(0.0, query, state, true)
             window:add_action(PickCard:new(window, {PlayingRun}))
             window:add_action(SkipPack:new(window, {PlayingRun}))
             extra_card_action_check(window,{PickCard,SkipPack})
             window:register()
-            RunContext:no_hand_booster()
             return true
         end
     }
@@ -99,8 +86,9 @@ local function pick_hand_pack_card(delay)
             window:add_action(PickPackCard:new(window, {PlayingRun}))
             window:add_action(SkipPack:new(window, {PlayingRun}))
             extra_card_action_check(window,{PickPackCard,SkipPack})
+            local query,state = RunHelper:get_query_string()
+            window:set_force(0.0, query, state, true)
             window:register()
-            RunContext:hand_pack_booster()
             return true
         end
     }
@@ -115,15 +103,15 @@ function PlayingRun:hook_new_round()
         local consumeables = table.table_to_string(GetRunText:get_consumeables_text(G.consumeables.cards))
 
         if #jokers > 0 then
-            Context.send("These are the jokers in your hand and their abilites: " .. jokers)
+            Context.send("These are the jokers in your hand and their abilites: " .. jokers,true)
         else
-            Context.send("You do not have any jokers as of right now.")
+            Context.send("You do not have any jokers as of right now.",true)
         end
 
         if #consumeables > 0 then
-            Context.send("These are the consumeables in your hand and their abililties: " .. consumeables)
+            Context.send("These are the consumeables in your hand and their abililties: " .. consumeables,true)
         else
-            Context.send("You do not have any consumeables as of right now.")
+            Context.send("You do not have any consumeables as of right now.",true)
         end
     end
 end
@@ -263,7 +251,6 @@ function PlayingRun:hook_round_eval()
                 func = function()
                     G.FUNCS.cash_out({ config = {} })
                     self:register_store_actions(2)
-                    Context.send("You are now in the shop, you should buy whatever you think will help you in this run.")
                     return true
                 end
             }
@@ -298,23 +285,23 @@ function PlayingRun:register_store_actions(delay,hook)
         blocking = false,
         func = function()
             local window = ActionWindow:new()
+            local query,state = RunHelper:get_query_string()
 
             local actions = {ExitShop}
-            Context.send("You currently have $" .. G.GAME.dollars .. " to spend.")
             if G.GAME.dollars > G.GAME.current_round.reroll_cost or G.GAME.current_round.free_rerolls > 0 then
                 actions[#actions+1] = RerollShop
             end
             if #G.shop_jokers.cards > 0 then
-                Context.send("These are the cards in the shop right now: " .. table.table_to_string(GetRunText:get_consumeables_text(G.shop_jokers.cards,true)))
                 actions[#actions+1] = BuyShopCard
+                state = state .. "\n These are the cards in the shop right now: " .. table.table_to_string(GetRunText:get_consumeables_text(G.shop_jokers.cards,true))
             end
             if #G.shop_booster.cards > 0 then
-                Context.send("These are the booster packs in the shop: " .. table.table_to_string(GetRunText:get_shop_text(G.shop_booster.cards,true)))
                 actions[#actions+1] = BuyShopBooster
+                state = state .. "\n These are the booster packs in the shop: " .. table.table_to_string(GetRunText:get_shop_text(G.shop_booster.cards,true))
             end
             if #G.shop_vouchers.cards > 0 then
-                Context.send("This is the voucher in the shop: " .. table.table_to_string(GetRunText:get_shop_text(G.shop_vouchers.cards,true)))
                 actions[#actions+1] = BuyShopVoucher
+                state = state .. "\n This is the voucher in the shop: " .. table.table_to_string(GetRunText:get_shop_text(G.shop_vouchers.cards,true))
             end
 
             actions[#actions+1] = DeckTypes
@@ -325,7 +312,7 @@ function PlayingRun:register_store_actions(delay,hook)
             for index, action in ipairs(actions) do
                 window:add_action(action:new(window,{self}))
             end
-
+            window:set_force(0.0, query, state, true)
             window:register()
             return true
         end
