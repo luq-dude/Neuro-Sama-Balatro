@@ -195,9 +195,6 @@ function UseConsumable:_execute_action(state)
             local window = ActionWindow:new()
             for _, action in ipairs(self.actions) do
                 window:add_action(action:new(window, { self.hook }))
-                if action == UseHandCards or action == PickHandPackCards then
-                    self.hook:get_cards_context(G.hand.cards)
-                end
             end
 
             if #G.jokers.cards > 0 then
