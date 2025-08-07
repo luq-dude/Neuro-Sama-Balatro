@@ -3,82 +3,46 @@ require "functions/misc_functions"
 local ALLOWED_DECKS = NeuroConfig.ALLOWED_DECKS
 local ALLOWED_STAKES = NeuroConfig.ALLOWED_DECKS
 
-local getText = {}
-
-local function get_back_args(name, effect_config)
-    local loc_args = {}
-    if name == 'Blue Deck' then
-        loc_args = { effect_config.hands }
-    elseif name == 'Red Deck' then
-        loc_args = { effect_config.discards }
-    elseif name == 'Yellow Deck' then
-        loc_args = { effect_config.dollars }
-    elseif name == 'Green Deck' then
-        loc_args = { effect_config.extra_hand_bonus, effect_config.extra_discard_bonus }
-    elseif name == 'Black Deck' then
-        loc_args = { effect_config.joker_slot, -effect_config.hands }
-    elseif name == 'Magic Deck' then
-        loc_args = { localize { type = 'name_text', key = 'v_crystal_ball', set = 'Voucher' }, localize { type = 'name_text', key = 'c_fool', set = 'Tarot' } }
-    elseif name == 'Nebula Deck' then
-        loc_args = { localize { type = 'name_text', key = 'v_telescope', set = 'Voucher' }, -1 }
-    elseif name == 'Ghost Deck' then
-    elseif name == 'Abandoned Deck' then
-    elseif name == 'Checkered Deck' then
-    elseif name == 'Zodiac Deck' then
-        loc_args = {
-            localize { type = 'name_text', key = 'v_tarot_merchant', set = 'Voucher' },
-            localize { type = 'name_text', key = 'v_planet_merchant', set = 'Voucher' },
-            localize { type = 'name_text', key = 'v_overstock_norm', set = 'Voucher' } }
-    elseif name == 'Painted Deck' then
-        loc_args = { effect_config.hand_size, effect_config.joker_slot }
-    elseif name == 'Anaglyph Deck' then
-        loc_args = { localize { type = 'name_text', key = 'tag_double', set = 'Tag' } }
-    elseif name == 'Plasma Deck' then
-        loc_args = { effect_config.ante_scaling }
-    elseif name == 'Erratic Deck' then
-    end
-
-    return loc_args
-end
-
-function getText:get_back_descriptions()
+local GetText = {}
+function GetText:get_back_descriptions()
     local backs = {}
     for _, back in pairs(G.P_CENTER_POOLS.Back) do
-        local name
-        if back.loc_txt then
-            name = back.loc_txt.name
-        else
-            name = back.name
+        local name = back.loc_txt and back.loc_txt.name or back.name
+        if back.set ~= "Back" then goto continue end
+        if not back.unlocked or not table.any(ALLOWED_DECKS, function(check) return check == name end) then goto continue end
+
+        local lookup = Back_Loc[back.key]
+        local args = {}
+        local nodes = {}
+        local desc = ""
+        local key_override = nil
+        if back.loc_vars and type(back.loc_vars) == "function" then
+            local res = back:loc_vars() or {}
+            args = res.vars or {}
+            key_override = res.key
+        elseif type(lookup) == "table" then
+            for _, v in ipairs(lookup) do
+                table.insert(args, back.config[v])
+            end
+        elseif type(lookup) == "function" then
+            args = lookup(back)
         end
 
-        if back.unlocked and table.any(ALLOWED_DECKS, function(deck) return deck == name end) then
-            local loc_args, loc_nodes = get_back_args(back.name, back.config), {}
-
-            local key_override
-            if back.loc_vars and type(back.loc_vars) == 'function' then
-                local res = back:loc_vars() or {}
-                loc_args = res.vars or {}
-                key_override = res.key
+        localize { type = "descriptions", key = key_override or back.key, set = "Back", nodes = nodes, vars = args }
+        for _, line in ipairs(nodes) do
+            for _, v in ipairs(line) do
+                desc = desc .. v.config.text
             end
-
-            sendDebugMessage("key_override: " .. tostring(key_override) .. " back.key: " .. tostring(back.key))
-            localize { type = 'descriptions', key = key_override or back.key, set = 'Back', nodes = loc_nodes, vars = loc_args }
-
-            local description = ""
-            for _, line in ipairs(loc_nodes) do
-                for _, v in ipairs(line) do
-                    description = description .. v.config.text
-                end
-                description = description .. "   "
-            end
-
-            backs[name] = description
+            desc = desc .. "   "
         end
+
+        backs[name] = desc
+        ::continue::
     end
     return backs
 end
 
-function getText:get_back_names(keys, allDecks)
+function GetText:get_back_names(keys, allDecks)
     local backs = {}
     for _, back in pairs(G.P_CENTER_POOLS.Back) do
         local name
@@ -99,7 +63,7 @@ function getText:get_back_names(keys, allDecks)
     return backs
 end
 
-function getText:get_stake_names(keys, allStakes)
+function GetText:get_stake_names(keys, allStakes)
     local stakes = {}
     for _, stake in pairs(G.P_CENTER_POOLS.Stake) do
         local name = localize { type = 'name_text', key = stake.key, set = 'Stake' }
@@ -115,7 +79,7 @@ function getText:get_stake_names(keys, allStakes)
     return stakes
 end
 
-function getText:generate_blind_descriptions()
+function GetText:generate_blind_descriptions()
     local msg = ""
     local options = { "Small", "Big", "Boss" }
 
@@ -159,4 +123,4 @@ function getText:generate_blind_descriptions()
     return msg
 end
 
-return getText
+return GetText
