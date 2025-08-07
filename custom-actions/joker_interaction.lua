@@ -152,12 +152,13 @@ function JokerInteraction:_execute_action(state)
             if #G.consumeables.cards > 0 then
                 window:add_action(self.consumable:new(window, {self.hook,self.actions,JokerInteraction}))
             end
-            window:register()
             local cards = {}
             for index, value in ipairs(G.jokers.cards) do
                 table.insert(cards,"\n" .. tostring(index) .. ": " .. value.config.center.name)
             end
-            Context.send("These are the positions of your jokers now: " .. table.concat(cards," ",1,#cards))
+            local query,state = RunHelper:get_query_string()
+            window:set_force(0.0, query, "These are the positions of your jokers now: " .. table.concat(cards," ",1,#cards) .. state, true)
+            window:register()
             return true
         end}))
     return true
