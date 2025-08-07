@@ -24,6 +24,8 @@ local function pick_hand_pack_card(delay, hook)
             G.FUNCS.sort_hand_value({})
             local window = ActionWindow:new()
             window:add_action(PickHandPackCards:new(window, { hook }))
+            local query,state = RunHelper:get_query_string()
+            window:set_force(0.0, query, state, true)
             window:register()
             RunContext:hand_pack_booster()
             return true

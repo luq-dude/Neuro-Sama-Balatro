@@ -22,6 +22,8 @@ local function pick_pack_card(delay,hook)
         func = function()
             local window = ActionWindow:new()
             window:add_action(PickCards:new(window, {hook}))
+            local query,state = RunHelper:get_query_string()
+            window:set_force(0.0, query, state, true)
             window:register()
             RunContext:no_hand_booster()
             return true

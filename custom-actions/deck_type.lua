@@ -86,7 +86,7 @@ function DeckInfo:_execute_action(state)
         self.hook:register_store_actions(0)
         return
     end
-	self.hook:play_card(0,false)
+	self.hook:play_card(0)
 end
 
 return DeckInfo

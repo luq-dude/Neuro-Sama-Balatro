@@ -463,7 +463,7 @@ function GetRunText:get_card_modifiers(card_hand,add_debuff_state)
             for _, v in ipairs(G.P_CENTER_POOLS.Enhanced) do
                 sendDebugMessage("card ability: " .. tprint(card.ability,1,2))
                 local description
-                if v.key == card.config.center_key and v.loc_txt and type(v.loc_vars) == 'function' then
+                if v.key == card.config.center_key and v.loc_txt then
                     sendDebugMessage("running if: " .. v.loc_txt.name .. " loc_txt table: " .. tprint(v.loc_txt,1,2))
                     description = ", Card Enhancement: " .. v.loc_txt.name
                 elseif v.key ~= card.config.center_key then
@@ -695,13 +695,13 @@ function GetRunText:get_current_hand_modifiers(cards_table)
     local seals_string = "- card seals: " .. seals
 
     if enhancements == "" or enhancements == nil then
-        enhancements_string = "There are no enhancements on your cards"
+        enhancements_string = ""
     end
     if editions == "" or editions == nil then
-        editions_string = "There are no editions on your cards"
+        editions_string = ""
     end
     if seals == "" or seals == nil then
-        seals_string = "There are no seals on your cards"
+        seals_string = ""
     end
 
     return enhancements_string,editions_string,seals_string
