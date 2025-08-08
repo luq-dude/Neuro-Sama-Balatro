@@ -245,7 +245,7 @@ local function hook_blind_select()
                     delay = 0.5 * G.SPEEDFACTOR,
                     blocking = false,
                     func = function()
-                        if (G.GAME.dollars-G.GAME.bankrupt_at) - 10 >= 0 then
+                        if (G.GAME.dollars-G.GAME.bankrupt_at) - 10 >= 0 and G.GAME.blind_on_deck == "Boss" and G.GAME.used_vouchers["v_retcon"] or (G.GAME.used_vouchers["v_directors_cut"] and not G.GAME.round_resets.boss_rerolled) then
                             window:add_action(RerollBlind:new(window))
                         end
                         window:register()
