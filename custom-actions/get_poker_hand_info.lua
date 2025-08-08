@@ -18,7 +18,7 @@ function PokerHandInfo:_get_name()
 end
 
 function PokerHandInfo:_get_description()
-    return "Get the current information relating to the poker-hands available."
+    return "Gets the level and stats for every poker hand."
 end
 
 function PokerHandInfo:_get_schema()

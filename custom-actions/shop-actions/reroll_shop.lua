@@ -17,7 +17,7 @@ function RerollShop:_get_name()
 end
 
 function RerollShop:_get_description()
-    return "Reroll the shop, this will add new cards to the shop if you have the money or if you have free rerolls."
+    return "Reroll the shop. This only rerolls cards, not booster packs or vouchers."
 end
 
 function RerollShop:_get_schema()

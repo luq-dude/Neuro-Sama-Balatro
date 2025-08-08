@@ -16,7 +16,7 @@ function SkipBlind:_get_name()
 end
 
 function SkipBlind:_get_description()
-    return "Skip the selected blind"
+    return "Skips the selected blind, gaining a tag as a reward."
 end
 
 function SkipBlind:_get_schema()

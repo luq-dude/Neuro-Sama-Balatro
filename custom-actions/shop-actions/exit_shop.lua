@@ -20,7 +20,7 @@ function ExitShop:_get_name()
 end
 
 function ExitShop:_get_description()
-    return "This will exit the shop and take you to picking the next blind."
+    return "This will exit the shop and take you to blind selection. Do whatever shopping and prep you need before doing this!"
 end
 
 function ExitShop:_get_schema()

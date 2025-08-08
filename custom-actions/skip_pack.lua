@@ -18,7 +18,7 @@ function SkipPack:_get_name()
 end
 
 function SkipPack:_get_description()
-    local description = "Skip this pack and take no more cards from it."
+    local description = "Close the pack early and take no additional cards from it."
 
     return description
 end

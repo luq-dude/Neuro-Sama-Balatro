@@ -17,7 +17,7 @@ function BuyBooster:_get_name()
 end
 
 function BuyBooster:_get_description()
-    return "This will buy a booster pack."
+    return "Buy a booster pack in shop. These contain a certain number of cards that you can choose from."
 end
 
 function BuyBooster:_get_schema()

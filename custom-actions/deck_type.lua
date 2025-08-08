@@ -18,7 +18,9 @@ function DeckInfo:_get_name()
 end
 
 function DeckInfo:_get_description()
-    return "Get information about your deck, you can use this to plan your next moves."
+    return "Get information about what suits or ranks are currently in your deck. " ..
+	"Use this to see what cards are still left in your deck and can be drawn, " ..
+	"or to check what your deck currently looks like when planning a build."
 end
 
 local function schema_options()
