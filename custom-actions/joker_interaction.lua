@@ -2,7 +2,6 @@ local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
 local RunHelper = ModCache.load("run_functions_helper.lua")
 local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
-local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
 
 local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
 
@@ -24,32 +23,35 @@ end
 function JokerInteraction:_get_description()
     local cards = {}
     for index, value in ipairs(G.jokers.cards) do
-        table.insert(cards,"\n" .. tostring(index) .. ": " .. value.config.center.name .. " sell value: " .. value.sell_cost) -- could also use sell_cost_label
+        -- could also use sell_cost_label
+        table.insert(cards,
+            "\n" .. tostring(index) .. ": " .. value.config.center.name .. " sell value: " .. value.sell_cost)
     end
 
     local description = "This allows you to either re-order your jokers, or sell any number of them. " ..
-    "When re-ordering, specify where you want each joker to be based off their index. " ..
-    "So [3,1,2] means put joker 3 first, joker 1 second, then joker 2 third. " ..
-    "Any jokers not specified will just be put at the end. These are the jokers in your hand: " ..
-    table.concat(cards,"",1,#cards)
+        "When selling, mention the index for every joker you want to sell. " ..
+        "When re-ordering, specify where you want each joker to be based off their index. " ..
+        "For example, [3,1,2] means put joker 3 first, joker 1 second, then joker 2 third. " ..
+        "You have to specify all jokers in your hand. These are the jokers in your hand: " ..
+        table.concat(cards, "", 1, #cards)
 
     return description
 end
 
 local function joker_action_options()
-	return {"Move","Sell"}
+    return { "Move", "Sell" }
 end
 
 function JokerInteraction:_get_schema()
-	local hand_length = RunHelper:get_hand_length(G.jokers.cards)
+    local hand_length = RunHelper:get_hand_length(G.jokers.cards)
 
     return JsonUtils.wrap_schema({
         card_action = {
             enum = joker_action_options()
         },
-		cards_index = {
+        cards_index = {
             type = "array",
-            items ={
+            items = {
                 type = "integer",
                 enum = hand_length
             }
@@ -80,9 +82,16 @@ function JokerInteraction:_validate_action(data, state)
         return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("card_action"))
     end
 
-    if #selected_hand_index == 0 then return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("selected_hand_index")) end
-    if #G.jokers.cards == 1 then return ExecutionResult.failure("You only have 1 joker.") end
-    if #selected_hand_index > #G.jokers.cards then return ExecutionResult.failure("You have selected more cards then are in your hand.") end
+    if #selected_hand_index == 0 then return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter(
+        "selected_hand_index")) end
+    if selected_action == "Move" then
+        if #G.jokers.cards == 1 then return ExecutionResult.failure(
+            "You only have 1 joker, so re-ordering won't do anything.") end
+        if #selected_hand_index ~= #G.jokers.cards then return ExecutionResult.failure(
+            "You have to specify the positions for every joker in your hand.") end
+    end
+    if #selected_hand_index > #G.jokers.cards then return ExecutionResult.failure(
+        "You have selected more cards then are in your hand.") end
 
     state["cards_index"] = selected_hand_index
     state["card_action"] = selected_action
@@ -93,38 +102,28 @@ function JokerInteraction:_execute_action(state)
     local selected_hand_index = state["cards_index"]
     local selected_action = state["card_action"]
 
-    local hand = G.jokers.cards
-    if selected_action == "Move" then
-        RunHelper:reorder_card_area(G.jokers, selected_hand_index)
-    else
-        G.jokers:add_to_highlighted(hand[selected_hand_index[1]])
-        local use_button_child = hand[selected_hand_index[1]].children.use_button.UIRoot.children[1].children[1].children[1].children[1]
-        local button = nil
-        button = use_button_child
-        button:click()
-        table.remove(selected_hand_index,1)
-        for pos, index in ipairs(selected_hand_index) do -- we do this incase neuro adds multiple jokers to be sold
-            sendDebugMessage("pos: " .. tostring(pos) .. "  index: " .. tostring(index))
-            hand = G.jokers.cards
+    RunHelper:reorder_card_area(G.jokers, selected_hand_index)
+    if selected_action == "Sell" then
+        for i = 1, #selected_hand_index do
             local event_delay = 0
-            if G.SPEEDFACTOR > 1 then -- as delay is reliant on game speed and I don't want to cause issues with long waits with lower delays
-                event_delay = pos * G.SPEEDFACTOR
+            if G.SPEEDFACTOR > 1 then
+                event_delay = i * G.SPEEDFACTOR
             else
-                event_delay = pos * 2 + G.SPEEDFACTOR + 1
+                event_delay = i * 2 + G.SPEEDFACTOR + 1
             end
-            if pos == 1 then
+            if i == 1 then
                 event_delay = 0.75 * G.SPEEDFACTOR
             end
             G.E_MANAGER:add_event(Event({
-            trigger = "after",
-            delay = event_delay,
-            blocking = false,
-            func = function ()
-                G.jokers:add_to_highlighted(hand[index - pos])
-                button = hand[index - pos].children.use_button.UIRoot.children[1].children[1].children[1].children[1]
-                button:click()
-                return true
-            end
+                trigger = "after",
+                delay = event_delay,
+                blocking = false,
+                func = function()
+                    G.jokers:add_to_highlighted(G.jokers.cards[1])
+                    button = G.jokers.cards[1].children.use_button.UIRoot.children[1].children[1].children[1].children[1]
+                    button:click()
+                    return true
+                end
             }))
         end
     end
@@ -143,24 +142,26 @@ function JokerInteraction:_execute_action(state)
         func = function()
             local window = ActionWindow:new()
             for index, action in ipairs(self.actions) do
-                window:add_action(action:new(window, {self.hook}))
+                window:add_action(action:new(window, { self.hook }))
             end
             if #G.jokers.cards > 0 then
-                window:add_action(JokerInteraction:new(window, {self.hook,self.actions,self.consumable}))
+                window:add_action(JokerInteraction:new(window, { self.hook, self.actions, self.consumable }))
             end
 
             if #G.consumeables.cards > 0 then
-                window:add_action(self.consumable:new(window, {self.hook,self.actions,JokerInteraction}))
+                window:add_action(self.consumable:new(window, { self.hook, self.actions, JokerInteraction }))
             end
             local cards = {}
             for index, value in ipairs(G.jokers.cards) do
-                table.insert(cards,"\n" .. tostring(index) .. ": " .. value.config.center.name)
+                table.insert(cards, "\n" .. tostring(index) .. ": " .. value.config.center.name)
             end
-            local query,state = RunHelper:get_query_string()
-            window:set_force(0.0, query, "These are the positions of your jokers now: " .. table.concat(cards," ",1,#cards) .. state, true)
+            local query, state = RunHelper:get_query_string()
+            window:set_force(0.0, query,
+                "These are the positions of your jokers now: " .. table.concat(cards, " ", 1, #cards) .. state, true)
             window:register()
             return true
-        end}))
+        end
+    }))
     return true
 end
 
