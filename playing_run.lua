@@ -1,4 +1,3 @@
-local GameHooks = ModCache.load("game-sdk/game_hooks.lua")
 local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
 local NeuroActionHandler = ModCache.load("game-sdk/actions/neuro_action_handler.lua")
 
@@ -19,7 +18,6 @@ local BuyShopBooster = ModCache.load("custom-actions/shop-actions/buy_shop_boost
 local BuyShopVoucher = ModCache.load("custom-actions/shop-actions/buy_shop_voucher.lua")
 
 local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
-local RunContext = ModCache.load("run_context.lua")
 local RunHelper = ModCache.load("run_functions_helper.lua")
 
 local PlayingRun = {}
