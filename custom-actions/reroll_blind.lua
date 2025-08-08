@@ -37,10 +37,17 @@ function RerollBlind:_execute_action(state)
 	local window = ActionWindow:new()
 	window:set_force(0.0, "Choose to select or reroll the current blind.", GetText:generate_blind_descriptions())
 	window:add_action(PlayBlind:new(window))
-	if G.GAME.used_vouchers["v_retcon"] and (G.GAME.dollars-G.GAME.bankrupt_at) - 10 > 10 then
-		window:add_action(RerollBlind:new(window))
-	end
-	window:register()
+    G.E_MANAGER:add_event(Event({
+        trigger = "after",
+        delay = 0.5 * G.SPEEDFACTOR,
+        blocking = false,
+        func = function()
+        if (G.GAME.dollars-G.GAME.bankrupt_at) - 10 >= 0 then
+            window:add_action(RerollBlind:new(window))
+        end
+        window:register()
+        return true
+    end}))
 	return true
 end
 

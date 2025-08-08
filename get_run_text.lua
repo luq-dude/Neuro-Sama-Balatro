@@ -645,6 +645,7 @@ function GetRunText:get_hand_seals(cards_table)
             for _, g_card in pairs(G.P_CENTER_POOLS.Seal) do
                 local loc_lookup,loc_nodes,loc_args = Seal_Loc[card.seal], {}, {}
                 if g_card.key ~= card.seal then goto continue end
+                sendDebugMessage("g_card: " .. tprint(g_card,1,2))
                 if g_card.key == card.seal and g_card.loc_txt or type(g_card.loc_vars) == 'function' then
                     if g_card.loc_vars then
                         local res = g_card:loc_vars() or {}
@@ -652,10 +653,9 @@ function GetRunText:get_hand_seals(cards_table)
                     end
                     key_override = g_card.key .. '_seal' -- Smods does this however doesn't mention it in any documentation :)
                 elseif type(loc_lookup) == "table" then
-                    for _, v in ipairs(loc_lookup) do
-                        table.insert(loc_args,g_card.config[v])
-                    end
+                    key_override = loc_lookup[1]
                 elseif type(loc_lookup) == "function" then
+                    key_override = loc_lookup[1]
                     loc_args = loc_lookup(g_card)
                 else
                     sendErrorMessage("Could not find localize for edition" .. g_card.key)
