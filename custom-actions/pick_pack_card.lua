@@ -5,6 +5,8 @@ local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
 local RunHelper = ModCache.load("run_functions_helper.lua")
 
 local SkipPack = ModCache.load("custom-actions/skip_pack.lua")
+local JokerInteraction = ModCache.load("custom-actions/joker_interaction.lua")
+local UseConsumable = ModCache.load("custom-actions/use_consumables.lua")
 
 local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
 local RunContext = ModCache.load("run_context.lua")
@@ -22,10 +24,17 @@ local function pick_pack_card(delay,hook)
         func = function()
             local window = ActionWindow:new()
             window:add_action(PickCards:new(window, {hook}))
+            window:add_event(SkipPack:new(window,{hook}))
+            if #G.jokers.cards > 0 then
+                window:add_action(JokerInteraction:new(window, {hook,{PickCards,SkipPack},UseConsumable}))
+            end
+
+            if #G.consumeables.cards > 0 then
+                window:add_action(UseConsumable:new(window, {hook,{PickCards,SkipPack},JokerInteraction}))
+            end
             local query,state = RunHelper:get_query_string()
             window:set_force(0.0, query, state, true)
             window:register()
-            RunContext:no_hand_booster()
             return true
         end
     }
