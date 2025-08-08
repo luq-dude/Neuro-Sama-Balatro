@@ -8,6 +8,7 @@ local PlayingRun = ModCache.load("playing_run.lua")
 
 local PlayBlind = ModCache.load("custom-actions/play_blind.lua")
 local SkipBlind = ModCache.load("custom-actions/skip_blind.lua")
+local RerollBlind = ModCache.load("custom-actions/reroll_blind.lua")
 
 local GetText = ModCache.load("get_text.lua")
 
@@ -231,13 +232,16 @@ local function hook_blind_select()
                     "while skipping a blind gives a tag instead. Failing a blind results in a game over. " ..
                     "You must at least play the Boss Blind, which has an additional special effect to make it harder.\n"
 
-                Context.send(msg .. GetText:generate_blind_descriptions())
+                Context.send(msg)
 
                 local window = ActionWindow:new()
-                window:set_force(0.0, "", "Choose to select or skip the currently selected blind")
+                window:set_force(0.0, "Choose to select or skip the currently selected blind", GetText:generate_blind_descriptions())
                 window:add_action(PlayBlind:new(window))
                 if G.GAME.blind_on_deck ~= "Boss" then
                     window:add_action(SkipBlind:new(window))
+                end
+                if (G.GAME.dollars-G.GAME.bankrupt_at) - 10 > 10 and G.GAME.blind_on_deck == "Boss" and G.GAME.used_vouchers["v_retcon"] or (G.GAME.used_vouchers["v_directors_cut"] and not G.GAME.round_resets.boss_rerolled) then
+                    window:add_action(RerollBlind:new(window))
                 end
                 window:register()
                 return true

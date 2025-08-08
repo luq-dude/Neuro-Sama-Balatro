@@ -39,7 +39,7 @@ function BuyBooster:_validate_action(data, state)
 
 	local booster = G.shop_booster.cards[selected_index]
 
-    if booster.children.price.parent.cost > G.GAME.dollars then
+    if ((G.GAME.dollars-G.GAME.bankrupt_at) - booster.children.price.parent.cost < 0) then
         return ExecutionResult.failure("You do not have the money to buy this pack")
     end
 

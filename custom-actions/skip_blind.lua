@@ -3,6 +3,7 @@ local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
 local PlayBlind = ModCache.load("custom-actions/play_blind.lua")
 local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
 local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
+local RerollBlind = ModCache.load("custom-actions/reroll_blind.lua")
 local SkipBlind = setmetatable({}, { __index = NeuroAction })
 SkipBlind.__index = SkipBlind
 
@@ -46,11 +47,14 @@ function SkipBlind:_execute_action(state)
             -- if were not, wait the delay before trying again
             if G.STATE ~= G.STATES.BLIND_SELECT then return false end
             local window = ActionWindow:new()
-            window:set_force(0.0, "", "Choose to select or skip the currently selected blind")
+            window:set_force(0.0, "Choose to select, skip or reroll the currently selected blind", "It is time for you to select a blind.")
             window:add_action(PlayBlind:new(window))
             if G.GAME.blind_on_deck ~= "Boss" then
                 window:add_action(SkipBlind:new(window))
             end
+            if (G.GAME.dollars-G.GAME.bankrupt_at) - 10 > 10 and G.GAME.blind_on_deck == "Boss" and G.GAME.used_vouchers["v_retcon"] or (G.GAME.used_vouchers["v_directors_cut"] and not G.GAME.round_resets.boss_rerolled) then
+				window:add_action(RerollBlind:new(window))
+			end
             window:register()
             return true
         end
