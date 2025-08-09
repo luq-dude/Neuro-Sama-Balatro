@@ -444,14 +444,14 @@ function GetRunText:get_card_modifiers(card_hand,add_debuff_state)
             for _, v in ipairs(G.P_CENTER_POOLS.Edition) do
                 sendDebugMessage("card ability: " .. tprint(card.ability,1,2))
                 local description
-                if v.key == card.edition.key and v.loc_txt and type(v.loc_vars) == 'function' then
+                if v.key == card.edition.key and v.loc_txt then
                     sendDebugMessage("running if: " .. v.loc_txt.name .. " loc_txt table: " .. tprint(v.loc_txt,1,2))
                     description = ", Card Edition: " .. v.loc_txt.name
                 elseif v.key ~= card.edition.key then
                     goto continue
                 else
                     sendDebugMessage("running else")
-                    description = ", Card Edition: " .. card.ability.name
+                    description = ", Card Edition: " .. v.name
                 end
 
                 card_desc = card_desc .. description
@@ -480,10 +480,8 @@ function GetRunText:get_card_modifiers(card_hand,add_debuff_state)
 
         if card.ability.seal then
             for _, v in ipairs(G.P_CENTER_POOLS.Seal) do
-                sendDebugMessage("card ability: " .. tprint(card.ability,1,2))
                 local description
-                if v.key == card.seal and v.loc_txt and type(v.loc_vars) == 'function' then
-                    sendDebugMessage("running if: " .. v.loc_txt.name .. " loc_txt table: " .. tprint(v.loc_txt,1,2))
+                if v.key == card.seal and v.loc_txt then
                     description = ", Card Seal: " .. v.loc_txt.name
                 elseif v.key ~= card.seal then
                     goto continue
@@ -529,11 +527,9 @@ function GetRunText:get_hand_editions(cards_table)
             local key_override
             for _, g_card in pairs(G.P_CENTER_POOLS.Edition) do
                 if g_card.key ~= card.edition.key then goto continue end
-                local loc_lookup = Edition_Loc[g_card.key]
-                local loc_args = {}
-                local loc_nodes = {}
+                local loc_lookup, loc_args, loc_nodes = Edition_Loc[g_card.key], {}, {}
                 local name = g_card.name
-                if g_card.key == card.edition.key and g_card.loc_txt and type(g_card.loc_vars) == 'function' then
+                if g_card.key == card.edition.key and g_card.loc_txt then
                     if g_card.loc_vars then
                         local res = g_card:loc_vars(nil,card) or {}
                         loc_args = res.vars or res.loc_txt.text
@@ -555,6 +551,9 @@ function GetRunText:get_hand_editions(cards_table)
                 for _, line in ipairs(loc_nodes) do
                     for _, word in ipairs(line) do
                         if word.nodes ~= nil then
+                            if word.nodes[1].config.object then -- I think this is used for formatting, we don't need it though
+                                break;
+                            end
                             description = description .. word.nodes[1].config.text
                         else
                             description = description .. word.config.text
@@ -581,14 +580,13 @@ function GetRunText:get_hand_enhancements(cards_table)
         local enhancement_desc = ""
 
         if card.ability.effect ~= "Base" then
-            local key_override
             for _, g_card in pairs(G.P_CENTER_POOLS.Enhanced) do
                 if g_card.key ~= card.config.center_key then goto continue end
-                local loc_lookup = Enhancement_Loc[g_card.key]
-                local loc_args = {}
-                local loc_nodes = {}
+                local loc_lookup, loc_args, loc_nodes = Enhancement_Loc[g_card.key], {}, {}
                 local name = card.ability.name
-                if g_card.key == card.config.center_key and g_card.loc_txt or type(g_card.loc_vars) == 'function' then
+                local key_override = g_card.key
+                local set_override = g_card.set
+                if g_card.key == card.config.center_key and g_card.loc_txt then
                     if g_card.loc_vars then
                         local res = g_card:loc_vars(nil,card) or {}
                         loc_args = res.vars or res.loc_txt.text
@@ -603,8 +601,12 @@ function GetRunText:get_hand_enhancements(cards_table)
                 else
                     sendErrorMessage("Could not find localize for enhancement" .. g_card.key)
                 end
+                if g_card.key == "m_bonus" then
+                    key_override = "card_extra_chips"
+                    set_override = "Other"
+                end
 
-                localize{type = 'descriptions', key = g_card.key or key_override, set = g_card.set, nodes = loc_nodes, vars = loc_args} -- doesn't get character's like + idk why as others do, needs to be fixed before releasing though
+                localize{type = 'descriptions', key = key_override or g_card.key, set = set_override or g_card.set, nodes = loc_nodes, vars = loc_args} -- doesn't get character's like + idk why as others do, needs to be fixed before releasing though
 
                 local description = "\n -- " .. name .. " : "
                 for _, line in ipairs(loc_nodes) do
@@ -644,26 +646,30 @@ function GetRunText:get_hand_seals(cards_table)
             local key_override = nil
             for _, g_card in pairs(G.P_CENTER_POOLS.Seal) do
                 local loc_lookup,loc_nodes,loc_args = Seal_Loc[card.seal], {}, {}
+                local name = ""
                 if g_card.key ~= card.seal then goto continue end
                 sendDebugMessage("g_card: " .. tprint(g_card,1,2))
-                if g_card.key == card.seal and g_card.loc_txt or type(g_card.loc_vars) == 'function' then
+                if g_card.key == card.seal and g_card.loc_txt then
                     if g_card.loc_vars then
-                        local res = g_card:loc_vars() or {}
+                        local res = g_card:loc_vars(nil,card) or {} -- osu seal needs these or crash
                         loc_args = res.vars or res.loc_txt.text
                     end
+                    name = g_card.loc_txt.name
                     key_override = g_card.key .. '_seal' -- Smods does this however doesn't mention it in any documentation :)
                 elseif type(loc_lookup) == "table" then
                     key_override = loc_lookup[1]
+                    name = card.seal
                 elseif type(loc_lookup) == "function" then
                     key_override = loc_lookup[1]
                     loc_args = loc_lookup(g_card)
+                    name = card.seal
                 else
                     sendErrorMessage("Could not find localize for edition" .. g_card.key)
                 end
 
                 localize{type = 'descriptions', set = "Other" or g_card.set, key= key_override or g_card.key, nodes = loc_nodes, vars = loc_args}
 
-                local description = "\n -- " .. tostring(card.seal) .. " Seal"  .. " : "
+                local description = "\n -- " .. name.. " Seal"  .. " : "
                 for _, line in ipairs(loc_nodes) do
                     for _, word in ipairs(line) do
                         if word.nodes ~= nil then
