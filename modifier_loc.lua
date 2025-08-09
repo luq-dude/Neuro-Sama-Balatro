@@ -10,11 +10,17 @@ Enhancement_Loc = {
 	m_bonus = {"bonus"},
 	m_mult = {"mult"},
 	m_wild = {},
-	m_glass = {"Xmult", "extra"},
+	m_glass = function(card)
+		return {card.config.Xmult, G.GAME.probabilities.normal, card.config.extra}
+	end,
 	m_stone = {"bonus"},
 	m_gold = {"h_dollars"},
-	m_lucky = {"mult","p_dollars"},
-	m_steel = {"h_x_mult"}
+	m_lucky = function(card)
+        return {G.GAME.probabilities.normal, card.config.mult, 5, card.config.p_dollars, 15, G.GAME.probabilities.normal}
+    end,
+	m_steel = function(card)
+		return {card.config.extra.xmult}
+	end
 }
 
 Seal_Loc = {
