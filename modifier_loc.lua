@@ -16,7 +16,7 @@ Enhancement_Loc = {
 	m_stone = {"bonus"},
 	m_gold = {"h_dollars"},
 	m_lucky = function(card)
-        return {G.GAME.probabilities.normal, card.config.mult, 5, card.config.p_dollars, 15}
+        return {G.GAME.probabilities.normal, card.config.mult, 5, card.config.p_dollars, 15, G.GAME.probabilities.normal}
     end,
 	m_steel = function(card)
 		return {card.config.extra.xmult}
