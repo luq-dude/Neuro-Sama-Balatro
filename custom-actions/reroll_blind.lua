@@ -21,7 +21,7 @@ function RerollBlind:_get_description()
 end
 
 function RerollBlind:_get_schema()
-    return JsonUtils.wrap_schema({},false)
+    return JsonUtils.wrap_schema({}, false)
 end
 
 function RerollBlind:_validate_action()
@@ -34,21 +34,25 @@ function RerollBlind:_execute_action(state)
     }
     G.FUNCS.reroll_boss(e)
 
-	local window = ActionWindow:new()
-	window:set_force(0.0, "Choose to select or reroll the current blind.", GetText:generate_blind_descriptions())
-	window:add_action(PlayBlind:new(window))
     G.E_MANAGER:add_event(Event({
         trigger = "after",
         delay = 0.5 * G.SPEEDFACTOR,
         blocking = false,
         func = function()
-        if (G.GAME.dollars-G.GAME.bankrupt_at) - 10 >= 0 and G.GAME.blind_on_deck == "Boss" and G.GAME.used_vouchers["v_retcon"] or (G.GAME.used_vouchers["v_directors_cut"] and not G.GAME.round_resets.boss_rerolled) then
-            window:add_action(RerollBlind:new(window))
+            local window = ActionWindow:new()
+            window:set_force(0.0, "Choose to select or reroll the current blind.", GetText:generate_blind_descriptions())
+            window:add_action(PlayBlind:new(window))
+
+            if (G.GAME.dollars - G.GAME.bankrupt_at) - 10 >= 0 and
+                G.GAME.blind_on_deck == "Boss" and (G.GAME.used_vouchers["v_retcon"] or
+                    (G.GAME.used_vouchers["v_directors_cut"] and not G.GAME.round_resets.boss_rerolled)) then
+                window:add_action(RerollBlind:new(window))
+            end
+            window:register()
+            return true
         end
-        window:register()
-        return true
-    end}))
-	return true
+    }))
+    return true
 end
 
 return RerollBlind

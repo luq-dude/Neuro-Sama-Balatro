@@ -21,7 +21,7 @@ function SkipBlind:_get_description()
 end
 
 function SkipBlind:_get_schema()
-    return JsonUtils.wrap_schema({},false)
+    return JsonUtils.wrap_schema({}, false)
 end
 
 function SkipBlind:_validate_action()
@@ -47,23 +47,18 @@ function SkipBlind:_execute_action(state)
             -- if were not, wait the delay before trying again
             if G.STATE ~= G.STATES.BLIND_SELECT then return false end
             local window = ActionWindow:new()
-            window:set_force(0.0, "Choose to select, skip or reroll the currently selected blind", "It is time for you to select a blind.")
+            window:set_force(0.0, "Choose to select, skip or reroll the currently selected blind",
+                "It is time for you to select a blind.")
             window:add_action(PlayBlind:new(window))
             if G.GAME.blind_on_deck ~= "Boss" then
                 window:add_action(SkipBlind:new(window))
             end
-            G.E_MANAGER:add_event(Event({
-                trigger = "after",
-                delay = 0.5 * G.SPEEDFACTOR,
-                blocking = false,
-                func = function()
-                    if (G.GAME.dollars-G.GAME.bankrupt_at) - 10 >= 0 and G.GAME.blind_on_deck == "Boss" and G.GAME.used_vouchers["v_retcon"] or (G.GAME.used_vouchers["v_directors_cut"] and not G.GAME.round_resets.boss_rerolled) then
-                        window:add_action(RerollBlind:new(window))
-                    end
-                    window:register()
-                    return true
-            end}))
 
+            if (G.GAME.dollars - G.GAME.bankrupt_at) - 10 >= 0 and
+                G.GAME.blind_on_deck == "Boss" and (G.GAME.used_vouchers["v_retcon"] or
+                    (G.GAME.used_vouchers["v_directors_cut"] and not G.GAME.round_resets.boss_rerolled)) then
+                window:add_action(RerollBlind:new(window))
+            end
             window:register()
             return true
         end

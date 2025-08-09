@@ -235,29 +235,23 @@ local function hook_blind_select()
                 Context.send(msg)
 
                 local window = ActionWindow:new()
-                window:set_force(0.0, "Choose to select or skip the currently selected blind", GetText:generate_blind_descriptions())
+                window:set_force(0.0, "Choose to select or skip the currently selected blind",
+                    GetText:generate_blind_descriptions())
                 window:add_action(PlayBlind:new(window))
                 if G.GAME.blind_on_deck ~= "Boss" then
                     window:add_action(SkipBlind:new(window))
                 end
-                G.E_MANAGER:add_event(Event({
-                    trigger = "after",
-                    delay = 0.5 * G.SPEEDFACTOR,
-                    blocking = false,
-                    func = function()
-                        if (G.GAME.dollars-G.GAME.bankrupt_at) - 10 >= 0 and G.GAME.blind_on_deck == "Boss" and G.GAME.used_vouchers["v_retcon"] or (G.GAME.used_vouchers["v_directors_cut"] and not G.GAME.round_resets.boss_rerolled) then
-                            window:add_action(RerollBlind:new(window))
-                        end
-                        window:register()
-                    return true
-                end}))
-
+                if (G.GAME.dollars - G.GAME.bankrupt_at) - 10 >= 0 and
+                    G.GAME.blind_on_deck == "Boss" and (G.GAME.used_vouchers["v_retcon"] or
+                        (G.GAME.used_vouchers["v_directors_cut"] and not G.GAME.round_resets.boss_rerolled)) then
+                    window:add_action(RerollBlind:new(window))
+                end
+                window:register()
                 return true
             end
         }))
     end
 end
-
 function Hook:hook_game()
     if not neuro_profile or neuro_profile < 1 or neuro_profile > 3 then
         neuro_profile = 3
