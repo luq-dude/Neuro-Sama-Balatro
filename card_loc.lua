@@ -44,7 +44,9 @@ Tarot_Loc = {
 		return {card.config.center.config.max_highlighted,"Glass Card"}
 	end,
 	c_hermit = {"extra"},
-	c_wheel_of_fortune = {"extra"},
+	c_wheel_of_fortune = function(card)
+		return {G.GAME.probabilities.normal, card.config.center.config.extra}
+	end,
 	c_strength = function(card)
 		return {card.config.center.config.max_highlighted,"1"}
 	end,
