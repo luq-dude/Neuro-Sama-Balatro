@@ -90,7 +90,7 @@ function PickCards:_validate_action(data, state)
     end
 
     state["cards_index"] = selected_hand_index
-	return ExecutionResult.success("Taking the " .. selected_card.config.center.name .. " card.")
+	return ExecutionResult.success("Taking the " .. selected_card.base.name)
 end
 
 function PickCards:_execute_action(state)

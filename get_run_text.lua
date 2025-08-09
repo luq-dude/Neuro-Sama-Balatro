@@ -690,9 +690,9 @@ function GetRunText:get_current_hand_modifiers(cards_table)
     local editions = table.table_to_string(self:get_hand_editions(cards_table))
     local seals = table.table_to_string(self:get_hand_seals(cards_table))
 
-    local enhancements_string = "- card enhancements: " .. enhancements
-    local editions_string = "- card editions: " .. editions
-    local seals_string = "- card seals: " .. seals
+    local enhancements_string = "- Enhancements: " .. enhancements
+    local editions_string = "- Editions: " .. editions
+    local seals_string = "- Seals: " .. seals
 
     if enhancements == "" or enhancements == nil then
         enhancements_string = ""

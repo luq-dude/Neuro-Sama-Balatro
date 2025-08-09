@@ -289,7 +289,7 @@ function PlayingRun:register_store_actions(delay,hook)
             if (G.GAME.dollars-G.GAME.bankrupt_at) - G.GAME.current_round.reroll_cost < 0 and G.GAME.current_round.free_rerolls < 1 then
             else
                 actions[#actions+1] = RerollShop
-                state = state .. "\n Rerolling the shop costs: $" .. G.GAME.current_round.reroll_cost .. " You have" .. G.GAME.current_round.free_rerolls .. " free rerolls."
+                state = state .. "\n Rerolling the shop costs: $" .. G.GAME.current_round.reroll_cost .. " You have " .. G.GAME.current_round.free_rerolls .. " free rerolls."
             end
             if #G.shop_jokers.cards > 0 then
                 actions[#actions+1] = BuyShopCard
