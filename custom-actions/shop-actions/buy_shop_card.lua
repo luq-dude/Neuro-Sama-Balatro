@@ -54,7 +54,7 @@ function BuyShopCard:_validate_action(data, state)
 
     local card = G.shop_jokers.cards[selected_index]
 
-    if card.children.price.parent.cost > G.GAME.dollars then
+    if ((G.GAME.dollars-G.GAME.bankrupt_at) - card.children.price.parent.cost < 0) then
         return ExecutionResult.failure("You do not have the money to buy this card")
     end
 

@@ -29,7 +29,7 @@ end
 function BuyVoucher:_validate_action(data, state)
 	local voucher = G.shop_vouchers.cards[1]
 
-    if voucher.children.price.parent.cost > G.GAME.dollars then
+    if ((G.GAME.dollars-G.GAME.bankrupt_at) - voucher.children.price.parent.cost < 0) then
         return ExecutionResult.failure("You do not have the money to buy the voucher.")
     end
 
