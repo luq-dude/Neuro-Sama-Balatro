@@ -21,13 +21,15 @@ function RunContext:no_hand_booster()
     elseif SMODS.OPENED_BOOSTER.config.center.kind == "Standard" or G.pack_cards.cards[1].ability.set == "Base" then
         local hand, enhancements, editions, seals = table.table_to_string(GetRunText:get_card_modifiers(G.pack_cards.cards)),GetRunText:get_current_hand_modifiers(G.pack_cards.cards)
 
-        return string.format("This is the hand of cards that are in this pack: " ..
-        hand .. "\n" .. "\n" ..
-        "These are the card modifiers that are on the cards right now," ..
-        " there can only be one edition,enhancement and seal on each card: \n" ..
-        enhancements .. "\n" ..
-        editions .. "\n" ..
-        seals)
+        local return_string = "This is the hand of cards that are in this pack: " .. hand .. "\n" .. "\n"
+        if enhancements ~= "" or editions ~= "" or seals ~= "" then
+            return_string = return_string .. string.format("These are the card modifiers that are on the cards right now," ..
+            " there can only be one edition,enhancement and seal on each card: \n" ..
+            enhancements .. "\n" ..
+            editions .. "\n" ..
+            seals)
+        end
+        return return_string
     elseif SMODS.OPENED_BOOSTER.config.center.kind == "Spectral" or G.pack_cards.cards[1].ability.set == "Spectral" then
         sendErrorMessage("Spectral should not be called from pick_pack_card")
         return

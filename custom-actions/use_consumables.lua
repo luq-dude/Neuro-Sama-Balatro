@@ -4,8 +4,6 @@ local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
 local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
 local RunHelper = ModCache.load("run_functions_helper.lua")
-local UseHandCards = ModCache.load("custom-actions/use_hand_cards.lua")
-local PickHandPackCards = ModCache.load("custom-actions/pick_hand_pack_cards.lua")
 
 local NeuroActionHandler = ModCache.load("game-sdk/actions/neuro_action_handler.lua")
 
