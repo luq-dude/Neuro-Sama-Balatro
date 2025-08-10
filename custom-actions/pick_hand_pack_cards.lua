@@ -50,7 +50,7 @@ function PickHandPackCards:new(actionWindow, state)
 end
 
 function PickHandPackCards:_get_name()
-    return "pick_hand_cards"
+    return "pick_pack_cards"
 end
 
 function PickHandPackCards:_get_description()
@@ -60,7 +60,7 @@ function PickHandPackCards:_get_description()
         .. "out of the " ..
         SMODS.OPENED_BOOSTER.config.center.config.extra ..
         " available. Some consumables require you to select cards in hand to use. " .. 
-        "Use pack_card_index to specify what consumable you are using and cards_index to specify what cards it is being used on. " ..
+        "Use pack_card_index to specify what consumable you are using and hand_cards_index to specify what cards it is being used on. " ..
         "When defining the card's index the first card will be 1.")
 
     return description
@@ -71,7 +71,7 @@ function PickHandPackCards:_get_schema()
     local pack_hand_length = RunHelper:get_hand_length(G.pack_cards.cards)
 
     return JsonUtils.wrap_schema({
-        cards_index = {
+        hand_cards_index = {
             type = "array",
             items = {
                 type = "integer",
@@ -85,7 +85,7 @@ function PickHandPackCards:_get_schema()
 end
 
 function PickHandPackCards:_validate_action(data, state)
-    local selected_hand_index = data:get_object("cards_index")
+    local selected_hand_index = data:get_object("hand_cards_index")
     local selected_pack_card = data._data["pack_card_index"]
     selected_hand_index = selected_hand_index._data
 
