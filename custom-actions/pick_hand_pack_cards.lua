@@ -106,6 +106,14 @@ function PickHandPackCards:_validate_action(data, state)
             "You have selected more cards from your hand then you are allowed too.")
     end
 
+    if card_config.center_key == "c_aura" then
+        if #selected_hand_index ~= 1 then
+            return ExecutionResult.failure("When using aura, you should only have one card selected.")
+        end
+
+        return ExecutionResult.success()
+    end
+
     -- should fix issue with certain cards (mainly spectral) not needing highlighted cards
     if #selected_hand_index == 0 and card_config.max_highlighted ~= nil then
         return ExecutionResult.failure(

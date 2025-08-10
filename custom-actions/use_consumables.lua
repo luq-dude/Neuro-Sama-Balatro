@@ -114,6 +114,18 @@ function UseConsumable:_validate_action(data, state)
             "You cannot use this card in the shop as selecting cards is needed for it to work.")
     end
 
+    if card_config.center_key == "c_aura" then
+        if G.STATE == G.STATES.SHOP and selected_action == "Use" then
+            return ExecutionResult.failure("You cannot use this card in the shop as selecting cards is needed for it to work.")
+        end
+
+        if #selected_hand_index ~= 1 and selected_action == "Use" then
+            return ExecutionResult.failure("When using aura, you should only have one card selected.")
+        end
+
+        return ExecutionResult.success()
+    end
+
     if #selected_hand_index > G.hand.config.highlighted_limit then
         return ExecutionResult.failure(
             "You can only highlight a max of " .. G.hand.config.highlighted_limit .. "card per action.")
