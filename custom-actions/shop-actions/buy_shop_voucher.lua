@@ -23,25 +23,44 @@ end
 
 function BuyVoucher:_get_schema()
 	local hand_length = RunHelper:get_hand_length(G.shop_vouchers.cards)
+    if #G.shop_vouchers.cards > 1 then
+        return JsonUtils.wrap_schema({
+            voucher_index = {
+                enum = hand_length
+        }
+        })
+    end
     return JsonUtils.wrap_schema({},false)
 end
 
 function BuyVoucher:_validate_action(data, state)
+    local selected_index = data._data["voucher_index"] or 1
 	local voucher = G.shop_vouchers.cards[1]
 
     if ((G.GAME.dollars-G.GAME.bankrupt_at) - voucher.children.price.parent.cost < 0) then
         return ExecutionResult.failure("You do not have the money to buy the voucher.")
     end
 
+    if #G.shop_vouchers.cards <= 1 then
+        return ExecutionResult.success()
+    end
+
+    local valid_voucher_indices = RunHelper:get_hand_length(G.shop_vouchers.cards)
+    if not RunHelper:value_in_table(valid_voucher_indices,selected_index) then
+        return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("voucher_index"))
+    end
+
+    state["voucher_index"] = selected_index
     return ExecutionResult.success()
 end
 
 function BuyVoucher:_execute_action(state)
-	local voucher = G.shop_vouchers.cards[1]
+    local selected_index = state["voucher_index"] or 1
+	local voucher = G.shop_vouchers.cards[selected_index]
 
 	voucher.children.buy_button.definition.nodes[1].config.button_UIE:click()
 
-	self.hook:register_store_actions(2 * G.SPEEDFACTOR,self.hook)
+	self.hook:register_store_actions(2,self.hook)
 end
 
 return BuyVoucher
