@@ -44,7 +44,7 @@ function BuyBooster:_validate_action(data, state)
     end
 
 	state["booster_index"] = selected_index
-    return ExecutionResult.success("opening " .. booster.ability.name)
+    return ExecutionResult.success("Opening " .. booster.ability.name)
 end
 
 function BuyBooster:_execute_action(state)

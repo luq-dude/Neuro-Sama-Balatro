@@ -26,9 +26,9 @@ end
 
 function RerollShop:_validate_action(data, state)
     if G.GAME.current_round.free_rerolls >= 1 then
-        return ExecutionResult.success("You have skipped this round using a free reroll, you have " .. tostring(G.GAME.current_round.free_rerolls) .. " free rerolls left.")
+        return ExecutionResult.success("You rerolled the shop using free reroll, you have " .. tostring(G.GAME.current_round.free_rerolls) .. " free rerolls left.")
     else
-        return ExecutionResult.success("You have skipped this round using your money, it cost: " .. tostring(G.GAME.current_round.reroll_cost))
+        return ExecutionResult.success("You rerolled the shop using your money, it cost $" .. tostring(G.GAME.current_round.reroll_cost))
     end
 end
 

@@ -57,7 +57,12 @@ function RunHelper:get_query_string(state)
         if enhancements ~= "" or editions ~= "" or seals ~= "" then -- probably dont need this if there are no card modifiers
             state_string = "These are what the modifiers on your cards in hand do. A card can have one edition, enhancement or seal on it: \n" .. enhancements .. "\n" .. editions .."\n" .. seals
         end
-        state_string = state_string .. "These are the cards in your hand, their modifiers and if they are debuffed. Debuffed cards do not get scored: " .. table.table_to_string(GetRunText:get_card_modifiers(G.hand.cards,G.GAME.blind.boss))
+        if G.GAME.blind.boss then
+            state_string = state_string .. "These are the cards in your hand, their modifiers and if they are debuffed. Debuffed cards do not get scored: "
+        else
+            state_string = state_string .. "These are the cards in your hand and their modifiers: "
+        end
+        state_string = state_string .. table.table_to_string(GetRunText:get_card_modifiers(G.hand.cards,G.GAME.blind.boss))
     elseif state == G.STATES.SHOP then
         query_string = "You are now in the shop! You can use your money to buy cards, booster packs or vouchers to help your run. You can also use consumables and sell jokers/consumables you no longer need. When done shopping, you can exit the shop to blind selection."
         state_string = "You currently have $" .. tostring(G.GAME.dollars) .. " to spend."

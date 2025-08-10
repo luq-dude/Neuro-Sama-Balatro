@@ -18,7 +18,7 @@ function BuyVoucher:_get_name()
 end
 
 function BuyVoucher:_get_description()
-    return "This will buy the voucher available in the shop."
+    return "This will buy a voucher available in the shop."
 end
 
 function BuyVoucher:_get_schema()
