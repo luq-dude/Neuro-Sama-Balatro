@@ -10,6 +10,10 @@ return {
     -- profile in this slot.
     ["PROFILE_SLOT"] = 3,
 
+    -- If true, the game will restart if there is a crash after smods is loaded.
+    -- This should be set to false if you need to see logs without checking their respective folder.
+    ["CAN_RESTART_ON_CRASH"] = true,
+
     -- If true, Neuro will have all decks, jokers, vouchers, etc unlocked
     ["UNLOCK_ALL"] = true,
 
