@@ -27,8 +27,9 @@ function GetRunText:get_celestial_names(card_hand)
     return cards
 end
 
-function GetRunText:get_celestial_details(card_hand,add_cost)
+function GetRunText:get_celestial_details(card_hand,add_cost,count)
     add_cost = add_cost or false
+    count = count or false
     local cards = {}
 
 	for pos, card in ipairs(card_hand) do
@@ -51,8 +52,7 @@ function GetRunText:get_celestial_details(card_hand,add_cost)
                     }
 
                 localize{type = 'descriptions', key = v.key, set = v.set, nodes = loc_nodes, vars = loc_args}
-
-                local description = "\n" .. name .. ": "
+                local description = "\n" .. (count and ("- " .. #cards + 1 .. ": ") or "") .. name .. ": "
                 for _, line in ipairs(loc_nodes) do
                     for _, word in ipairs(line) do
                         if word.nodes ~= nil then
@@ -93,8 +93,9 @@ function GetRunText:get_joker_names(card_hand)
     return cards
 end
 
-function GetRunText:get_joker_details(card_hand,add_cost)
+function GetRunText:get_joker_details(card_hand,add_cost,count)
     add_cost = add_cost or false
+    count = count or false
     local cards = {}
 
 	for pos, card in ipairs(card_hand) do
@@ -121,7 +122,10 @@ function GetRunText:get_joker_details(card_hand,add_cost)
 
                 localize{type = 'descriptions', key = v.key, set = v.set, nodes = loc_nodes, vars = loc_args}
 
-                local description = "\n" .. name .. ": "
+                local description = "\n" .. (count and ("- " .. #cards + 1 .. ": ") or "") .. name .. ": "
+                if name == "Misprint" then
+                    description = description .. "Gives a random amount of mult from +0 to +23 (inclusive)"
+                end
                 for _, line in ipairs(loc_nodes) do
                     for _, word in ipairs(line) do
                         if word.nodes ~= nil then
@@ -165,8 +169,9 @@ function GetRunText:get_spectral_names(card_hand)
     return cards
 end
 
-function GetRunText:get_spectral_details(card_hand,add_cost)
+function GetRunText:get_spectral_details(card_hand,add_cost,count)
     add_cost = add_cost or false
+    count = count or false
     local cards = {}
 
 	for pos, card in ipairs(card_hand) do
@@ -194,7 +199,7 @@ function GetRunText:get_spectral_details(card_hand,add_cost)
 
                 localize{type = 'descriptions', key = g_card.key or key_override, set = g_card.set, nodes = loc_nodes, vars = loc_args}
 
-                local description = "\n" .. name .. ": "
+                local description = "\n" .. (count and ("- " .. #cards + 1 .. ": ") or "") .. name .. ": "
                 for _, line in ipairs(loc_nodes) do
                     for _, word in ipairs(line) do
                         if word.nodes ~= nil then
@@ -238,18 +243,19 @@ function GetRunText:get_tarot_names(card_hand)
     return cards
 end
 
-function GetRunText:get_tarot_details(card_hand,add_cost)
+function GetRunText:get_tarot_details(card_hand,add_cost,count)
     add_cost = add_cost or false
+    count = count or false
     local cards = {}
 
 	for pos, card in ipairs(card_hand) do
 		local tarot_desc = ""
 
-        if card.ability.set == 'Tarot' then
+        if card.ability.set == 'Tarot' or card.ability.name == "The Soul" then
             local key_override = nil
             for card_id, g_card in pairs(G.P_CENTERS) do
                 if g_card.name ~= card.ability.name then goto continue end
-                local loc_lookup = Tarot_Loc[card_id]
+                local loc_lookup = Tarot_Loc[card_id] or Spectral_Loc[card_id]
                 local loc_args = {}
                 local loc_nodes = {}
                 local name = card.ability.name
@@ -267,7 +273,7 @@ function GetRunText:get_tarot_details(card_hand,add_cost)
 
                 localize{type = 'descriptions', key = g_card.key or key_override, set = g_card.set or card.ability.set, nodes = loc_nodes, vars = loc_args}
 
-                local description = "\n" .. name .. ": "
+                local description = "\n" .. (count and ("- " .. #cards + 1 .. ": ") or "") .. name .. ": "
                 for _, line in ipairs(loc_nodes) do
                     for _, word in ipairs(line) do
                         if word.nodes ~= nil then
@@ -293,8 +299,9 @@ function GetRunText:get_tarot_details(card_hand,add_cost)
     return cards
 end
 
-function GetRunText:get_booster_details(boosters,add_cost)
+function GetRunText:get_booster_details(boosters,add_cost,count)
     add_cost = add_cost or false
+    count = count or false
     local shop_boosters = {}
 
 	for pos, booster in ipairs(boosters) do
@@ -321,7 +328,7 @@ function GetRunText:get_booster_details(boosters,add_cost)
 
                 localize{type = 'descriptions', key = key_override, set = "Other" or booster.ability.set, nodes = loc_nodes, vars = loc_args}
 
-                local description = "\n" .. name .. ": "
+                local description = "\n" .. (count and ("- " .. #shop_boosters + 1 .. ": ") or "") .. name .. ": "
                 for _, line in ipairs(loc_nodes) do
                     for _, word in ipairs(line) do
                         if word.nodes ~= nil then
@@ -347,8 +354,9 @@ function GetRunText:get_booster_details(boosters,add_cost)
     return shop_boosters
 end
 
-function GetRunText:get_voucher_details(voucher_table,add_cost)
+function GetRunText:get_voucher_details(voucher_table,add_cost,count)
     add_cost = add_cost or false
+    count = count or false
     local vouchers = {}
 
 	for pos, voucher in ipairs(voucher_table) do
@@ -374,7 +382,7 @@ function GetRunText:get_voucher_details(voucher_table,add_cost)
 
                 localize{type = 'descriptions', key = g_card.key, set = g_card.set, nodes = loc_nodes, vars = loc_args}
 
-                local description = "\n" .. name .. ": "
+                local description = "\n" .. (count and ("- " .. #vouchers + 1 .. ": ") or "") .. name .. ": "
                 for _, line in ipairs(loc_nodes) do
                     for _, word in ipairs(line) do
                         if word.nodes ~= nil then
@@ -400,32 +408,34 @@ function GetRunText:get_voucher_details(voucher_table,add_cost)
     return vouchers
 end
 
-function GetRunText:get_shop_text(card_table,add_cost)
+function GetRunText:get_shop_text(card_table,add_cost,count)
     add_cost = add_cost or false
+    count = count or false
     local card = card_table[1]
 
     if card.ability.set == "Booster" then
-        return GetRunText:get_booster_details(card_table,add_cost)
+        return GetRunText:get_booster_details(card_table,add_cost,count)
     elseif card.ability.set == "Voucher" then
-        return GetRunText:get_voucher_details(card_table,add_cost)
+        return GetRunText:get_voucher_details(card_table,add_cost,count)
     elseif card.ability.set == "Joker" then
-        return GetRunText:get_joker_details(card_table,add_cost)
+        return GetRunText:get_joker_details(card_table,add_cost,count)
     end
 end
 
-function GetRunText:get_consumeables_text(cards,add_cost)
+function GetRunText:get_consumeables_text(cards,add_cost,count)
     add_cost = add_cost or false
+    count = count or false
     local cards_details = {}
 
     for index, card in ipairs(cards) do
         if card.ability.set == "Planet" then
-            cards_details[#cards_details+1] = GetRunText:get_celestial_details({card},add_cost)[1]
+            cards_details[#cards_details+1] = (count and ("\n" .. "- " .. #cards_details + 1 .. ": ") or "") .. string.sub(GetRunText:get_celestial_details({card},add_cost)[1], 2) 
         elseif card.ability.set == "Tarot" then
-            cards_details[#cards_details+1] = GetRunText:get_tarot_details({card},add_cost)[1]
+            cards_details[#cards_details+1] = (count and ("\n" .. "- " .. #cards_details + 1 .. ": ")) .. string.sub(GetRunText:get_tarot_details({card},add_cost)[1], 2)
         elseif card.ability.set == "Spectral" then
-            cards_details[#cards_details+1] = GetRunText:get_spectral_details({card},add_cost)[1]
+            cards_details[#cards_details+1] = (count and ("\n" .. "- " .. #cards_details + 1 .. ": ")) .. string.sub(GetRunText:get_spectral_details({card},add_cost)[1], 2)
         elseif card.ability.set == "Joker" then
-            cards_details[#cards_details+1] = GetRunText:get_joker_details({card},add_cost)[1]
+            cards_details[#cards_details+1] = (count and ("\n" .. "- " .. #cards_details + 1 .. ": ")) .. string.sub(GetRunText:get_joker_details({card},add_cost)[1], 2)
         end
     end
 

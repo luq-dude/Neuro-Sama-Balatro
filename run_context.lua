@@ -6,14 +6,14 @@ local RunContext = {}
 function RunContext:no_hand_booster()
 	if G.pack_cards == nil or G.pack_cards.cards == nil or G.pack_cards.cards == {} then return end
     if SMODS.OPENED_BOOSTER.config.center.kind == "Buffoon" or G.pack_cards.cards[1].ability.set == "Joker" then
-        local hand = table.table_to_string(GetRunText:get_joker_details(G.pack_cards.cards))
+        local hand = table.table_to_string(GetRunText:get_joker_details(G.pack_cards.cards, false, true))
 
         return string.format("These are the jokers in this pack: " ..
         hand .. "\n" ..
         "You can only select a joker if you have the inventory space for it. " ..
         "Jokers are the main deckbuilding component of Balatro and can provide a variety of effects that help in scoring or provide extra money or consumables.")
     elseif SMODS.OPENED_BOOSTER.config.center.kind == "Celestial" or G.pack_cards.cards[1].ability.set == "Celestial" then
-        local hand = table.table_to_string(GetRunText:get_celestial_details(G.pack_cards.cards))
+        local hand = table.table_to_string(GetRunText:get_celestial_details(G.pack_cards.cards, false, true))
 
         return string.format("These are the planet cards in this pack: " ..
         hand .. "\n" ..
@@ -64,13 +64,13 @@ function RunContext:hand_pack_booster()
 
     if G.pack_cards == nil or G.pack_cards.cards == nil or G.pack_cards.cards == {} then return end
     if SMODS.OPENED_BOOSTER.config.center.kind == "Spectral" then
-        local pack_hand = table.table_to_string(GetRunText:get_spectral_details(G.pack_cards.cards))
+        local pack_hand = table.table_to_string(GetRunText:get_spectral_details(G.pack_cards.cards, false, true))
         return string.format("These are the consumables in this pack: " .. pack_hand), hand_string
     elseif SMODS.OPENED_BOOSTER.config.center.kind == "Arcana" then
-        local pack_hand = table.table_to_string(GetRunText:get_tarot_details(G.pack_cards.cards))
+        local pack_hand = table.table_to_string(GetRunText:get_tarot_details(G.pack_cards.cards, false, true))
         return string.format("These are the consumables in this pack: " .. pack_hand), hand_string
     else -- modded packs that dont contain contain a default set or if there is something I forgot
-        local pack_hand = table.table_to_string(GetRunText:get_hand_details(G.pack_cards.cards))
+        local pack_hand = table.table_to_string(GetRunText:get_hand_details(G.pack_cards.cards, false, true))
         return string.format("These are the consumables in this pack: " .. pack_hand), hand_string
     end
 end
