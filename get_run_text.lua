@@ -35,8 +35,9 @@ function GetRunText:get_celestial_details(card_hand,add_cost,count)
 	for pos, card in ipairs(card_hand) do
 		sendDebugMessage("start for loop")
 		local planet_desc = ""
-
-        if card.ability.set == "Planet" then
+        if card.ability.name == "Black Hole" then
+            planet_desc = "\n" .. (count and ("- " .. #cards + 1 .. ": ") or "") .. "Black Hole: Upgrades all poker hands by 1 level"
+        elseif card.ability.set == "Planet" then
             for _, v in pairs(G.P_CENTER_POOLS.Planet) do
                 local loc_args,loc_nodes = {}, {}
                 local name = card.ability.name
@@ -50,7 +51,6 @@ function GetRunText:get_celestial_details(card_hand,add_cost,count)
                     SMODS.PokerHand.obj_table[v.config.hand_type].level,localize(v.config.hand_type, 'poker_hands'), SMODS.PokerHand.obj_table[v.config.hand_type].l_mult, SMODS.PokerHand.obj_table[v.config.hand_type].l_chips,
                     colours = {(SMODS.PokerHand.obj_table[v.config.hand_type].level==1 and G.C.UI.TEXT_DARK or G.C.HAND_LEVELS[math.min(7, SMODS.PokerHand.obj_table[v.config.hand_type].level)])}
                     }
-
                 localize{type = 'descriptions', key = v.key, set = v.set, nodes = loc_nodes, vars = loc_args}
                 local description = "\n" .. (count and ("- " .. #cards + 1 .. ": ") or "") .. name .. ": "
                 for _, line in ipairs(loc_nodes) do
