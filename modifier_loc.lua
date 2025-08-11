@@ -18,9 +18,7 @@ Enhancement_Loc = {
 	m_lucky = function(card)
         return {G.GAME.probabilities.normal, card.config.mult, 5, card.config.p_dollars, 15, G.GAME.probabilities.normal}
     end,
-	m_steel = function(card)
-		return {card.config.extra.xmult}
-	end
+	m_steel = {"h_x_mult"}
 }
 
 Seal_Loc = {

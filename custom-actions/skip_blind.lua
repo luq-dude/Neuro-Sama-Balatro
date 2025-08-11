@@ -4,6 +4,7 @@ local PlayBlind = ModCache.load("custom-actions/play_blind.lua")
 local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
 local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
 local RerollBlind = ModCache.load("custom-actions/reroll_blind.lua")
+local GetText = ModCache.load("get_text.lua")
 local SkipBlind = setmetatable({}, { __index = NeuroAction })
 SkipBlind.__index = SkipBlind
 
@@ -17,7 +18,7 @@ function SkipBlind:_get_name()
 end
 
 function SkipBlind:_get_description()
-    return "Skip the selected blind"
+    return "Skips the selected blind, gaining a tag as a reward."
 end
 
 function SkipBlind:_get_schema()
@@ -48,7 +49,7 @@ function SkipBlind:_execute_action(state)
             if G.STATE ~= G.STATES.BLIND_SELECT then return false end
             local window = ActionWindow:new()
             window:set_force(0.0, "Choose to select, skip or reroll the currently selected blind",
-                "It is time for you to select a blind.")
+                GetText:generate_blind_descriptions())
             window:add_action(PlayBlind:new(window))
             if G.GAME.blind_on_deck ~= "Boss" then
                 window:add_action(SkipBlind:new(window))

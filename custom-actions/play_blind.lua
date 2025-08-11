@@ -16,7 +16,7 @@ function PlayBlind:_get_name()
 end
 
 function PlayBlind:_get_description()
-    return "Start the selected blind"
+    return "Start the selected blind."
 end
 
 function PlayBlind:_get_schema()

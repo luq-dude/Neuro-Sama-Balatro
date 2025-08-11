@@ -32,8 +32,11 @@ function UseConsumable:_get_description()
     end
 
     local description = string.format(
-        "Use a consumable in your consumable hand. This can either be planet, spectral or tarot cards," ..
-        " Each type will affect the game in it's own unique way" ..
+        "Use or sell a consumable in your consumable hand. This will either be planet, spectral or tarot cards." ..
+        " Each card has a unqiue effect that will alter your run and help you build your deck." ..
+        " Some consumeables need to be used on cards in hand." ..
+        " Specify the consumable to use with consumable_index and use cards_index to specify what cards in hand to use it on" ..
+        " Here is a list of all consumeables you have: " ..
         table.concat(cards, "", 1, #cards))
 
     return description
@@ -80,8 +83,8 @@ function UseConsumable:_validate_action(data, state)
         end) then
         return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("consumable_index"))
     end
-
-    local card_config = G.consumeables.cards[tonumber(selected_consumable)].config.center.config
+    local card = G.consumeables.cards[tonumber(selected_consumable)]
+    local card_config = card.config.center.config
 
     if not selected_consumable then
         return ExecutionResult.failure("issue with selected_consumable")
@@ -135,7 +138,10 @@ function UseConsumable:_validate_action(data, state)
     state["card_action"] = selected_action
     state["consumable_index"] = selected_consumable
     state["cards_index"] = selected_hand_index
-    return ExecutionResult.success()
+    if selected_action == "Use" then
+        return ExecutionResult.success("Using " .. card.config.center.name)
+    end
+    return ExecutionResult.success("Selling the " .. card.config.center.name .. " for " .. card.sell_cost)
 end
 
 function UseConsumable:_execute_action(state)

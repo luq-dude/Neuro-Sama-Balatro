@@ -289,19 +289,19 @@ function PlayingRun:register_store_actions(delay,hook)
             if (G.GAME.dollars-G.GAME.bankrupt_at) - G.GAME.current_round.reroll_cost < 0 and G.GAME.current_round.free_rerolls < 1 then
             else
                 actions[#actions+1] = RerollShop
-                state = state .. "\n Rerolling the shop costs: $" .. G.GAME.current_round.reroll_cost .. " You have" .. G.GAME.current_round.free_rerolls .. " free rerolls."
+                state = state .. "\nRerolling the shop costs $" .. G.GAME.current_round.reroll_cost .. ". You have " .. G.GAME.current_round.free_rerolls .. " free rerolls."
             end
             if #G.shop_jokers.cards > 0 then
                 actions[#actions+1] = BuyShopCard
-                state = state .. "\n These are the cards in the shop right now: " .. table.table_to_string(GetRunText:get_consumeables_text(G.shop_jokers.cards,true))
+                state = state .. "\nThese are the cards in the shop right now: " .. table.table_to_string(GetRunText:get_consumeables_text(G.shop_jokers.cards,true, true))
             end
             if #G.shop_booster.cards > 0 then
                 actions[#actions+1] = BuyShopBooster
-                state = state .. "\n These are the booster packs in the shop: " .. table.table_to_string(GetRunText:get_shop_text(G.shop_booster.cards,true))
+                state = state .. "\nThese are the booster packs in the shop: " .. table.table_to_string(GetRunText:get_shop_text(G.shop_booster.cards,true, true))
             end
             if #G.shop_vouchers.cards > 0 then
                 actions[#actions+1] = BuyShopVoucher
-                state = state .. "\n This is the voucher in the shop: " .. table.table_to_string(GetRunText:get_shop_text(G.shop_vouchers.cards,true))
+                state = state .. "\nThis is the voucher in the shop: " .. table.table_to_string(GetRunText:get_shop_text(G.shop_vouchers.cards,true, true))
             end
 
             actions[#actions+1] = DeckTypes
