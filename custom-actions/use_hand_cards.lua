@@ -93,6 +93,24 @@ function UseHandCards:_validate_action(data, state)
             "You have no discards left.")
     end
 
+    if table.any(G.hand.cards,function (card)
+            return card.ability.forced_selection
+    end) == true then
+        if #selected_index >= G.hand.config.highlighted_limit then
+            return ExecutionResult.failure("A card is always selected in this blind, you should only select " .. G.hand.config.highlighted_limit - 1 .. " cards.")
+        end
+        local index = -1
+        for _, card_index in ipairs(selected_index) do
+            if G.hand.cards[card_index].ability.forced_selection then
+                index = card_index
+            end
+        end
+
+        if index ~= -1 then
+            return ExecutionResult.failure("You should not select the force selected card.")
+        end
+    end
+
     state["card_action"] = selected_action
     state["cards_index"] = selected_index
     local cards = {}

@@ -81,7 +81,8 @@ function UseConsumable:_validate_action(data, state)
         return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("consumable_index"))
     end
 
-    local card_config = G.consumeables.cards[tonumber(selected_consumable)].config.center.config
+    local card = G.consumeables.cards[tonumber(selected_consumable)]
+    local card_config = card.config.center.config
 
     if not selected_consumable then
         return ExecutionResult.failure("issue with selected_consumable")
@@ -109,14 +110,29 @@ function UseConsumable:_validate_action(data, state)
         return ExecutionResult.failure("You cannot select the same card index more than once.")
     end
 
-    if G.STATE == G.STATES.SHOP and card_config.max_highlighted ~= nil then
-        return ExecutionResult.failure(
-            "You cannot use this card in the shop as selecting cards is needed for it to work.")
-    end
-
     if #selected_hand_index > G.hand.config.highlighted_limit then
         return ExecutionResult.failure(
             "You can only highlight a max of " .. G.hand.config.highlighted_limit .. "card per action.")
+    end
+
+    if #selected_hand_index > 0 and selected_action == "Sell" then
+        return ExecutionResult.failure("You cannot select cards when trying to sell a card")
+    end
+
+    state["card_action"] = selected_action
+    state["consumable_index"] = selected_consumable
+    state["cards_index"] = selected_hand_index
+
+    local success, result_string = RunHelper:get_consumable_validation(card,selected_hand_index,selected_action)
+    if success then
+        return ExecutionResult.success(result_string)
+    elseif success == false then
+        return ExecutionResult.failure(result_string)
+    end
+
+    if G.STATE == G.STATES.SHOP and card_config.max_highlighted ~= nil then
+        return ExecutionResult.failure(
+            "You cannot use this card in the shop as selecting cards is needed for it to work.")
     end
 
     if #selected_hand_index > 0 and card_config.max_highlighted == nil then
@@ -126,15 +142,11 @@ function UseConsumable:_validate_action(data, state)
 
     if card_config.max_highlighted ~= nil then
         if #selected_hand_index ~= card_config.max_highlighted and selected_action == "Use" then
-            return ExecutionResult
-                .failure(
+            return ExecutionResult.failure(
                     "You have either selected too many cards or to little from your hand comparative to how many the tarot needs.")
         end
     end
 
-    state["card_action"] = selected_action
-    state["consumable_index"] = selected_consumable
-    state["cards_index"] = selected_hand_index
     return ExecutionResult.success()
 end
 

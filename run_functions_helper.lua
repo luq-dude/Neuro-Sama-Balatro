@@ -57,7 +57,13 @@ function RunHelper:get_query_string(state)
         if enhancements ~= "" or editions ~= "" or seals ~= "" then -- probably dont need this if there are no card modifiers
             state_string = "These are what the card's modifiers do, there can only be one edition,enhancement and seal on each card: \n" .. enhancements .. "\n" .. editions .."\n" .. seals
         end
-        state_string = state_string .. "These are the current cards in your hand, their modifiers and if they are debuffed: " .. table.table_to_string(GetRunText:get_card_modifiers(G.hand.cards,G.GAME.blind.boss))
+        local forced = false
+        if table.any(G.hand.cards,function (card)
+            return card.ability.forced_selection
+        end) == true then
+            forced = true
+        end
+        state_string = state_string .. "These are the current cards in your hand, their modifiers and if they are debuffed: " .. table.table_to_string(GetRunText:get_card_modifiers(G.hand.cards,G.GAME.blind.boss,forced))
     elseif state == G.STATES.SHOP then
         query_string = "You are now in the shop! you can either use your money to, buy items to help you in this run or reroll to see new items."
         state_string = "You currently have $" .. tostring(G.GAME.dollars) .. " to spend."
@@ -73,6 +79,80 @@ function RunHelper:get_query_string(state)
     end
 
     return query_string, state_string
+end
+
+function RunHelper:get_consumable_validation(card,selected_hand_index,selected_action)
+    selected_action = selected_action or "Use"
+    local success_string = ""
+
+    if table.contains_key(Non_Valid_Modify_Joker_Consumables,card.config.center_key) == true then
+        if #G.jokers.cards < 1 and selected_action == "Use" then
+            success_string = "This card requires a joker to be used."
+            return false, success_string
+        end
+
+        if #selected_hand_index > 0 then
+            success_string = "You cannot select any cards when using this card."
+            return false, success_string
+        end
+
+        return false, success_string
+    end
+
+    -- these are cards that need room but do not list needed space in their config. These all add to joker
+    if table.contains_key(Non_Valid_Add_Joker_Consumables,card.config.center_key) == true then
+        if #G.jokers.cards >= G.jokers.config.card_limit and selected_action == "Use" then
+            success_string = "You can not use this card as you already have the maximum amount of jokers."
+            return false, success_string
+        end
+
+        if #selected_hand_index > 0 then
+            success_string = "You cannot select any cards when using this card"
+            return false, success_string
+        end
+
+        return false, success_string
+    end
+
+    if #table.get_keys(card.ability.consumeable) > 0 then
+        local card_amount = 0
+        for card_type, amount in pairs(card.ability.consumeable) do
+            if card_type == "spectrals" or card_type == "planets" or card_type == "tarots" then
+                card_amount = card_amount + amount
+            else -- certain other cards use .consumeable, we don't want those though.
+                return nil,""
+            end
+        end
+
+        if #selected_hand_index > 0 then
+            success_string = "You cannot select any cards when using this card"
+            return false, success_string
+        end
+
+        if (#G.consumeables.cards - 1) + card_amount > G.consumeables.config.card_limit and selected_action == "Use" then -- remove one for the card being removed
+            success_string = "This card is only going to add " .. (#G.consumeables.cards - 1) - card_amount .. " consumables"
+            return false, success_string
+        end
+
+        return true, success_string
+    end
+
+    if card.config.center_key == "c_aura" then
+        if G.STATE == G.STATES.SHOP and selected_action == "Use" then
+            success_string = "You cannot use aura in the shop."
+            return false, success_string
+        end
+
+        if #selected_hand_index ~= 1 and selected_action == "Use" then
+            success_string = "Aura requires for only one card to be selected."
+            return false, success_string
+        end
+
+        return true, success_string
+    end
+
+    return nil, nil
+
 end
 
 return RunHelper

@@ -433,8 +433,9 @@ function GetRunText:get_consumeables_text(cards,add_cost)
 end
 
 -- playing card stuff
-function GetRunText:get_card_modifiers(card_hand,add_debuff_state)
+function GetRunText:get_card_modifiers(card_hand,add_debuff_state,add_forced_state)
     add_debuff_state = add_debuff_state or false
+    add_forced_state = add_forced_state or false
     local cards = {}
 
 	for pos, card in ipairs(card_hand) do
@@ -499,9 +500,14 @@ function GetRunText:get_card_modifiers(card_hand,add_debuff_state)
             card_desc = card_desc .. ", Debuffed: " .. tostring(card.debuff) -- this is a boolean
         end
 
+        if add_forced_state then
+            if card.ability.forced_selection then
+                card_desc = card_desc .. ", Force selected: " .. tostring(card.ability.forced_selection)
+            end
+        end
+
         cards[#cards+1] = card_desc
     end
-
 
     return cards
 end
