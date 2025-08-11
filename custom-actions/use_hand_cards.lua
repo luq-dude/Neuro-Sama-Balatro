@@ -96,9 +96,6 @@ function UseHandCards:_validate_action(data, state)
     if table.any(G.hand.cards,function (card)
             return card.ability.forced_selection
     end) == true then
-        if #selected_index >= G.hand.config.highlighted_limit then
-            return ExecutionResult.failure("A card is always selected in this blind, you should only select " .. G.hand.config.highlighted_limit - 1 .. " cards.")
-        end
         local index = -1
         for _, card_index in ipairs(selected_index) do
             if G.hand.cards[card_index].ability.forced_selection then
@@ -106,8 +103,8 @@ function UseHandCards:_validate_action(data, state)
             end
         end
 
-        if index ~= -1 then
-            return ExecutionResult.failure("You should not select the force selected card.")
+        if index == -1 then
+            return ExecutionResult.failure("You must select the force selected card.")
         end
     end
 
@@ -130,7 +127,9 @@ function UseHandCards:_execute_action(state)
     RunHelper:reorder_card_area(G.hand, selected_index)
 
     for i = 1, #selected_index do
-        G.hand:add_to_highlighted(G.hand.cards[i])
+        if not G.hand.cards[i].ability.forced_selection then
+            G.hand:add_to_highlighted(G.hand.cards[i])
+        end
     end
 
     self.hook.HookRan = false
