@@ -80,7 +80,7 @@ function BuyShopCard:_validate_action(data, state)
 
     state["selected_action"] = selected_action
     state["selected_index"] = selected_index
-    return ExecutionResult.success()
+    return ExecutionResult.success("Buying " .. (selected_action == "buy and use" and "and using " or "") .. card.config.center.name)
 end
 
 function BuyShopCard:_execute_action(state)

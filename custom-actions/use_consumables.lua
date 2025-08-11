@@ -83,8 +83,8 @@ function UseConsumable:_validate_action(data, state)
         end) then
         return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("consumable_index"))
     end
-
-    local card_config = G.consumeables.cards[tonumber(selected_consumable)].config.center.config
+    local card = G.consumeables.cards[tonumber(selected_consumable)]
+    local card_config = card.config.center.config
 
     if not selected_consumable then
         return ExecutionResult.failure("issue with selected_consumable")
@@ -138,7 +138,10 @@ function UseConsumable:_validate_action(data, state)
     state["card_action"] = selected_action
     state["consumable_index"] = selected_consumable
     state["cards_index"] = selected_hand_index
-    return ExecutionResult.success()
+    if selected_action == "Use" then
+        return ExecutionResult.success("Using " .. card.config.center.name)
+    end
+    return ExecutionResult.success("Selling the " .. card.config.center.name .. " for " .. card.sell_cost)
 end
 
 function UseConsumable:_execute_action(state)
