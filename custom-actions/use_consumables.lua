@@ -149,7 +149,7 @@ function UseConsumable:_validate_action(data, state)
 
     if table.any(G.hand.cards,function (force_card)
             return force_card.ability.forced_selection
-    end) == true and selected_action == "Use" then
+    end) == true and selected_action == "Use" and card_config.max_highlighted ~= nil then
         local index = -1
         for _, card_index in ipairs(selected_hand_index) do
             if G.hand.cards[card_index].ability.forced_selection then
