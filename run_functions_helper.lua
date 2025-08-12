@@ -81,8 +81,9 @@ function RunHelper:get_query_string(state)
     return query_string, state_string
 end
 
-function RunHelper:get_consumable_validation(card,selected_hand_index,selected_action)
+function RunHelper:get_consumable_validation(card,selected_hand_index,selected_action,forced_selection)
     selected_action = selected_action or "Use"
+    forced_selection = forced_selection or false
     local success_string = ""
 
     if table.contains_key(Non_Valid_Modify_Joker_Consumables,card.config.center_key) == true then
@@ -112,6 +113,20 @@ function RunHelper:get_consumable_validation(card,selected_hand_index,selected_a
         end
 
         return true, success_string
+    end
+
+    if forced_selection and table.any(G.hand.cards,function (force_card) return force_card.ability.forced_selection end) == true then
+        local index = -1
+        for _, card_index in ipairs(selected_hand_index) do
+            if G.hand.cards[card_index].ability.forced_selection then
+                index = card_index
+            end
+        end
+
+        if index == -1 then
+            success_string = "You must select the force selected card."
+            return false, success_string
+        end
     end
 
     if #table.get_keys(card.ability.consumeable) > 0 then

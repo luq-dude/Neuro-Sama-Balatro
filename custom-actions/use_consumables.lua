@@ -123,7 +123,7 @@ function UseConsumable:_validate_action(data, state)
     state["consumable_index"] = selected_consumable
     state["cards_index"] = selected_hand_index
 
-    local success, result_string = RunHelper:get_consumable_validation(card,selected_hand_index,selected_action)
+    local success, result_string = RunHelper:get_consumable_validation(card,selected_hand_index,selected_action,true)
     if success then
         return ExecutionResult.success(result_string)
     elseif success == false then
@@ -144,6 +144,21 @@ function UseConsumable:_validate_action(data, state)
         if #selected_hand_index ~= card_config.max_highlighted and selected_action == "Use" then
             return ExecutionResult.failure(
                     "You have either selected too many cards or to little from your hand comparative to how many the tarot needs.")
+        end
+    end
+
+    if table.any(G.hand.cards,function (force_card)
+            return force_card.ability.forced_selection
+    end) == true and selected_action == "Use" then
+        local index = -1
+        for _, card_index in ipairs(selected_hand_index) do
+            if G.hand.cards[card_index].ability.forced_selection then
+                index = card_index
+            end
+        end
+
+        if index == -1 then
+            return ExecutionResult.failure("You must select the force selected card.")
         end
     end
 
@@ -168,7 +183,9 @@ function UseConsumable:_execute_action(state)
         end
 
         for i = 1, #selected_index do
-            G.hand:add_to_highlighted(G.hand.cards[i])
+            if not G.hand.cards[i].ability.forced_selection then
+                G.hand:add_to_highlighted(G.hand.cards[i])
+            end
         end
     end
 
