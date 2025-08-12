@@ -123,7 +123,7 @@ function RunHelper:get_consumable_validation(card,selected_hand_index,selected_a
             end
         end
 
-        if index == -1 then
+        if index == -1 and (#table.get_keys(card.ability.consumeable) > 0 or card.config.center_key == "c_aura") then
             success_string = "You must select the force selected card."
             return false, success_string
         end
