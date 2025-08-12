@@ -115,20 +115,6 @@ function RunHelper:get_consumable_validation(card,selected_hand_index,selected_a
         return true, success_string
     end
 
-    if forced_selection and table.any(G.hand.cards,function (force_card) return force_card.ability.forced_selection end) == true then
-        local index = -1
-        for _, card_index in ipairs(selected_hand_index) do
-            if G.hand.cards[card_index].ability.forced_selection then
-                index = card_index
-            end
-        end
-
-        if index == -1 and (#table.get_keys(card.ability.consumeable) > 0 or card.config.center_key == "c_aura") then
-            success_string = "You must select the force selected card."
-            return false, success_string
-        end
-    end
-
     if #table.get_keys(card.ability.consumeable) > 0 then
         local card_amount = 0
         for card_type, amount in pairs(card.ability.consumeable) do
@@ -145,11 +131,29 @@ function RunHelper:get_consumable_validation(card,selected_hand_index,selected_a
         end
 
         if (#G.consumeables.cards - 1) + card_amount > G.consumeables.config.card_limit and selected_action == "Use" then -- remove one for the card being removed
-            success_string = "This card is only going to add " .. (#G.consumeables.cards - 1) - card_amount .. " consumables"
-            return false, success_string
+            if card.area == G.pack_cards then
+                success_string = "This card is only going to add " .. #G.consumeables.cards - card_amount .. " consumables"
+            else
+                success_string = "This card is only going to add " .. (#G.consumeables.cards - 1) - card_amount .. " consumables"
+            end
+            return true, success_string
         end
 
         return true, success_string
+    end
+
+    if forced_selection and table.any(G.hand.cards,function (force_card) return force_card.ability.forced_selection end) == true then
+        local index = -1
+        for _, card_index in ipairs(selected_hand_index) do
+            if G.hand.cards[card_index].ability.forced_selection then
+                index = card_index
+            end
+        end
+
+        if index == -1 and card.config.center_key == "c_aura" then
+            success_string = "You must select the force selected card."
+            return false, success_string
+        end
     end
 
     if card.config.center_key == "c_aura" then
