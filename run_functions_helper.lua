@@ -96,7 +96,7 @@ function RunHelper:get_consumable_validation(card,selected_hand_index,selected_a
             return false, success_string
         end
 
-        return false, success_string
+        return true, success_string
     end
 
     -- these are cards that need room but do not list needed space in their config. These all add to joker
@@ -111,7 +111,7 @@ function RunHelper:get_consumable_validation(card,selected_hand_index,selected_a
             return false, success_string
         end
 
-        return false, success_string
+        return true, success_string
     end
 
     if #table.get_keys(card.ability.consumeable) > 0 then

@@ -88,6 +88,7 @@ function PickHandPackCards:_validate_action(data, state)
     local selected_pack_card = data._data["pack_card_index"]
     selected_hand_index = selected_hand_index._data
 
+    sendDebugMessage("selected_pack_card in vald: " .. tostring(selected_pack_card))
     local card = G.pack_cards.cards[selected_pack_card]
     local card_config = card.config.center.config
 
@@ -109,7 +110,6 @@ function PickHandPackCards:_validate_action(data, state)
 
     local success, result_string = RunHelper:get_consumable_validation(card,selected_hand_index)
     if success then
-        return ExecutionResult.success(result_string)
     elseif success == false then
         return ExecutionResult.failure(result_string)
     end
@@ -137,8 +137,10 @@ function PickHandPackCards:_execute_action(state)
     local selected_pack_card = state["pack_card_index"]
 
     local pack_cards_hand = G.pack_cards.cards
+    sendDebugMessage("selected: " .. tostring(selected_pack_card))
     local consumable = pack_cards_hand[selected_pack_card]
 
+    sendDebugMessage("pack cards: " .. tostring(consumable))
     G.pack_cards:add_to_highlighted(consumable)
 
     -- only select cards in hand if they are required
