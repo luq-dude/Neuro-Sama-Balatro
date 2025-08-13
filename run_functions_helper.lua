@@ -125,6 +125,10 @@ function RunHelper:get_consumable_validation(card,selected_hand_index,selected_a
         return true, success_string
     end
 
+    if card.config.center.name == "The Fool" and G.GAME.last_tarot_planet == nil or G.GAME.last_tarot_planet == 'c_fool' then
+        return false, "You cannot use The Fool right now, as you have either not played a tarot card yet, or your last played tarot card was also The Fool."
+    end
+
     -- specific check for the fool since if its from a pack then we need to check inventory space
     -- if its from the inventory then later on free space will always be at least 1 so were fine
     if #table.get_keys(card.ability.consumeable) or card.config.center.name == "The Fool" > 0 then
@@ -151,13 +155,13 @@ function RunHelper:get_consumable_validation(card,selected_hand_index,selected_a
                 return false, success_string
             elseif free_space >= card_amount then
                 return true, success_string
-            else 
+            else
                 success_string = success_string .. ". Only creating " .. card_amount - free_space .. " cards since your inventory is now full"
                 return true, success_string
             end
         end
 
-        return true, success_string       
+        return true, success_string
     end
 
     if forced_selection and table.any(G.hand.cards,function (force_card) return force_card.ability.forced_selection end) == true then
