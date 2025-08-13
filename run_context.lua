@@ -6,22 +6,22 @@ local RunContext = {}
 function RunContext:no_hand_booster()
 	if G.pack_cards == nil or G.pack_cards.cards == nil or G.pack_cards.cards == {} then return end
     if SMODS.OPENED_BOOSTER.config.center.kind == "Buffoon" or G.pack_cards.cards[1].ability.set == "Joker" then
-        local hand = table.table_to_string(GetRunText:get_joker_details(G.pack_cards.cards))
+        local hand = table.table_to_string(GetRunText:get_joker_details(G.pack_cards.cards, false, true))
 
-        return string.format("This is the hand of cards that are in this pack: " ..
+        return string.format("These are the jokers in this pack: " ..
         hand .. "\n" ..
-        "These cards will give passive bonuses after each hand played, these range from increasing the chips" ..
-        " increasing the mult of a hand or giving money or consumables after certain actions.")
+        "You can only select a joker if you have the inventory space for it. " ..
+        "Jokers are the main deckbuilding component of Balatro and can provide a variety of effects that help in scoring or provide extra money or consumables.")
     elseif SMODS.OPENED_BOOSTER.config.center.kind == "Celestial" or G.pack_cards.cards[1].ability.set == "Celestial" then
-        local hand = table.table_to_string(GetRunText:get_celestial_details(G.pack_cards.cards))
+        local hand = table.table_to_string(GetRunText:get_celestial_details(G.pack_cards.cards, false, true))
 
-        return string.format("This is the hand of cards that are in this pack: " ..
+        return string.format("These are the planet cards in this pack: " ..
         hand .. "\n" ..
-        "These cards will level up a poker hand and improve the scoring that you will receive for playing them.")
+        "Planet cards level up the base chips and mult of a specific poker hand.")
     elseif SMODS.OPENED_BOOSTER.config.center.kind == "Standard" or G.pack_cards.cards[1].ability.set == "Base" then
         local hand, enhancements, editions, seals = table.table_to_string(GetRunText:get_card_modifiers(G.pack_cards.cards)),GetRunText:get_current_hand_modifiers(G.pack_cards.cards)
 
-        local return_string = "This is the hand of cards that are in this pack: " .. hand .. "\n" .. "\n"
+        local return_string = "These are the playing cards in this pack: " .. hand .. "\n" .. "\n"
         if enhancements ~= "" or editions ~= "" or seals ~= "" then
             return_string = return_string .. string.format("These are the card modifiers that are on the cards right now," ..
             " there can only be one edition,enhancement and seal on each card: \n" ..
@@ -64,14 +64,14 @@ function RunContext:hand_pack_booster()
 
     if G.pack_cards == nil or G.pack_cards.cards == nil or G.pack_cards.cards == {} then return end
     if SMODS.OPENED_BOOSTER.config.center.kind == "Spectral" then
-        local pack_hand = table.table_to_string(GetRunText:get_spectral_details(G.pack_cards.cards))
-        return string.format("This is the hand of cards that are in this pack: " .. pack_hand), hand_string
+        local pack_hand = table.table_to_string(GetRunText:get_spectral_details(G.pack_cards.cards, false, true))
+        return string.format("These are the consumables in this pack: " .. pack_hand), hand_string
     elseif SMODS.OPENED_BOOSTER.config.center.kind == "Arcana" then
-        local pack_hand = table.table_to_string(GetRunText:get_tarot_details(G.pack_cards.cards))
-        return string.format("This is the hand of cards that are in this pack: " .. pack_hand), hand_string
+        local pack_hand = table.table_to_string(GetRunText:get_tarot_details(G.pack_cards.cards, false, true))
+        return string.format("These are the consumables in this pack: " .. pack_hand), hand_string
     else -- modded packs that dont contain contain a default set or if there is something I forgot
-        local pack_hand = table.table_to_string(GetRunText:get_hand_details(G.pack_cards.cards))
-        return string.format("This is the hand of cards that are in this pack: " .. pack_hand), hand_string
+        local pack_hand = table.table_to_string(GetRunText:get_hand_details(G.pack_cards.cards, false, true))
+        return string.format("These are the consumables in this pack: " .. pack_hand), hand_string
     end
 end
 

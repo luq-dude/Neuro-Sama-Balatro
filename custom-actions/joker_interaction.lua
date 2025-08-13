@@ -46,10 +46,10 @@ function JokerInteraction:_get_schema()
     local hand_length = RunHelper:get_hand_length(G.jokers.cards)
 
     return JsonUtils.wrap_schema({
-        card_action = {
+        joker_action = {
             enum = joker_action_options()
         },
-        cards_index = {
+        jokers_index = {
             type = "array",
             items = {
                 type = "integer",
@@ -60,8 +60,8 @@ function JokerInteraction:_get_schema()
 end
 
 function JokerInteraction:_validate_action(data, state)
-    local selected_action = data:get_string("card_action")
-    local selected_hand_index = data:get_object("cards_index")
+    local selected_action = data:get_string("joker_action")
+    local selected_hand_index = data:get_object("jokers_index")
     selected_hand_index = selected_hand_index._data
 
     if RunHelper:check_for_duplicates(selected_hand_index) == false then

@@ -17,7 +17,7 @@ function RerollShop:_get_name()
 end
 
 function RerollShop:_get_description()
-    return "Reroll the shop, this will add new cards to the shop if you have the money or if you have free rerolls."
+    return "Reroll the shop. This only rerolls cards, not booster packs or vouchers."
 end
 
 function RerollShop:_get_schema()
@@ -26,9 +26,9 @@ end
 
 function RerollShop:_validate_action(data, state)
     if G.GAME.current_round.free_rerolls >= 1 then
-        return ExecutionResult.success("You have skipped this round using a free reroll, you have " .. tostring(G.GAME.current_round.free_rerolls) .. " free rerolls left.")
+        return ExecutionResult.success("You rerolled the shop using free reroll, you have " .. tostring(G.GAME.current_round.free_rerolls) .. " free rerolls left.")
     else
-        return ExecutionResult.success("You have skipped this round using your money, it cost: " .. tostring(G.GAME.current_round.reroll_cost))
+        return ExecutionResult.success("You rerolled the shop using your money, it cost $" .. tostring(G.GAME.current_round.reroll_cost))
     end
 end
 

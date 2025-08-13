@@ -22,8 +22,8 @@ end
 function UseHandCards:_get_description()
     local description = string.format("Either play or discard a maximum of " ..
         G.hand.config.highlighted_limit .. " cards with your current hand." ..
-        "The cards will be ordered by the position they are located in your hand from left to right." ..
-        "When defining the card's index the first card will be 1, you should send these in the same order as you send the cards")
+        "The cards will be ordered by the position they are located in your hand from left to right," ..
+        " with the left-most card being index 1. Specify cards in cards_index in the order you wish for them to be used.")
 
     return description
 end

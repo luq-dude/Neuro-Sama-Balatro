@@ -279,6 +279,18 @@ function Hook:hook_game()
     PlayingRun:hook_evaluate_play()
 
     hook_blind_select()
+
+    Context.send("Welcome to Balatro! Balatro is a roguelike deck builder based around poker. " ..
+        "In each round, or blind, you can play or discard a limited number of hands consisting of up to 5 cards. " ..
+        "Each blind has a score requirement you have to reach, otherwise you will game over. " ..
+        "Each poker hand has a base chips and multiplier that determines how much the hand will score. " ..
+        "Then, every card played has it's value added to the chips (11 for Aces, 10 for King/Queen/Jack, then 10-2 for the rest). " ..
+        "Only cards that directly count to the poker hand are counted. For example, if you play a two pair with an extra 5th card, " ..
+        "the 5th card will not be counted. You may also get cards with modifiers like granting extra chips or mult when scored. " ..
+        "The main component of Balatro deckbuilding are jokers. Jokers grant a variety of effects, from extra chips or mult to money or even consumables. " ..
+        "The order in which you play cards and sort your jokers matter, as effects activate from left to right. " ..
+        "For example, any effect that multiplies your total mult should be after any effects that increase your total mult by a flat amount. " ..
+        "With the right setup of jokers, even a single high card can score more than a straight royal flush. Good luck!")
 end
 
 return Hook

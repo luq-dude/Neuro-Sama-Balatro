@@ -32,8 +32,11 @@ function UseConsumable:_get_description()
     end
 
     local description = string.format(
-        "Use a consumable in your consumable hand. This can either be planet, spectral or tarot cards," ..
-        " Each type will affect the game in it's own unique way" ..
+        "Use or sell a consumable in your consumable hand. This will either be planet, spectral or tarot cards." ..
+        " Each card has a unqiue effect that will alter your run and help you build your deck." ..
+        " Some consumeables need to be used on cards in hand." ..
+        " Specify the consumable to use with consumable_index and use cards_index to specify what cards in hand to use it on" ..
+        " Here is a list of all consumeables you have: " ..
         table.concat(cards, "", 1, #cards))
 
     return description
@@ -162,7 +165,10 @@ function UseConsumable:_validate_action(data, state)
         end
     end
 
-    return ExecutionResult.success()
+    if selected_action == "Use" then
+        return ExecutionResult.success("Using " .. card.config.center.name)
+    end
+    return ExecutionResult.success("Selling the " .. card.config.center.name .. " for " .. card.sell_cost)
 end
 
 function UseConsumable:_execute_action(state)
