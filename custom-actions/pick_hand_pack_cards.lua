@@ -128,7 +128,7 @@ function PickHandPackCards:_validate_action(data, state)
 
     state["cards_index"] = selected_hand_index
     state["pack_card_index"] = selected_pack_card
-    return ExecutionResult.success("Using the " .. card.config.center.name .. " card.")
+    return ExecutionResult.success(result_string)
 end
 
 function PickHandPackCards:_execute_action(state)

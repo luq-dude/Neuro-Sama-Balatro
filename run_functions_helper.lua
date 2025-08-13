@@ -84,7 +84,10 @@ end
 function RunHelper:get_consumable_validation(card,selected_hand_index,selected_action,forced_selection)
     selected_action = selected_action or "Use"
     forced_selection = forced_selection or false
-    local success_string = ""
+    local success_string = "Using " .. card.config.center.name
+    if selected_action == "Sell" then
+        success_string = "Selling the " .. card.config.center.name .. " for " .. card.sell_cost
+    end
 
     if table.contains_key(Non_Valid_Modify_Joker_Consumables,card.config.center_key) == true then
         if #G.jokers.cards < 1 and selected_action == "Use" then
@@ -130,16 +133,21 @@ function RunHelper:get_consumable_validation(card,selected_hand_index,selected_a
             return false, success_string
         end
 
-        if (#G.consumeables.cards - 1) + card_amount > G.consumeables.config.card_limit and selected_action == "Use" then -- remove one for the card being removed
-            if card.area == G.pack_cards then
-                success_string = "This card is only going to add " .. #G.consumeables.cards - card_amount .. " consumables"
-            else
-                success_string = "This card is only going to add " .. (#G.consumeables.cards - 1) - card_amount .. " consumables"
+        -- if its from the inventory then add 1 since were using up the card to create the extra ones
+        local free_space = G.consumeables.config.card_limit - #G.consumeables.cards + (card.area == G.pack_cards and 0 or 1)
+        if selected_action == "Use" then
+            if free_space <= 0 then
+                success_string = "You do not have any space in your consumable inventory to use this"
+                return false, success_string
+            elseif free_space >= card_amount then
+                return true, success_string
+            else 
+                success_string = success_string .. ". Only creating " .. card_amount - free_space .. " cards since your inventory is now full"
+                return true, success_string
             end
-            return true, success_string
         end
 
-        return true, success_string
+        return true, success_string       
     end
 
     if forced_selection and table.any(G.hand.cards,function (force_card) return force_card.ability.forced_selection end) == true then
