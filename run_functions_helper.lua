@@ -125,8 +125,11 @@ function RunHelper:get_consumable_validation(card,selected_hand_index,selected_a
         return true, success_string
     end
 
-    if #table.get_keys(card.ability.consumeable) > 0 then
+    -- specific check for the fool since if its from a pack then we need to check inventory space
+    -- if its from the inventory then later on free space will always be at least 1 so were fine
+    if #table.get_keys(card.ability.consumeable) or card.config.center.name == "The Fool" > 0 then
         local card_amount = 0
+        if card.config.center.name == "The Fool" then card_amount = 1 end
         for card_type, amount in pairs(card.ability.consumeable) do
             if card_type == "spectrals" or card_type == "planets" or card_type == "tarots" then
                 card_amount = card_amount + amount
