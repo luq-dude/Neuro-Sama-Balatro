@@ -183,13 +183,13 @@ end
 
 function PlayingRun:hook_discard_cards()
     local discard_cards = G.FUNCS.discard_cards_from_highlighted
-    function G.FUNCS.discard_cards_from_highlighted(e)
-        if PlayingRun.HookRan then
+    function G.FUNCS.discard_cards_from_highlighted(e, hook)
+        if PlayingRun.HookRan and not hook then
             PlayingRun.HookRan = false
             unregister_run_action()
         end
 
-        discard_cards(e)
+        discard_cards(e, hook)
     end
 end
 
