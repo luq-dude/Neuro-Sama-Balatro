@@ -431,11 +431,11 @@ function GetRunText:get_consumeables_text(cards,add_cost,count)
         if card.ability.set == "Planet" then
             cards_details[#cards_details+1] = (count and ("\n" .. "- " .. #cards_details + 1 .. ": ") or "") .. string.sub(GetRunText:get_celestial_details({card},add_cost)[1], 2) 
         elseif card.ability.set == "Tarot" then
-            cards_details[#cards_details+1] = (count and ("\n" .. "- " .. #cards_details + 1 .. ": ")) .. string.sub(GetRunText:get_tarot_details({card},add_cost)[1], 2)
+            cards_details[#cards_details+1] = (count and ("\n" .. "- " .. #cards_details + 1 .. ": ") or "") .. string.sub(GetRunText:get_tarot_details({card},add_cost)[1], 2)
         elseif card.ability.set == "Spectral" then
-            cards_details[#cards_details+1] = (count and ("\n" .. "- " .. #cards_details + 1 .. ": ")) .. string.sub(GetRunText:get_spectral_details({card},add_cost)[1], 2)
+            cards_details[#cards_details+1] = (count and ("\n" .. "- " .. #cards_details + 1 .. ": ") or "") .. string.sub(GetRunText:get_spectral_details({card},add_cost)[1], 2)
         elseif card.ability.set == "Joker" then
-            cards_details[#cards_details+1] = (count and ("\n" .. "- " .. #cards_details + 1 .. ": ")) .. string.sub(GetRunText:get_joker_details({card},add_cost)[1], 2)
+            cards_details[#cards_details+1] = (count and ("\n" .. "- " .. #cards_details + 1 .. ": ") or "") .. string.sub(GetRunText:get_joker_details({card},add_cost)[1], 2)
         end
     end
 
@@ -443,8 +443,9 @@ function GetRunText:get_consumeables_text(cards,add_cost,count)
 end
 
 -- playing card stuff
-function GetRunText:get_card_modifiers(card_hand,add_debuff_state)
+function GetRunText:get_card_modifiers(card_hand,add_debuff_state,add_forced_state)
     add_debuff_state = add_debuff_state or false
+    add_forced_state = add_forced_state or false
     local cards = {}
 
 	for pos, card in ipairs(card_hand) do
@@ -509,9 +510,14 @@ function GetRunText:get_card_modifiers(card_hand,add_debuff_state)
             card_desc = card_desc .. ", Debuffed: " .. tostring(card.debuff) -- this is a boolean
         end
 
+        if add_forced_state then
+            if card.ability.forced_selection then
+                card_desc = card_desc .. ", Force selected: " .. tostring(card.ability.forced_selection)
+            end
+        end
+
         cards[#cards+1] = card_desc
     end
-
 
     return cards
 end

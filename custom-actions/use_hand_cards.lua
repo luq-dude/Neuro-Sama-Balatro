@@ -93,6 +93,21 @@ function UseHandCards:_validate_action(data, state)
             "You have no discards left.")
     end
 
+    if table.any(G.hand.cards,function (card)
+            return card.ability.forced_selection
+    end) == true then
+        local index = -1
+        for _, card_index in ipairs(selected_index) do
+            if G.hand.cards[card_index].ability.forced_selection then
+                index = card_index
+            end
+        end
+
+        if index == -1 then
+            return ExecutionResult.failure("You must select the force selected card.")
+        end
+    end
+
     state["card_action"] = selected_action
     state["cards_index"] = selected_index
     local cards = {}
@@ -112,7 +127,9 @@ function UseHandCards:_execute_action(state)
     RunHelper:reorder_card_area(G.hand, selected_index)
 
     for i = 1, #selected_index do
-        G.hand:add_to_highlighted(G.hand.cards[i])
+        if not G.hand.cards[i].ability.forced_selection then
+            G.hand:add_to_highlighted(G.hand.cards[i])
+        end
     end
 
     self.hook.HookRan = false

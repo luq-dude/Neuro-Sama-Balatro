@@ -89,7 +89,8 @@ function PickHandPackCards:_validate_action(data, state)
     local selected_pack_card = data._data["pack_card_index"]
     selected_hand_index = selected_hand_index._data
 
-    local card_config = G.pack_cards.cards[selected_pack_card].config.center.config
+    local card = G.pack_cards.cards[selected_pack_card]
+    local card_config = card.config.center.config
 
     if RunHelper:check_for_duplicates(selected_hand_index) == false then
         return ExecutionResult.failure("You cannot select the same card index more than once.")
@@ -107,7 +108,13 @@ function PickHandPackCards:_validate_action(data, state)
             "You have selected more cards from your hand then you are allowed too.")
     end
 
-    -- should fix issue with certain cards (mainly spectral) not needing highlighted cards
+    local success, result_string = RunHelper:get_consumable_validation(card,selected_hand_index)
+    if success then
+    elseif success == false then
+        return ExecutionResult.failure(result_string)
+    end
+
+    -- should fix issue with certain cards (mainly spectral) not needing highlighted cards (Do we still need this?)
     if #selected_hand_index == 0 and card_config.max_highlighted ~= nil then
         return ExecutionResult.failure(
             "You should either take a card or skip the round.")
@@ -122,7 +129,7 @@ function PickHandPackCards:_validate_action(data, state)
 
     state["cards_index"] = selected_hand_index
     state["pack_card_index"] = selected_pack_card
-    return ExecutionResult.success("Using the " .. G.pack_cards.cards[selected_pack_card].config.center.name .. " card.")
+    return ExecutionResult.success(result_string)
 end
 
 function PickHandPackCards:_execute_action(state)
