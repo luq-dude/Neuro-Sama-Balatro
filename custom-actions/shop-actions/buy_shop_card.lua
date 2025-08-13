@@ -1,6 +1,7 @@
 local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
 local RunHelper = ModCache.load("run_functions_helper.lua")
+local GetRunText = ModCache.load("get_run_text.lua")
 
 local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
 
@@ -80,7 +81,7 @@ function BuyShopCard:_validate_action(data, state)
 
     state["selected_action"] = selected_action
     state["selected_index"] = selected_index
-    return ExecutionResult.success("Buying " .. (selected_action == "buy and use" and "and using " or "") .. card.config.center.name)
+    return ExecutionResult.success("Buying " .. (selected_action == "buy and use" and "and using " or "") .. string.sub(GetRunText:get_consumeables_text({card})[1], 1))
 end
 
 function BuyShopCard:_execute_action(state)

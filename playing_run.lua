@@ -144,10 +144,10 @@ function PlayingRun:hook_draw_card()
 
                     if G.STATE == 999 then -- I'm pretty sure all boosters go through this then become the vanilla state so just using this should be fine
                         if booster.config.center.draw_hand then
-                            pick_hand_pack_card(5)
+                            pick_hand_pack_card(4)
                             return true
                         else
-                            pick_pack_card(5)
+                            pick_pack_card(4)
                             return true
                         end
                     end

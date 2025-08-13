@@ -3,6 +3,7 @@ local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
 local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
 local RunHelper = ModCache.load("run_functions_helper.lua")
+local GetRunText = ModCache.load("get_run_text.lua")
 
 local SkipPack = ModCache.load("custom-actions/skip_pack.lua")
 local JokerInteraction = ModCache.load("custom-actions/joker_interaction.lua")
@@ -90,7 +91,7 @@ function PickCards:_validate_action(data, state)
     end
 
     state["cards_index"] = selected_hand_index
-	return ExecutionResult.success("Taking the " .. (selected_card.base.name or selected_card.config.center.name))
+	return ExecutionResult.success("Taking the " .. string.sub(GetRunText:get_shop_text({selected_card})[1], 2))
 end
 
 function PickCards:_execute_action(state)

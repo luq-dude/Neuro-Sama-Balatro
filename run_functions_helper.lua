@@ -91,7 +91,7 @@ end
 function RunHelper:get_consumable_validation(card,selected_hand_index,selected_action,forced_selection)
     selected_action = selected_action or "Use"
     forced_selection = forced_selection or false
-    local success_string = "Using " .. card.config.center.name
+    local success_string = "Using " .. string.sub(GetRunText:get_consumeables_text({card})[1], 1)
     if selected_action == "Sell" then
         success_string = "Selling the " .. card.config.center.name .. " for " .. card.sell_cost
     end
@@ -138,7 +138,7 @@ function RunHelper:get_consumable_validation(card,selected_hand_index,selected_a
             if card_type == "spectrals" or card_type == "planets" or card_type == "tarots" then
                 card_amount = card_amount + amount
             else -- certain other cards use .consumeable, we don't want those though.
-                return nil,""
+                return nil, success_string
             end
         end
 
@@ -192,8 +192,7 @@ function RunHelper:get_consumable_validation(card,selected_hand_index,selected_a
         return true, success_string
     end
 
-    return nil, nil
-
+    return nil, success_string
 end
 
 return RunHelper
