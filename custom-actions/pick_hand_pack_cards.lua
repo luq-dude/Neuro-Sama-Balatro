@@ -50,17 +50,18 @@ function PickHandPackCards:new(actionWindow, state)
 end
 
 function PickHandPackCards:_get_name()
-    return "pick_hand_cards"
+    return "pick_pack_cards"
 end
 
 function PickHandPackCards:_get_description()
-    local description = string.format("Pick cards from this pack, you can pick a max of " ..
+    local description = string.format("Pick a consumable to use from this pack, you can pick a max of " ..
         SMODS.OPENED_BOOSTER.config.center.config.choose
-        .. " cards "
+        .. " consumables "
         .. "out of the " ..
         SMODS.OPENED_BOOSTER.config.center.config.extra ..
-        " available. You should pick the cards you want one at a time." ..
-        " When defining the card's index the first card will be 1.")
+        " available. Some consumables require you to select cards in hand to use. " .. 
+        "Use pack_card_index to specify what consumable you are using and hand_cards_index to specify what cards it is being used on. " ..
+        "When defining the card's index the first card will be 1.")
 
     return description
 end
@@ -70,7 +71,7 @@ function PickHandPackCards:_get_schema()
     local pack_hand_length = RunHelper:get_hand_length(G.pack_cards.cards)
 
     return JsonUtils.wrap_schema({
-        cards_index = {
+        hand_cards_index = {
             type = "array",
             items = {
                 type = "integer",
@@ -84,11 +85,12 @@ function PickHandPackCards:_get_schema()
 end
 
 function PickHandPackCards:_validate_action(data, state)
-    local selected_hand_index = data:get_object("cards_index")
+    local selected_hand_index = data:get_object("hand_cards_index")
     local selected_pack_card = data._data["pack_card_index"]
     selected_hand_index = selected_hand_index._data
 
-    local card_config = G.pack_cards.cards[selected_pack_card].config.center.config
+    local card = G.pack_cards.cards[selected_pack_card]
+    local card_config = card.config.center.config
 
     if RunHelper:check_for_duplicates(selected_hand_index) == false then
         return ExecutionResult.failure("You cannot select the same card index more than once.")
@@ -106,15 +108,13 @@ function PickHandPackCards:_validate_action(data, state)
             "You have selected more cards from your hand then you are allowed too.")
     end
 
-    if card_config.center_key == "c_aura" then
-        if #selected_hand_index ~= 1 then
-            return ExecutionResult.failure("When using aura, you should only have one card selected.")
-        end
-
-        return ExecutionResult.success()
+    local success, result_string = RunHelper:get_consumable_validation(card,selected_hand_index)
+    if success then
+    elseif success == false then
+        return ExecutionResult.failure(result_string)
     end
 
-    -- should fix issue with certain cards (mainly spectral) not needing highlighted cards
+    -- should fix issue with certain cards (mainly spectral) not needing highlighted cards (Do we still need this?)
     if #selected_hand_index == 0 and card_config.max_highlighted ~= nil then
         return ExecutionResult.failure(
             "You should either take a card or skip the round.")
@@ -129,7 +129,7 @@ function PickHandPackCards:_validate_action(data, state)
 
     state["cards_index"] = selected_hand_index
     state["pack_card_index"] = selected_pack_card
-    return ExecutionResult.success("Using the " .. G.pack_cards.cards[selected_pack_card].config.center.name .. " card.")
+    return ExecutionResult.success(result_string)
 end
 
 function PickHandPackCards:_execute_action(state)

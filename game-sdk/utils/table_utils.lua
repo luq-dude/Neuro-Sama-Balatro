@@ -92,6 +92,24 @@ function table.index_of(tbl,val)
     return nil
 end
 
+function table.contains(tbl,val)
+    for _, value in pairs(tbl) do
+        if value == val then
+            return true
+        end
+    end
+    return false
+end
+
+function table.contains_key(tbl,val)
+    for key, _ in pairs(tbl) do
+        if key == val then
+            return true
+        end
+    end
+    return false
+end
+
 -- Reorders a list according to the specified indicies, moving items to the new_indices while appending any unspecified
 -- items to the end
 -- Example: Given list = {"A", "B", "C", "D", "E", "F", "G", "H"} and new_indicies = {2, 1, 5, 3, 4}

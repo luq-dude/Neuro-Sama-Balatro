@@ -22,8 +22,8 @@ end
 function UseHandCards:_get_description()
     local description = string.format("Either play or discard a maximum of " ..
         G.hand.config.highlighted_limit .. " cards with your current hand." ..
-        "The cards will be ordered by the position they are located in your hand from left to right." ..
-        "When defining the card's index the first card will be 1, you should send these in the same order as you send the cards")
+        "The cards will be ordered by the position they are located in your hand from left to right," ..
+        " with the left-most card being index 1. Specify cards in cards_index in the order you wish for them to be used.")
 
     return description
 end
@@ -93,6 +93,21 @@ function UseHandCards:_validate_action(data, state)
             "You have no discards left.")
     end
 
+    if table.any(G.hand.cards,function (card)
+            return card.ability.forced_selection
+    end) == true then
+        local index = -1
+        for _, card_index in ipairs(selected_index) do
+            if G.hand.cards[card_index].ability.forced_selection then
+                index = card_index
+            end
+        end
+
+        if index == -1 then
+            return ExecutionResult.failure("You must select the force selected card.")
+        end
+    end
+
     state["card_action"] = selected_action
     state["cards_index"] = selected_index
     local cards = {}
@@ -112,7 +127,9 @@ function UseHandCards:_execute_action(state)
     RunHelper:reorder_card_area(G.hand, selected_index)
 
     for i = 1, #selected_index do
-        G.hand:add_to_highlighted(G.hand.cards[i])
+        if not G.hand.cards[i].ability.forced_selection then
+            G.hand:add_to_highlighted(G.hand.cards[i])
+        end
     end
 
     self.hook.HookRan = false

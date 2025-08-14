@@ -18,7 +18,8 @@ function BuyShopCard:_get_name()
 end
 
 function BuyShopCard:_get_description()
-    return "Buy a card from the shop, this will be from the card category"
+    return "Buy a card from the shop. These will generally be either a jokers or a consumable. "
+    .. "Some consumables can be immediately used, or can be held onto if you have inventory space."
 end
 
 local function card_actions()
@@ -79,7 +80,7 @@ function BuyShopCard:_validate_action(data, state)
 
     state["selected_action"] = selected_action
     state["selected_index"] = selected_index
-    return ExecutionResult.success()
+    return ExecutionResult.success("Buying " .. (selected_action == "buy and use" and "and using " or "") .. card.config.center.name)
 end
 
 function BuyShopCard:_execute_action(state)

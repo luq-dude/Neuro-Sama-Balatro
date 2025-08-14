@@ -18,7 +18,7 @@ function BuyVoucher:_get_name()
 end
 
 function BuyVoucher:_get_description()
-    return "This will buy the voucher available in the shop."
+    return "This will buy a voucher available in the shop."
 end
 
 function BuyVoucher:_get_schema()
@@ -35,14 +35,14 @@ end
 
 function BuyVoucher:_validate_action(data, state)
     local selected_index = data._data["voucher_index"] or 1
-	local voucher = G.shop_vouchers.cards[1]
+	local voucher = G.shop_vouchers.cards[selected_index]
 
     if ((G.GAME.dollars-G.GAME.bankrupt_at) - voucher.children.price.parent.cost < 0) then
         return ExecutionResult.failure("You do not have the money to buy the voucher.")
     end
 
     if #G.shop_vouchers.cards <= 1 then
-        return ExecutionResult.success()
+        return ExecutionResult.success("Bought the " .. voucher.ability.name .. " voucher")
     end
 
     local valid_voucher_indices = RunHelper:get_hand_length(G.shop_vouchers.cards)
@@ -51,7 +51,7 @@ function BuyVoucher:_validate_action(data, state)
     end
 
     state["voucher_index"] = selected_index
-    return ExecutionResult.success()
+    return ExecutionResult.success("Bought the " .. voucher.ability.name .. " voucher")
 end
 
 function BuyVoucher:_execute_action(state)

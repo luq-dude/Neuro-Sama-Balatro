@@ -32,8 +32,11 @@ function UseConsumable:_get_description()
     end
 
     local description = string.format(
-        "Use a consumable in your consumable hand. This can either be planet, spectral or tarot cards," ..
-        " Each type will affect the game in it's own unique way" ..
+        "Use or sell a consumable in your consumable hand. This will either be planet, spectral or tarot cards." ..
+        " Each card has a unqiue effect that will alter your run and help you build your deck." ..
+        " Some consumeables need to be used on cards in hand." ..
+        " Specify the consumable to use with consumable_index and use cards_index to specify what cards in hand to use it on" ..
+        " Here is a list of all consumeables you have: " ..
         table.concat(cards, "", 1, #cards))
 
     return description
@@ -81,7 +84,8 @@ function UseConsumable:_validate_action(data, state)
         return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("consumable_index"))
     end
 
-    local card_config = G.consumeables.cards[tonumber(selected_consumable)].config.center.config
+    local card = G.consumeables.cards[tonumber(selected_consumable)]
+    local card_config = card.config.center.config
 
     if not selected_consumable then
         return ExecutionResult.failure("issue with selected_consumable")
@@ -109,26 +113,29 @@ function UseConsumable:_validate_action(data, state)
         return ExecutionResult.failure("You cannot select the same card index more than once.")
     end
 
-    if G.STATE == G.STATES.SHOP and card_config.max_highlighted ~= nil then
-        return ExecutionResult.failure(
-            "You cannot use this card in the shop as selecting cards is needed for it to work.")
-    end
-
-    if card_config.center_key == "c_aura" then
-        if G.STATE == G.STATES.SHOP and selected_action == "Use" then
-            return ExecutionResult.failure("You cannot use this card in the shop as selecting cards is needed for it to work.")
-        end
-
-        if #selected_hand_index ~= 1 and selected_action == "Use" then
-            return ExecutionResult.failure("When using aura, you should only have one card selected.")
-        end
-
-        return ExecutionResult.success()
-    end
-
     if #selected_hand_index > G.hand.config.highlighted_limit then
         return ExecutionResult.failure(
             "You can only highlight a max of " .. G.hand.config.highlighted_limit .. "card per action.")
+    end
+
+    if #selected_hand_index > 0 and selected_action == "Sell" then
+        return ExecutionResult.failure("You cannot select cards when trying to sell a card")
+    end
+
+    state["card_action"] = selected_action
+    state["consumable_index"] = selected_consumable
+    state["cards_index"] = selected_hand_index
+
+    local success, result_string = RunHelper:get_consumable_validation(card,selected_hand_index,selected_action,true)
+    if success then
+        return ExecutionResult.success(result_string)
+    elseif success == false then
+        return ExecutionResult.failure(result_string)
+    end
+
+    if G.STATE == G.STATES.SHOP and card_config.max_highlighted ~= nil then
+        return ExecutionResult.failure(
+            "You cannot use this card in the shop as selecting cards is needed for it to work.")
     end
 
     if #selected_hand_index > 0 and card_config.max_highlighted == nil then
@@ -138,16 +145,30 @@ function UseConsumable:_validate_action(data, state)
 
     if card_config.max_highlighted ~= nil then
         if #selected_hand_index ~= card_config.max_highlighted and selected_action == "Use" then
-            return ExecutionResult
-                .failure(
+            return ExecutionResult.failure(
                     "You have either selected too many cards or to little from your hand comparative to how many the tarot needs.")
         end
     end
 
-    state["card_action"] = selected_action
-    state["consumable_index"] = selected_consumable
-    state["cards_index"] = selected_hand_index
-    return ExecutionResult.success()
+    if table.any(G.hand.cards,function (force_card)
+            return force_card.ability.forced_selection
+    end) == true and selected_action == "Use" and card_config.max_highlighted ~= nil then
+        local index = -1
+        for _, card_index in ipairs(selected_hand_index) do
+            if G.hand.cards[card_index].ability.forced_selection then
+                index = card_index
+            end
+        end
+
+        if index == -1 then
+            return ExecutionResult.failure("You must select the force selected card.")
+        end
+    end
+
+    if selected_action == "Use" then
+        return ExecutionResult.success("Using " .. card.config.center.name)
+    end
+    return ExecutionResult.success("Selling the " .. card.config.center.name .. " for " .. card.sell_cost)
 end
 
 function UseConsumable:_execute_action(state)
@@ -168,7 +189,9 @@ function UseConsumable:_execute_action(state)
         end
 
         for i = 1, #selected_index do
-            G.hand:add_to_highlighted(G.hand.cards[i])
+            if not G.hand.cards[i].ability.forced_selection then
+                G.hand:add_to_highlighted(G.hand.cards[i])
+            end
         end
     end
 
