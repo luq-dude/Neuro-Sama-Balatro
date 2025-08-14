@@ -7,16 +7,16 @@ Back_Loc = {
         return { back.config.joker_slot, -back.config.hands }
     end,
     b_magic = function(back)
-        return {"Crystall Ball", "The Fool"}
+        return {"Crystal Ball", "The Fool"}
     end,
-    n_nebula = function(back)
+    b_nebula = function(back)
         return {"Telescope", -1}
     end,
     b_ghost = {},
     b_abandoned = {},
     b_checkered = {},
     b_zodiac = function(back)
-        return {"Tarot Merchant", "Planent Merchant", "Overstock"}
+        return {"Tarot Merchant", "Planet Merchant", "Overstock"}
     end,
     b_painted = {"hand_size", "joker_slot"},
     b_anaglyph = function(back)
