@@ -41,15 +41,17 @@ return {
         "Glorpy deck",
     },
 
-
+    -- List of allowed stakes for Neuro to use. I recommend enabling only the white stake, but if she does win feel free to gradually enable others
+    -- Note that if these aren't enabled in order (example enabling gold stake without enabling all the ones before it) then Neuro will not have full context
+    -- for what each stake does
     ["ALLOWED_STAKES"] = {  --
         "White Stake", -- Does nothing
-        "Red Stake",    -- Small Blind gives no reward money Required score scales faster for each Ante
-        "Green Stake",  -- Required score scales faster for each Ante
-        "Black Stake",  -- 30% chance for Jokers in shops or booster packs to have an Eternal sticker
-        "Blue Stake",   -- -1 Discard
-        "Purple Stake", -- Required score scales even faster for each Ante
-        "Orange Stake", -- 30% chance for Jokers in shops or booster packs to have a Perishable sticker
-        "Gold Stake",   -- 30% chance for Jokers in shops or booster packs to have a Rental sticker
+        -- "Red Stake",    -- Small Blind gives no reward money Required score scales faster for each Ante
+        -- "Green Stake",  -- Required score scales faster for each Ante
+        -- "Black Stake",  -- 30% chance for Jokers in shops or booster packs to have an Eternal sticker
+        -- "Blue Stake",   -- -1 Discard
+        -- "Purple Stake", -- Required score scales even faster for each Ante
+        -- "Orange Stake", -- 30% chance for Jokers in shops or booster packs to have a Perishable sticker
+        -- "Gold Stake",   -- 30% chance for Jokers in shops or booster packs to have a Rental sticker
     },
 }
