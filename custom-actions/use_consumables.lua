@@ -27,8 +27,8 @@ end
 function UseConsumable:_get_description()
     local description = string.format(
         "Use or sell a consumable in your consumable hand. This will either be planet, spectral or tarot cards." ..
-        " Each card has a unqiue effect that will alter your run and help you build your deck." ..
-        " Some consumeables need to be used on cards in hand." ..
+        " Each card has a unique effect that will alter your run and help you build your deck." ..
+        " Some consumables need to be used on cards in hand." ..
         " Specify the consumable to use with consumable_index and use cards_index to specify what cards in hand to use it on.")
 
     return description
