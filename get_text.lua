@@ -1,7 +1,7 @@
 require "functions/misc_functions"
 
 local ALLOWED_DECKS = NeuroConfig.ALLOWED_DECKS
-local ALLOWED_STAKES = NeuroConfig.ALLOWED_DECKS
+local ALLOWED_STAKES = NeuroConfig.ALLOWED_STAKES
 
 local GetText = {}
 function GetText:get_back_descriptions()
@@ -63,12 +63,51 @@ function GetText:get_back_names(keys, allDecks)
     return backs
 end
 
+function GetText:get_stake_descriptions()
+    local stakes = {}
+    sendDebugMessage(tprint(stakes,1))
+    for _, stake in pairs(G.P_CENTER_POOLS.Stake) do
+        local name = stake.loc_txt and stake.loc_txt.name or stake.name
+        if stake.set ~= "Stake" then goto continue end
+        if not table.any(ALLOWED_STAKES, function(check) return check == name end) then goto continue end
+
+        local lookup = Stake_Loc[stake.key]
+        local args = {}
+        local nodes = {}
+        local desc = ""
+        local key_override = nil
+        if stake.loc_vars and type(stake.loc_vars) == "function" then
+            local res = stake:loc_vars() or {}
+            args = res.vars or {}
+            key_override = res.key
+        elseif type(lookup) == "table" then
+            for _, v in ipairs(lookup) do
+                table.insert(args, stake.config[v])
+            end
+        elseif type(lookup) == "function" then
+            args = lookup(stake)
+        end
+
+        localize { type = "descriptions", key = key_override or stake.key, set = "Stake", nodes = nodes, vars = args }
+        for _, line in ipairs(nodes) do
+            for _, v in ipairs(line) do
+                desc = desc .. v.config.text
+            end
+            desc = desc .. " "
+        end
+
+        stakes[name] = desc
+        ::continue::
+    end
+    return stakes
+end
+
 function GetText:get_stake_names(keys, allStakes)
     local stakes = {}
     for _, stake in pairs(G.P_CENTER_POOLS.Stake) do
         local name = localize { type = 'name_text', key = stake.key, set = 'Stake' }
 
-        if (stake.unlocked and table.any(ALLOWED_DECKS, function(check) return check == name end)) or allStakes then
+        if (table.any(ALLOWED_STAKES, function(check) return check == name end)) or allStakes then
             if keys then
                 stakes[stake.key] = name
             else

@@ -45,9 +45,10 @@ return {
     },
 
 
-    ["ALLOWED_STAKES"] = {  -- 
-        "Red Stake",    -- Small Blind gives no reward moneyRequired score scales faster for each Ante
-        "Green Stake",  -- Required score scales faster for each Ante	
+    ["ALLOWED_STAKES"] = {  --
+        "White Stake", -- Does nothing
+        "Red Stake",    -- Small Blind gives no reward money Required score scales faster for each Ante
+        "Green Stake",  -- Required score scales faster for each Ante
         "Black Stake",  -- 30% chance for Jokers in shops or booster packs to have an Eternal sticker
         "Blue Stake",   -- -1 Discard
         "Purple Stake", -- Required score scales even faster for each Ante

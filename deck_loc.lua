@@ -25,3 +25,14 @@ Back_Loc = {
     b_plasma = {"ante_scaling"},
     b_erratic = {}
 }
+
+Stake_Loc = {
+    stake_gold = {},
+    stake_white = {},
+    stake_red = {},
+    stake_green = {},
+    stake_black = {},
+    stake_blue = {},
+    stake_purple = {},
+    stake_orange = {}
+}

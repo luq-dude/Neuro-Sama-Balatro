@@ -1,11 +1,22 @@
 local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
 local GetText = ModCache.load("get_text.lua")
+local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
+local SelectStake = ModCache.load("custom-actions/select_stake.lua")
 
 local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
 
 local SelectDeck = setmetatable({}, { __index = NeuroAction })
 SelectDeck.__index = SelectDeck
+
+local function select_stake()
+    local window = ActionWindow:new()
+    window:add_action(SelectStake:new(window, nil))
+    window:set_force(1.0, "Pick a stake", "Next you need to select a stake. Each of these have their own permanent effects." ..
+    " You should pick this wisely", false)
+    window:register()
+    return true
+end
 
 function SelectDeck:new(actionWindow, state)
     local obj = NeuroAction.new(self, actionWindow)
@@ -42,8 +53,8 @@ function SelectDeck:_validate_action(data, state)
     end
 
     local backs = GetText:get_back_names()
-    if not table.any(backs, function(free_cell)
-            return free_cell == back
+    if not table.any(backs, function(possible_back)
+            return possible_back == back
         end) then
         return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("deck"))
     end
@@ -66,18 +77,7 @@ function SelectDeck:_execute_action(state)
         end
     end
 
-    -- TEMPORARY: start the run immediately as select_stake() is not implemented yet
-
-    --select_stake()
-    G.E_MANAGER:add_event(Event({
-        trigger = "after",
-        delay = 5,
-        func = function()
-            G.FUNCS.start_run()
-            -- return false as otherwise crashes
-            return false
-        end,
-    }))
+    select_stake()
 end
 
 return SelectDeck

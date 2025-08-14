@@ -2,6 +2,36 @@
 -- Licensed under the MIT License. See third_party_licenses/lua-neuro-sama-game-api-LICENSE
 
 -- Modified by LuqDude and pandapanda135
+
+function tprint(tbl, indent, max_depth)
+    indent = indent or 0
+    max_depth = max_depth or 5
+    if max_depth < 0 then
+        return string.rep(" ", indent) .. "{...}"
+    end
+    local toprint = string.rep(" ", indent) .. "{\r\n"
+    indent = indent + 2
+    for k, v in pairs(tbl) do
+        toprint = toprint .. string.rep(" ", indent)
+        if (type(k) == "number") then
+            toprint = toprint .. "[" .. k .. "] = "
+        elseif (type(k) == "string") then
+            toprint = toprint  .. k ..  "= "
+        end
+        if (type(v) == "number") then
+            toprint = toprint .. v .. ",\r\n"
+        elseif (type(v) == "string") then
+            toprint = toprint .. "\"" .. v .. "\",\r\n"
+        elseif (type(v) == "table") then
+            toprint = toprint .. tprint(v, indent + 2, max_depth - 1) .. ",\r\n"
+        else
+            toprint = toprint .. "\"" .. tostring(v) .. "\",\r\n"
+        end
+    end
+    toprint = toprint .. string.rep(" ", indent-2) .. "}"
+    return toprint
+end
+
 function table.filter(tbl, predicate)
     local result = {}
     for _, value in ipairs(tbl) do
