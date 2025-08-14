@@ -1,6 +1,7 @@
 local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
 local RunHelper = ModCache.load("run_functions_helper.lua")
+local GetRunText = ModCache.load("get_run_text.lua")
 
 local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
 
@@ -42,7 +43,7 @@ function BuyVoucher:_validate_action(data, state)
     end
 
     if #G.shop_vouchers.cards <= 1 then
-        return ExecutionResult.success("Bought the " .. voucher.ability.name .. " voucher")
+        return ExecutionResult.success("Bought " .. string.sub(GetRunText:get_shop_text({voucher})[1], 2))
     end
 
     local valid_voucher_indices = RunHelper:get_hand_length(G.shop_vouchers.cards)
@@ -51,7 +52,7 @@ function BuyVoucher:_validate_action(data, state)
     end
 
     state["voucher_index"] = selected_index
-    return ExecutionResult.success("Bought the " .. voucher.ability.name .. " voucher")
+    return ExecutionResult.success("Bought " .. string.sub(GetRunText:get_shop_text({voucher})[1], 2))
 end
 
 function BuyVoucher:_execute_action(state)

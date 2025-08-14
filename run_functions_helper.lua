@@ -57,20 +57,19 @@ function RunHelper:get_query_string(state)
         if enhancements ~= "" or editions ~= "" or seals ~= "" then -- probably dont need this if there are no card modifiers
             state_string = "These are what the modifiers on your cards in hand do. A card can have one edition, enhancement or seal on it: \n" .. enhancements .. "\n" .. editions .."\n" .. seals
         end
-
-        local forced = false
-        if table.any(G.hand.cards,function (card)
-                return card.ability.forced_selection
-            end) == true then
-            forced = true
-        end
         if G.GAME.blind.boss then
             state_string = state_string .. "These are the cards in your hand, their modifiers and if they are debuffed. Debuffed cards do not get scored: "
         else
             state_string = state_string .. "These are the cards in your hand and their modifiers: "
         end
+        local forced = false
+        if table.any(G.hand.cards,function (card)
+                return card.ability.forced_selection
+            end) == true then
+            forced = true
+            state_string = string.sub(state_string,1,#state_string - 2) .. ". If a card is forced you must select it when playing, discarding or using a consumable that needs cards: " -- string sub to remove colon from boss blinds
+        end
         state_string = state_string .. table.table_to_string(GetRunText:get_card_modifiers(G.hand.cards, G.GAME.blind.boss, forced))
-
     elseif state == G.STATES.SHOP then
         query_string = "You are now in the shop! You can use your money to buy cards, booster packs or vouchers to help your run. You can also use consumables and sell jokers/consumables you no longer need. When done shopping, you can exit the shop to blind selection."
         state_string = "You currently have $" .. tostring(G.GAME.dollars) .. " to spend."
@@ -91,7 +90,7 @@ end
 function RunHelper:get_consumable_validation(card,selected_hand_index,selected_action,forced_selection)
     selected_action = selected_action or "Use"
     forced_selection = forced_selection or false
-    local success_string = "Using " .. card.config.center.name
+    local success_string = "Using " .. string.sub(GetRunText:get_consumeables_text({card})[1], 1)
     if selected_action == "Sell" then
         success_string = "Selling the " .. card.config.center.name .. " for " .. card.sell_cost
     end
@@ -138,7 +137,7 @@ function RunHelper:get_consumable_validation(card,selected_hand_index,selected_a
             if card_type == "spectrals" or card_type == "planets" or card_type == "tarots" then
                 card_amount = card_amount + amount
             else -- certain other cards use .consumeable, we don't want those though.
-                return nil,""
+                return nil, success_string
             end
         end
 
@@ -192,8 +191,7 @@ function RunHelper:get_consumable_validation(card,selected_hand_index,selected_a
         return true, success_string
     end
 
-    return nil, nil
-
+    return nil, success_string
 end
 
 return RunHelper
