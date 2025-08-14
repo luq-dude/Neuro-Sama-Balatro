@@ -36,7 +36,7 @@ function GetText:get_back_descriptions()
             desc = desc .. "   "
         end
 
-        backs[name] = desc
+        backs[#backs+1] = name .. ": " .. desc
         ::continue::
     end
     return backs
@@ -96,7 +96,7 @@ function GetText:get_stake_descriptions()
             desc = desc .. " "
         end
 
-        stakes[name] = desc
+        stakes[#stakes+1] = name ..": " .. desc
         ::continue::
     end
     return stakes

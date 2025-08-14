@@ -20,7 +20,7 @@ function SelectStake:_get_description()
     local description = "Select a stake (dificulty) to start the game with."
 
     for k, v in pairs(GetText:get_stake_descriptions()) do
-        description = description .. "\n" .. k .. ": " .. v
+        description = description .. "\n" .. v
     end
 
     return description

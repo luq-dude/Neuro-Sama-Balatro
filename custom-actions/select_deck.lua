@@ -32,7 +32,7 @@ function SelectDeck:_get_description()
     local description = "Select a deck to start the game with."
 
     for k, v in pairs(GetText:get_back_descriptions()) do
-        description = description .. "\n" .. k .. ": " .. v
+        description = description .. "\n" .. v
     end
 
     return description
