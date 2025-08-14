@@ -19,11 +19,11 @@ function RunContext:no_hand_booster()
         hand .. "\n" ..
         "Planet cards level up the base chips and mult of a specific poker hand.")
     elseif SMODS.OPENED_BOOSTER.config.center.kind == "Standard" or G.pack_cards.cards[1].ability.set == "Base" then
-        local hand, enhancements, editions, seals = table.table_to_string(GetRunText:get_card_modifiers(G.pack_cards.cards)),GetRunText:get_current_hand_modifiers(G.pack_cards.cards)
+        local hand, enhancements, editions, seals = table.table_to_string(GetRunText:get_card_modifiers(G.pack_cards.cards)),GetRunText:get_current_hand_modifiers(table.combine_tables(G.pack_cards.cards,G.jokers.cards))
 
         local return_string = "These are the playing cards in this pack: " .. hand .. "\n" .. "\n"
         if enhancements ~= "" or editions ~= "" or seals ~= "" then
-            return_string = return_string .. string.format("These are the card modifiers that are on the cards right now," ..
+            return_string = return_string .. string.format("These are the card modifiers that are on the cards or on your jokers right now," ..
             " there can only be one edition,enhancement and seal on each card: \n" ..
             enhancements .. "\n" ..
             editions .. "\n" ..

@@ -110,6 +110,18 @@ function table.contains_key(tbl,val)
     return false
 end
 
+function table.combine_tables(original_tbl,move_tbl)
+    local replica_table = {}
+    for _, value in ipairs(original_tbl) do
+        replica_table[#replica_table+1] = value
+    end
+    for _, value in ipairs(move_tbl) do
+        table.insert(replica_table,value)
+    end
+
+    return replica_table
+end
+
 -- Reorders a list according to the specified indicies, moving items to the new_indices while appending any unspecified
 -- items to the end
 -- Example: Given list = {"A", "B", "C", "D", "E", "F", "G", "H"} and new_indicies = {2, 1, 5, 3, 4}

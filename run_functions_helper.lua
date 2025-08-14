@@ -52,10 +52,10 @@ function RunHelper:get_query_string(state)
     local query_string = ""
     local state_string = ""
     if state == G.STATES.SELECTING_HAND or state == G.STATES.PLAY_TAROT then
-        local enhancements, editions, seals = GetRunText:get_current_hand_modifiers(G.hand.cards)
+        local enhancements, editions, seals = GetRunText:get_current_hand_modifiers(table.combine_tables(G.hand.cards,G.jokers.cards))
         query_string = "It's time to pick cards in your hand to play or discard. You can also use consumables re-order jokers, or sell either jokers or consumables."
         if enhancements ~= "" or editions ~= "" or seals ~= "" then -- probably dont need this if there are no card modifiers
-            state_string = "These are what the modifiers on your cards in hand do. A card can have one edition, enhancement or seal on it: \n" .. enhancements .. "\n" .. editions .."\n" .. seals
+            state_string = "These are what the modifiers on your cards in hand or on your jokers do. A card can have one edition, enhancement or seal on it: \n" .. enhancements .. "\n" .. editions .."\n" .. seals
         end
         if G.GAME.blind.boss then
             state_string = state_string .. "These are the cards in your hand, their modifiers and if they are debuffed. Debuffed cards do not get scored: "

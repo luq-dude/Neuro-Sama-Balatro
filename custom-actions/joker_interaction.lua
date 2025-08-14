@@ -2,6 +2,7 @@ local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
 local RunHelper = ModCache.load("run_functions_helper.lua")
 local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
+local GetRunText = ModCache.load("get_run_text.lua")
 
 local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
 
@@ -21,11 +22,10 @@ function JokerInteraction:_get_name()
 end
 
 function JokerInteraction:_get_description()
-    local cards = {}
-    for index, value in ipairs(G.jokers.cards) do
-        -- could also use sell_cost_label
-        table.insert(cards,
-            "\n" .. tostring(index) .. ": " .. value.config.center.name .. " sell value: " .. value.sell_cost)
+    local cards = GetRunText:get_card_modifiers(G.jokers.cards,false,false,false,true)
+
+    for pos, value in ipairs(cards) do
+        cards[pos] = value .. ", sell cost: " .. G.jokers.cards[pos].sell_cost
     end
 
     local description = "This allows you to either re-order your jokers, or sell any number of them. " ..
