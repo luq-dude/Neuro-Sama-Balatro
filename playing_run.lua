@@ -108,8 +108,6 @@ function PlayingRun:hook_draw_card()
             delay = 2 * G.SPEEDFACTOR,
             func = function ()
                     if G.STATE == G.STATES.SELECTING_HAND or G.STATE == G.STATES.DRAW_TO_HAND then
-                        Context.send("You now have the option to select a hand, you have " .. tostring(G.GAME.current_round.hands_left) .. " hands left and " .. tostring(G.GAME.current_round.discards_left) .. " discards left")
-                        Context.send("You have " .. tostring(#G.deck.cards) .. " cards remaining in your deck that have the ability to be drawn, out of the " .. tostring(G.deck.config.card_limit) .. " cards in it.")
                         self:play_card(3)
                         return true
                     end

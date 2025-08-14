@@ -54,9 +54,11 @@ function RunHelper:get_query_string(state)
     if state == G.STATES.SELECTING_HAND or state == G.STATES.PLAY_TAROT then
         local modifiers = {GetRunText:get_current_hand_modifiers(table.combine_tables(G.hand.cards,G.jokers.cards))}
         query_string = "It's time to pick cards in your hand to play or discard. You can also use consumables re-order jokers, or sell either jokers or consumables."
+        state_string = "You have " .. tostring(G.GAME.current_round.hands_left) .. " hands left and " .. tostring(G.GAME.current_round.discards_left) .. " discards left. " ..
+                        "You have " .. tostring(#G.deck.cards) .. " cards remaining in your deck that can be drawn, out of the " .. tostring(G.deck.config.card_limit) .. " cards in it.\n"
         for key, value in ipairs(modifiers) do
             if value ~= "" then
-                if not string.find(state,"These are what the card modifiers on your cards") then
+                if not string.find(state_string,"These are what the card modifiers on your cards") then
                     state_string = state_string .. "These are what the card modifiers on your cards or your jokers do. A playing card can have one edition, enhancements and seal at one: "
                 end
                 state_string = state_string .. "\n" .. value
