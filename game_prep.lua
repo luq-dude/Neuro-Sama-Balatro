@@ -57,6 +57,7 @@ local function select_deck(delay)
         trigger = "after",
         delay = delay,
         func = function()
+            G.OVERLAY_MENU.definition.nodes[1].nodes[1].nodes[1].nodes[1].nodes[1].nodes[1].nodes[2].nodes[1].nodes[1].nodes[1].nodes[1].config.button_UIE:click() -- this clicks new run button... i'm so sorry.
             local window = ActionWindow:new()
             window:set_force(0.0, "Pick a deck", "The game has yet to start. " ..
                 "To start a new run, first select a deck. " ..
