@@ -53,7 +53,7 @@ function RunContext:hand_pack_booster()
         for key, value in ipairs(modifiers) do
             if value ~= "" then
                 if not string.find(hand_string,"These are what the card modifiers on your cards") then
-                    hand_string = hand_string .. "These are what the card modifiers on your cards or your jokers do. A playing card can have one edition, enhancements and seal at one: "
+                    hand_string = hand_string .. "\nThese are what the card modifiers on your cards or your jokers do. A playing card can have one edition, enhancements and seal at one: "
                 end
                 hand_string = hand_string .. "\n" .. value
             end
