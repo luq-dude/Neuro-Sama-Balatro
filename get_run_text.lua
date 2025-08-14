@@ -436,6 +436,8 @@ function GetRunText:get_consumeables_text(cards,add_cost,count)
             cards_details[#cards_details+1] = (count and ("\n" .. "- " .. #cards_details + 1 .. ": ") or "") .. string.sub(GetRunText:get_spectral_details({card},add_cost)[1], 2)
         elseif card.ability.set == "Joker" then
             cards_details[#cards_details+1] = (count and ("\n" .. "- " .. #cards_details + 1 .. ": ") or "") .. string.sub(GetRunText:get_joker_details({card},add_cost)[1], 2)
+        elseif card.config.card ~= nil then -- this handles playing cards for magic trick
+            cards_details[#cards_details+1] = (count and ("\n" .. "- " .. #cards_details + 1 .. ": ") or "") .. string.sub(GetRunText:get_card_modifiers({card})[1], 7)
         end
     end
 

@@ -91,7 +91,7 @@ function PickCards:_validate_action(data, state)
     end
 
     state["cards_index"] = selected_hand_index
-	return ExecutionResult.success("Taking the " .. string.sub(GetRunText:get_shop_text({selected_card})[1], 2))
+	return ExecutionResult.success("Taking the " .. string.sub(GetRunText:get_consumeables_text({selected_card})[1], 1))
 end
 
 function PickCards:_execute_action(state)

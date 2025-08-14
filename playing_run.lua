@@ -292,6 +292,16 @@ function PlayingRun:register_store_actions(delay,hook)
                 state = state .. "\nRerolling the shop costs $" .. G.GAME.current_round.reroll_cost .. ". You have " .. G.GAME.current_round.free_rerolls .. " free rerolls."
             end
             if #G.shop_jokers.cards > 0 then
+                local modifiers = {GetRunText:get_current_hand_modifiers(G.shop_jokers.cards)}
+                for key, value in ipairs(modifiers) do
+                    if value ~= "" then
+                        if not string.find(state,"These are what the card modifiers on your cards do") then
+                            state = state .. "\nThese are what the card modifiers on your cards do: "
+                        end
+                        state = state .. "\n" .. value
+                    end
+                end
+
                 actions[#actions+1] = BuyShopCard
                 state = state .. "\nThese are the cards in the shop right now: " .. table.table_to_string(GetRunText:get_consumeables_text(G.shop_jokers.cards,true, true))
             end
