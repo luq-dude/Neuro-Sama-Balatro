@@ -13,7 +13,7 @@ function SelectStake:new(actionWindow, state)
 end
 
 function SelectStake:_get_name()
-    return "select_deck"
+    return "select_stake"
 end
 
 function SelectStake:_get_description()
@@ -47,7 +47,7 @@ function SelectStake:_validate_action(data, state)
         return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("stake"))
     end
     state["stake"] = stake
-    return ExecutionResult.success()
+    return ExecutionResult.success("The game has started with the " .. stake)
 end
 
 function SelectStake:_execute_action(state)

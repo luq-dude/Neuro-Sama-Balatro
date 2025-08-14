@@ -12,8 +12,8 @@ SelectDeck.__index = SelectDeck
 local function select_stake()
     local window = ActionWindow:new()
     window:add_action(SelectStake:new(window, nil))
-    window:set_force(1.0, "Pick a stake", "Next you need to select a stake. Each of these have their own permanent effects." ..
-    " You should pick this wisely", false)
+    window:set_force(1.0, "Pick a stake", "Next you need to select a stake. The white stake is the default, with" ..
+    " every stake after making the game harder. Stakes are progressive, so a higher stake applies all previous effects.", false)
     window:register()
     return true
 end
@@ -59,7 +59,7 @@ function SelectDeck:_validate_action(data, state)
         return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("deck"))
     end
     state["deck"] = back
-    return ExecutionResult.success(string.format("The game has started with the %s.", back))
+    return ExecutionResult.success(string.format("Starting the game with the %s.", back))
 end
 
 function SelectDeck:_execute_action(state)
