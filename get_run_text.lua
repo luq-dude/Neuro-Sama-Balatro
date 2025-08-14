@@ -1,9 +1,9 @@
 local GetRunText = {}
 
 local function add_card_buy_cost(description,card)
-    if not card.config.center.cost then return end
+    if not card.cost then return end
 
-    description = description .. ". Buy cost: " .. card.config.center.cost
+    description = description .. ". Buy cost: " .. card.cost
     return description
 end
 
@@ -418,7 +418,7 @@ function GetRunText:get_shop_text(card_table,add_cost,count)
     elseif card.ability.set == "Voucher" then
         return GetRunText:get_voucher_details(card_table,add_cost,count)
     elseif card.ability.set == "Joker" then
-        return GetRunText:get_joker_details(card_table,add_cost,count)
+        return GetRunText:get_card_modifiers(card_table,false,false,add_cost,count)
     end
 end
 
@@ -435,7 +435,7 @@ function GetRunText:get_consumeables_text(cards,add_cost,count)
         elseif card.ability.set == "Spectral" then
             cards_details[#cards_details+1] = (count and ("\n" .. "- " .. #cards_details + 1 .. ": ") or "") .. string.sub(GetRunText:get_spectral_details({card},add_cost)[1], 2)
         elseif card.ability.set == "Joker" then
-            cards_details[#cards_details+1] = (count and ("\n" .. "- " .. #cards_details + 1 .. ": ") or "") .. string.sub(GetRunText:get_joker_details({card},add_cost)[1], 2)
+            cards_details[#cards_details+1] = (count and ("\n" .. "- " .. #cards_details + 1 .. ": ") or "") .. string.sub(GetRunText:get_card_modifiers({card},false,false,add_cost)[1], 2)
         elseif card.config.card ~= nil then -- this handles playing cards for magic trick
             cards_details[#cards_details+1] = (count and ("\n" .. "- " .. #cards_details + 1 .. ": ") or "") .. string.sub(GetRunText:get_card_modifiers({card})[1], 7)
         end
@@ -445,18 +445,25 @@ function GetRunText:get_consumeables_text(cards,add_cost,count)
 end
 
 -- playing card stuff
-function GetRunText:get_card_modifiers(card_hand,add_debuff_state,add_forced_state)
+function GetRunText:get_card_modifiers(card_hand,add_debuff_state,add_forced_state,add_cost,count)
     add_debuff_state = add_debuff_state or false
     add_forced_state = add_forced_state or false
+    add_cost = add_cost or false
+    count = count or false
     local cards = {}
 
 	for pos, card in ipairs(card_hand) do
-		local card_desc = "\n" .. "- " .. pos .. ": " .. card.base.name
+        local card_desc = ""
+        if card.ability.set == "Joker" then
+            card_desc = GetRunText:get_joker_details({card},add_cost,count)[1]
+        else
+            card_desc = "\n" .. "- " .. pos .. ": " .. card.base.name
+        end
 
         if card.edition then
             for _, v in ipairs(G.P_CENTER_POOLS.Edition) do
                 sendDebugMessage("card ability: " .. tprint(card.ability,1,2))
-                local description
+                local description = ""
                 if v.key == card.edition.key and v.loc_txt then
                     sendDebugMessage("running if: " .. v.loc_txt.name .. " loc_txt table: " .. tprint(v.loc_txt,1,2))
                     description = ", Card Edition: " .. v.loc_txt.name

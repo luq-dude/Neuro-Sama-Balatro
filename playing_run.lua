@@ -93,27 +93,6 @@ local function pick_hand_pack_card(delay)
     ))
 end
 
-function PlayingRun:hook_new_round()
-    local round = new_round
-    function new_round()
-        round()
-        local jokers = table.table_to_string(GetRunText:get_joker_details(G.jokers.cards))
-        local consumeables = table.table_to_string(GetRunText:get_consumeables_text(G.consumeables.cards))
-
-        if #jokers > 0 then
-            Context.send("These are the jokers in your hand and their abilites: " .. jokers,true)
-        else
-            Context.send("You do not have any jokers as of right now.",true)
-        end
-
-        if #consumeables > 0 then
-            Context.send("These are the consumeables in your hand and their abililties: " .. consumeables,true)
-        else
-            Context.send("You do not have any consumeables as of right now.",true)
-        end
-    end
-end
-
 function PlayingRun:hook_draw_card()
     local original_draw_card = draw_card
     function draw_card(from, to, percent, dir, sort, card, delay, mute, stay_flipped, vol, discarded_only)
@@ -129,8 +108,6 @@ function PlayingRun:hook_draw_card()
             delay = 2 * G.SPEEDFACTOR,
             func = function ()
                     if G.STATE == G.STATES.SELECTING_HAND or G.STATE == G.STATES.DRAW_TO_HAND then
-                        Context.send("You now have the option to select a hand, you have " .. tostring(G.GAME.current_round.hands_left) .. " hands left and " .. tostring(G.GAME.current_round.discards_left) .. " discards left")
-                        Context.send("You have " .. tostring(#G.deck.cards) .. " cards remaining in your deck that have the ability to be drawn, out of the " .. tostring(G.deck.config.card_limit) .. " cards in it.")
                         self:play_card(3)
                         return true
                     end
@@ -292,16 +269,6 @@ function PlayingRun:register_store_actions(delay,hook)
                 state = state .. "\nRerolling the shop costs $" .. G.GAME.current_round.reroll_cost .. ". You have " .. G.GAME.current_round.free_rerolls .. " free rerolls."
             end
             if #G.shop_jokers.cards > 0 then
-                local modifiers = {GetRunText:get_current_hand_modifiers(G.shop_jokers.cards)}
-                for key, value in ipairs(modifiers) do
-                    if value ~= "" then
-                        if not string.find(state,"These are what the card modifiers on your cards do") then
-                            state = state .. "\nThese are what the card modifiers on your cards do: "
-                        end
-                        state = state .. "\n" .. value
-                    end
-                end
-
                 actions[#actions+1] = BuyShopCard
                 state = state .. "\nThese are the cards in the shop right now: " .. table.table_to_string(GetRunText:get_consumeables_text(G.shop_jokers.cards,true, true))
             end

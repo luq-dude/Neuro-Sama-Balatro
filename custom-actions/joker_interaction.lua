@@ -2,6 +2,7 @@ local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
 local RunHelper = ModCache.load("run_functions_helper.lua")
 local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
+local GetRunText = ModCache.load("get_run_text.lua")
 
 local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
 
@@ -21,19 +22,11 @@ function JokerInteraction:_get_name()
 end
 
 function JokerInteraction:_get_description()
-    local cards = {}
-    for index, value in ipairs(G.jokers.cards) do
-        -- could also use sell_cost_label
-        table.insert(cards,
-            "\n" .. tostring(index) .. ": " .. value.config.center.name .. " sell value: " .. value.sell_cost)
-    end
-
     local description = "This allows you to either re-order your jokers, or sell any number of them. " ..
         "When selling, mention the index for every joker you want to sell. " ..
         "When re-ordering, specify where you want each joker to be based off their index. " ..
         "For example, [3,1,2] means put joker 3 first, joker 1 second, then joker 2 third. " ..
-        "You have to specify all jokers in your hand. These are the jokers in your hand: " ..
-        table.concat(cards, "", 1, #cards)
+        "You have to specify all jokers in your hand."
 
     return description
 end
@@ -95,7 +88,10 @@ function JokerInteraction:_validate_action(data, state)
 
     state["cards_index"] = selected_hand_index
     state["card_action"] = selected_action
-    return ExecutionResult.success()
+    if selected_action == "Move" then
+        return ExecutionResult.success("Re-ordered your jokers.")
+    end
+    return ExecutionResult.success("Selling the selected jokers.")
 end
 
 function JokerInteraction:_execute_action(state)
@@ -156,8 +152,7 @@ function JokerInteraction:_execute_action(state)
                 table.insert(cards, "\n" .. tostring(index) .. ": " .. value.config.center.name)
             end
             local query, state = RunHelper:get_query_string()
-            window:set_force(0.0, query,
-                "These are the positions of your jokers now: " .. table.concat(cards, " ", 1, #cards) .. state, true)
+            window:set_force(0.0, query, state, true)
             window:register()
             return true
         end
