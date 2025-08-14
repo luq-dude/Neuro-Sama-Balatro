@@ -136,7 +136,12 @@ function GetText:generate_blind_descriptions()
             chips
         )
         if blind_type ~= "Boss" then
-            local tag_name = G.P_TAGS[G.GAME.round_resets.blind_tags[blind_type]].name
+            local tag_name
+            if G.P_TAGS[G.GAME.round_resets.blind_tags[blind_type]].loc_txt then -- this is for modded tags
+                tag_name = G.P_TAGS[G.GAME.round_resets.blind_tags[blind_type]].loc_txt.name
+            else
+                tag_name = G.P_TAGS[G.GAME.round_resets.blind_tags[blind_type]].name
+            end
             local tag = Tag(G.GAME.round_resets.blind_tags[blind_type], nil, blind_type)
             tag:generate_UI()
             local uibox = tag:get_uibox_table()
