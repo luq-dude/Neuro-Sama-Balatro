@@ -149,8 +149,7 @@ function JokerInteraction:_execute_action(state)
                 table.insert(cards, "\n" .. tostring(index) .. ": " .. value.config.center.name)
             end
             local query, state = RunHelper:get_query_string()
-            window:set_force(0.0, query,
-                "These are the positions of your jokers now: " .. table.concat(cards, " ", 1, #cards) .. state, true)
+            window:set_force(0.0, query, state, true)
             window:register()
             return true
         end

@@ -112,9 +112,9 @@ function RunHelper:get_query_string(state)
         local cards = GetRunText:get_card_modifiers(G.jokers.cards)
 
         for pos, value in ipairs(cards) do
-            cards[pos] = "\n" .. pos .. ": " .. string.sub(value,2) .. ", sell cost: " .. G.jokers.cards[pos].sell_cost
+            cards[pos] = "\n" .. pos .. ": " .. string.sub(value,2) .. ". Sell value: $" .. G.jokers.cards[pos].sell_cost
         end
-        state_string = state_string .. "\nThese are the names of jokers in your hand, their abilites, modifiers and sell cost: ".. table.concat(cards, "", 1, #cards)
+        state_string = state_string .. "\nThese are the jokers in your hand, their abilites, modifiers and sell value: ".. table.concat(cards, "", 1, #cards)
     else
         state_string = state_string .. "\nYou do not have any jokers as of right now."
     end
@@ -123,11 +123,11 @@ function RunHelper:get_query_string(state)
         local cards = GetRunText:get_consumeables_text(G.consumeables.cards)
 
         for pos, value in ipairs(cards) do
-            cards[pos] = "\n" .. pos .. ": " .. value .. " sell value: " .. G.consumeables.cards[pos].sell_cost
+            cards[pos] = "\n" .. pos .. ": " .. value .. ". Sell value: $" .. G.consumeables.cards[pos].sell_cost
         end
-        state_string = state_string .. "\nThese are the names of the consumeables in your hand, their abililties and their sell cost: " .. table.concat(cards, "", 1, #cards)
+        state_string = state_string .. "\nThese are the names of the consumables in your hand, their abilities and their sell value: " .. table.concat(cards, "", 1, #cards)
     else
-        state_string = state_string .. "\nYou do not have any consumeables as of right now."
+        state_string = state_string .. "\nYou do not have any consumables as of right now."
     end
 
     return query_string, state_string
