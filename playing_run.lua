@@ -93,27 +93,6 @@ local function pick_hand_pack_card(delay)
     ))
 end
 
-function PlayingRun:hook_new_round()
-    local round = new_round
-    function new_round()
-        round()
-        local jokers = table.table_to_string(GetRunText:get_joker_details(G.jokers.cards))
-        local consumeables = table.table_to_string(GetRunText:get_consumeables_text(G.consumeables.cards))
-
-        if #jokers > 0 then
-            Context.send("These are the jokers in your hand and their abilites: " .. jokers,true)
-        else
-            Context.send("You do not have any jokers as of right now.",true)
-        end
-
-        if #consumeables > 0 then
-            Context.send("These are the consumeables in your hand and their abililties: " .. consumeables,true)
-        else
-            Context.send("You do not have any consumeables as of right now.",true)
-        end
-    end
-end
-
 function PlayingRun:hook_draw_card()
     local original_draw_card = draw_card
     function draw_card(from, to, percent, dir, sort, card, delay, mute, stay_flipped, vol, discarded_only)
@@ -296,7 +275,7 @@ function PlayingRun:register_store_actions(delay,hook)
                 for key, value in ipairs(modifiers) do
                     if value ~= "" then
                         if not string.find(state,"These are what the card modifiers on your cards") then
-                            state = state .. "\nThese are what the card modifiers on your cards or your jokers do: "
+                            state = state .. "\nThese are what the card modifiers on the cards in the shop or your jokers do. A playing card can have one edition, enhancements and seal at one: "
                         end
                         state = state .. "\n" .. value
                     end

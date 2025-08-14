@@ -22,18 +22,11 @@ function JokerInteraction:_get_name()
 end
 
 function JokerInteraction:_get_description()
-    local cards = GetRunText:get_card_modifiers(G.jokers.cards,false,false,false,true)
-
-    for pos, value in ipairs(cards) do
-        cards[pos] = value .. ", sell cost: " .. G.jokers.cards[pos].sell_cost
-    end
-
     local description = "This allows you to either re-order your jokers, or sell any number of them. " ..
         "When selling, mention the index for every joker you want to sell. " ..
         "When re-ordering, specify where you want each joker to be based off their index. " ..
         "For example, [3,1,2] means put joker 3 first, joker 1 second, then joker 2 third. " ..
-        "You have to specify all jokers in your hand. These are the jokers in your hand: " ..
-        table.concat(cards, "", 1, #cards)
+        "You have to specify all jokers in your hand."
 
     return description
 end

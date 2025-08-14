@@ -52,10 +52,18 @@ function RunHelper:get_query_string(state)
     local query_string = ""
     local state_string = ""
     if state == G.STATES.SELECTING_HAND or state == G.STATES.PLAY_TAROT then
-        local enhancements, editions, seals = GetRunText:get_current_hand_modifiers(table.combine_tables(G.hand.cards,G.jokers.cards))
+        local modifiers = {GetRunText:get_current_hand_modifiers(table.combine_tables(G.hand.cards,G.jokers.cards))}
         query_string = "It's time to pick cards in your hand to play or discard. You can also use consumables re-order jokers, or sell either jokers or consumables."
-        if enhancements ~= "" or editions ~= "" or seals ~= "" then -- probably dont need this if there are no card modifiers
-            state_string = "These are what the modifiers on your cards in hand or on your jokers do. A card can have one edition, enhancement or seal on it: \n" .. enhancements .. "\n" .. editions .."\n" .. seals
+        for key, value in ipairs(modifiers) do
+            if value ~= "" then
+                if not string.find(state,"These are what the card modifiers on your cards") then
+                    state_string = state_string .. "These are what the card modifiers on your cards or your jokers do. A playing card can have one edition, enhancements and seal at one: "
+                end
+                state_string = state_string .. "\n" .. value
+            end
+        end
+        if #state_string ~= 0 then
+            state_string = state_string .. "\n"
         end
         if G.GAME.blind.boss then
             state_string = state_string .. "These are the cards in your hand, their modifiers and if they are debuffed. Debuffed cards do not get scored: "
@@ -82,6 +90,28 @@ function RunHelper:get_query_string(state)
             query_string = "You have opened a booster pack containing cards and can now select cards to keep from it."
             state_string = RunContext:no_hand_booster()
         end
+    end
+
+    if #G.jokers.cards > 0 then
+        local cards = GetRunText:get_card_modifiers(G.jokers.cards)
+
+        for pos, value in ipairs(cards) do
+            cards[pos] = "\n" .. pos .. ": " .. string.sub(value,2) .. ", sell cost: " .. G.jokers.cards[pos].sell_cost
+        end
+        state_string = state_string .. "\nThese are the names of jokers in your hand, their abilites, modifiers and sell cost: ".. table.concat(cards, "", 1, #cards)
+    else
+        state_string = state_string .. "\nYou do not have any jokers as of right now."
+    end
+
+    if #G.consumeables.cards > 0 then
+        local cards = GetRunText:get_consumeables_text(G.consumeables.cards)
+
+        for pos, value in ipairs(cards) do
+            cards[pos] = "\n" .. pos .. ": " .. value .. " sell value: " .. G.consumeables.cards[pos].sell_cost
+        end
+        state_string = state_string .. "\nThese are the names of the consumeables in your hand, their abililties and their sell cost: " .. table.concat(cards, "", 1, #cards)
+    else
+        state_string = state_string .. "\nYou do not have any consumeables as of right now."
     end
 
     return query_string, state_string

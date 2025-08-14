@@ -25,19 +25,11 @@ function UseConsumable:_get_name()
 end
 
 function UseConsumable:_get_description()
-    local cards = {}
-    for index, value in ipairs(G.consumeables.cards) do
-        table.insert(cards,
-            "\n" .. tostring(index) .. ": " .. value.config.center.name .. " sell value: " .. value.sell_cost)
-    end
-
     local description = string.format(
         "Use or sell a consumable in your consumable hand. This will either be planet, spectral or tarot cards." ..
         " Each card has a unqiue effect that will alter your run and help you build your deck." ..
         " Some consumeables need to be used on cards in hand." ..
-        " Specify the consumable to use with consumable_index and use cards_index to specify what cards in hand to use it on" ..
-        " Here is a list of all consumeables you have: " ..
-        table.concat(cards, "", 1, #cards))
+        " Specify the consumable to use with consumable_index and use cards_index to specify what cards in hand to use it on.")
 
     return description
 end
