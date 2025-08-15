@@ -114,7 +114,7 @@ function GetRunText:get_joker_details(card_hand,add_cost,count)
                         loc_args = res.vars or {}
                     end
                     key_override = v.key
-                    name = v.loc_txt.name
+                    name = card.config.center.loc_txt.name_parsed[1][1].strings[1]
 				else
                     LOC_ARGS = {}
                     card:generate_UIBox_ability_table()
