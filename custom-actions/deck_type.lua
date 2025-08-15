@@ -68,7 +68,6 @@ function DeckInfo:_execute_action(state)
 
 	for index, card in ipairs(G.deck.cards) do
 		local info = card.base[base_key]
-		sendDebugMessage(tostring(info) .. tprint(card.base,1,2))
 		if not card_table[info] then
 			card_table[info] = 1
 		else

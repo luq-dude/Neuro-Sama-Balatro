@@ -65,7 +65,6 @@ end
 
 function GetText:get_stake_descriptions()
     local stakes = {}
-    sendDebugMessage(tprint(stakes,1))
     for _, stake in pairs(G.P_CENTER_POOLS.Stake) do
         local name = stake.loc_txt and stake.loc_txt.name or stake.name
         if stake.set ~= "Stake" then goto continue end
