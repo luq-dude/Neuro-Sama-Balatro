@@ -108,9 +108,11 @@ function GetRunText:get_joker_details(card_hand,add_cost,count)
                 local name = card.ability.name
 
                 if v.key ~= card.config.center_key then goto continue end
-                if v.loc_txt and type(v.loc_vars) == 'function' then
-                    local res = v:loc_vars({},card) or {} -- need to pass these to get vars (atleast in neurocards mod)
-                    loc_args = res.vars or {}
+                if v.loc_txt and v.mod then
+                    if v.loc_vars then
+                        local res = v:loc_vars({},card) or {} -- need to pass these to get vars (atleast in neurocards mod)
+                        loc_args = res.vars or {}
+                    end
                     key_override = v.key
                     name = v.loc_txt.name
 				else
