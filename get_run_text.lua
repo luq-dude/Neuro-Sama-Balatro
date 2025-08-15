@@ -462,15 +462,12 @@ function GetRunText:get_card_modifiers(card_hand,add_debuff_state,add_forced_sta
 
         if card.edition then
             for _, v in ipairs(G.P_CENTER_POOLS.Edition) do
-                sendDebugMessage("card ability: " .. tprint(card.ability,1,2))
                 local description = ""
                 if v.key == card.edition.key and v.loc_txt then
-                    sendDebugMessage("running if: " .. v.loc_txt.name .. " loc_txt table: " .. tprint(v.loc_txt,1,2))
                     description = ", Card Edition: " .. v.loc_txt.name
                 elseif v.key ~= card.edition.key then
                     goto continue
                 else
-                    sendDebugMessage("running else")
                     description = ", Card Edition: " .. v.name
                 end
 
@@ -481,15 +478,12 @@ function GetRunText:get_card_modifiers(card_hand,add_debuff_state,add_forced_sta
 
         if card.ability.effect ~= "Base" then
             for _, v in ipairs(G.P_CENTER_POOLS.Enhanced) do
-                sendDebugMessage("card ability: " .. tprint(card.ability,1,2))
                 local description
                 if v.key == card.config.center_key and v.loc_txt then
-                    sendDebugMessage("running if: " .. v.loc_txt.name .. " loc_txt table: " .. tprint(v.loc_txt,1,2))
                     description = ", Card Enhancement: " .. v.loc_txt.name
                 elseif v.key ~= card.config.center_key then
                     goto continue
                 else
-                    sendDebugMessage("running else")
                     description = ", Card Enhancement: " .. card.ability.name
                 end
 
@@ -506,7 +500,6 @@ function GetRunText:get_card_modifiers(card_hand,add_debuff_state,add_forced_sta
                 elseif v.key ~= card.seal then
                     goto continue
                 else
-                    sendDebugMessage("running else")
                     description = ", Card Seal: " .. card.seal .. " Seal"
                 end
 
@@ -673,7 +666,6 @@ function GetRunText:get_hand_seals(cards_table)
                 local loc_lookup,loc_nodes,loc_args = Seal_Loc[card.seal], {}, {}
                 local name = ""
                 if g_card.key ~= card.seal then goto continue end
-                sendDebugMessage("g_card: " .. tprint(g_card,1,2))
                 if g_card.key == card.seal and g_card.loc_txt then
                     if g_card.loc_vars then
                         local res = g_card:loc_vars(nil,card) or {} -- osu seal needs these or crash

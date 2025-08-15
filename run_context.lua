@@ -37,7 +37,6 @@ function RunContext:no_hand_booster()
         sendErrorMessage("Arcana should not be called from pick_pack_card")
         return
     else -- modded packs that dont contain contain a default set or if there is something I forgot
-        sendDebugMessage("card table: " .. tprint(G.pack_cards.cards,1,2))
         local hand = table.table_to_string(GetRunText:get_hand_names(G.pack_cards.cards))
 
         return string.format("This is the hand of cards that are in this pack: " .. hand)
