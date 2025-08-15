@@ -97,6 +97,12 @@ function GetRunText:get_joker_details(card_hand,add_cost,count)
     add_cost = add_cost or false
     count = count or false
     local cards = {}
+    local add_blueprint = false
+    for _, v in ipairs(G.jokers.cards) do
+        if v.ability.name == "Blueprint" or v.ability.name == "Brainstorm" then
+            add_blueprint = true
+        end
+    end
 
 	for pos, card in ipairs(card_hand) do
 		local joker_desc = ""
@@ -144,6 +150,7 @@ function GetRunText:get_joker_details(card_hand,add_cost,count)
                 end
 
                 if add_cost then description = add_card_buy_cost(description,card) end
+                if add_blueprint then description = description .. ". Blueprint/Brainstorm compatible: " .. tostring(card.config.center.blueprint_compat) end
                 joker_desc = description
             ::continue::
             end
