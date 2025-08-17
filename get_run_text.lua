@@ -202,6 +202,10 @@ function GetRunText:get_spectral_details(card_hand,add_cost,count)
                     loc_args = loc_lookup(g_card)
                 elseif g_card.mod then
                     name = g_card.loc_txt.name
+                    if type(g_card.loc_vars) == "function" then 
+                        local res = g_card:loc_vars({}, card) or {}
+                        loc_args = res.vars
+                    end 
                 else
                     sendErrorMessage("Could not find localize for card" .. g_card.key)
                 end
@@ -276,6 +280,10 @@ function GetRunText:get_tarot_details(card_hand,add_cost,count)
                     loc_args = loc_lookup(card)
                 elseif g_card.mod then
                     name = g_card.loc_txt.name
+                    if type(g_card.loc_vars) == "function" then 
+                        local res = g_card:loc_vars({}, card) or {}
+                        loc_args = res.vars
+                    end 
                 else
                     sendErrorMessage("Could not find localize for card" .. g_card.key)
                 end
