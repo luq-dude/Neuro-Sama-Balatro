@@ -72,7 +72,6 @@ end
 
 -- assumes that we are on the title screen
 function GamePrep.start_from_title()
-    print('start from title called')
     G.E_MANAGER:add_event(Event({
         trigger = "after",
         delay = 2,

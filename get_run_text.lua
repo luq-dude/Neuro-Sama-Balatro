@@ -97,6 +97,12 @@ function GetRunText:get_joker_details(card_hand,add_cost,count)
     add_cost = add_cost or false
     count = count or false
     local cards = {}
+    local add_blueprint = false
+    for _, v in ipairs(G.jokers.cards) do
+        if v.ability.name == "Blueprint" or v.ability.name == "Brainstorm" then
+            add_blueprint = true
+        end
+    end
 
 	for pos, card in ipairs(card_hand) do
 		local joker_desc = ""
@@ -144,6 +150,7 @@ function GetRunText:get_joker_details(card_hand,add_cost,count)
                 end
 
                 if add_cost then description = add_card_buy_cost(description,card) end
+                if add_blueprint then description = description .. ". Blueprint/Brainstorm compatible: " .. tostring(card.config.center.blueprint_compat) end
                 joker_desc = description
             ::continue::
             end
@@ -195,6 +202,10 @@ function GetRunText:get_spectral_details(card_hand,add_cost,count)
                     loc_args = loc_lookup(g_card)
                 elseif g_card.mod then
                     name = g_card.loc_txt.name
+                    if type(g_card.loc_vars) == "function" then 
+                        local res = g_card:loc_vars({}, card) or {}
+                        loc_args = res.vars
+                    end 
                 else
                     sendErrorMessage("Could not find localize for card" .. g_card.key)
                 end
@@ -269,6 +280,10 @@ function GetRunText:get_tarot_details(card_hand,add_cost,count)
                     loc_args = loc_lookup(card)
                 elseif g_card.mod then
                     name = g_card.loc_txt.name
+                    if type(g_card.loc_vars) == "function" then 
+                        local res = g_card:loc_vars({}, card) or {}
+                        loc_args = res.vars
+                    end 
                 else
                     sendErrorMessage("Could not find localize for card" .. g_card.key)
                 end
@@ -464,15 +479,12 @@ function GetRunText:get_card_modifiers(card_hand,add_debuff_state,add_forced_sta
 
         if card.edition then
             for _, v in ipairs(G.P_CENTER_POOLS.Edition) do
-                sendDebugMessage("card ability: " .. tprint(card.ability,1,2))
                 local description = ""
                 if v.key == card.edition.key and v.loc_txt then
-                    sendDebugMessage("running if: " .. v.loc_txt.name .. " loc_txt table: " .. tprint(v.loc_txt,1,2))
                     description = ", Card Edition: " .. v.loc_txt.name
                 elseif v.key ~= card.edition.key then
                     goto continue
                 else
-                    sendDebugMessage("running else")
                     description = ", Card Edition: " .. v.name
                 end
 
@@ -483,15 +495,12 @@ function GetRunText:get_card_modifiers(card_hand,add_debuff_state,add_forced_sta
 
         if card.ability.effect ~= "Base" then
             for _, v in ipairs(G.P_CENTER_POOLS.Enhanced) do
-                sendDebugMessage("card ability: " .. tprint(card.ability,1,2))
                 local description
                 if v.key == card.config.center_key and v.loc_txt then
-                    sendDebugMessage("running if: " .. v.loc_txt.name .. " loc_txt table: " .. tprint(v.loc_txt,1,2))
                     description = ", Card Enhancement: " .. v.loc_txt.name
                 elseif v.key ~= card.config.center_key then
                     goto continue
                 else
-                    sendDebugMessage("running else")
                     description = ", Card Enhancement: " .. card.ability.name
                 end
 
@@ -508,7 +517,6 @@ function GetRunText:get_card_modifiers(card_hand,add_debuff_state,add_forced_sta
                 elseif v.key ~= card.seal then
                     goto continue
                 else
-                    sendDebugMessage("running else")
                     description = ", Card Seal: " .. card.seal .. " Seal"
                 end
 
@@ -672,7 +680,6 @@ function GetRunText:get_hand_seals(cards_table)
                 local loc_lookup,loc_nodes,loc_args = Seal_Loc[card.seal], {}, {}
                 local name = ""
                 if g_card.key ~= card.seal then goto continue end
-                sendDebugMessage("g_card: " .. tprint(g_card,1,2))
                 if g_card.key == card.seal and g_card.loc_txt then
                     if g_card.loc_vars then
                         local res = g_card:loc_vars(nil,card) or {} -- osu seal needs these or crash

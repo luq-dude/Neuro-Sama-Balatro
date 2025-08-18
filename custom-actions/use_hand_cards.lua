@@ -55,7 +55,6 @@ function UseHandCards:_validate_action(data, state)
     selected_index = selected_index._data
 
     if not selected_index then
-        sendDebugMessage("issue in not: " .. tprint(selected_action, 1, 2))
         return ExecutionResult.failure(SDK_Strings.action_failed_missing_required_parameter("card_action"))
     end
 

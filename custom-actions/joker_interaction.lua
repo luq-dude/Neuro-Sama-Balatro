@@ -88,7 +88,10 @@ function JokerInteraction:_validate_action(data, state)
 
     state["cards_index"] = selected_hand_index
     state["card_action"] = selected_action
-    return ExecutionResult.success()
+    if selected_action == "Move" then
+        return ExecutionResult.success("Re-ordered your jokers.")
+    end
+    return ExecutionResult.success("Selling the selected jokers.")
 end
 
 function JokerInteraction:_execute_action(state)

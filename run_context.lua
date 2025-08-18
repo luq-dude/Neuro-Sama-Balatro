@@ -37,7 +37,6 @@ function RunContext:no_hand_booster()
         sendErrorMessage("Arcana should not be called from pick_pack_card")
         return
     else -- modded packs that dont contain contain a default set or if there is something I forgot
-        sendDebugMessage("card table: " .. tprint(G.pack_cards.cards,1,2))
         local hand = table.table_to_string(GetRunText:get_hand_names(G.pack_cards.cards))
 
         return string.format("This is the hand of cards that are in this pack: " .. hand)
@@ -53,7 +52,7 @@ function RunContext:hand_pack_booster()
         for key, value in ipairs(modifiers) do
             if value ~= "" then
                 if not string.find(hand_string,"These are what the card modifiers on your cards") then
-                    hand_string = hand_string .. "These are what the card modifiers on your cards or your jokers do. A playing card can have one edition, enhancements and seal at one: "
+                    hand_string = hand_string .. "\nThese are what the card modifiers on your cards or your jokers do. A playing card can have one edition, enhancements and seal at one: "
                 end
                 hand_string = hand_string .. "\n" .. value
             end

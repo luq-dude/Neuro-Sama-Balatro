@@ -1,6 +1,6 @@
 return {
     -- Websocket server URL
-    ["NEURO_SDK_WS_URL"] = "ws://127.0.0.1:8000",
+    ["NEURO_SDK_WS_URL"] = "ws://localhost:8000",
 
     -- Delay in seconds before attempting to reconnect
     ["RECONNECT_DELAY"] = 5,
@@ -42,7 +42,7 @@ return {
         --"Anaglyph Deck",  -- After defeating each Boss Blind, gain a Double Tag
         --"Plasma Deck",    -- Balance Chips and Mult when calculating score for played hand, X2 base Blind size
         --"Erratic Deck",   -- All Ranks and Suits in deck are randomised
-        "Glorpy deck",
+        --"Twin deck",      -- Example modded deck from Neuratro 
     },
 
     -- List of allowed stakes for Neuro to use. I recommend enabling only the white stake, but if she does win feel free to gradually enable others
