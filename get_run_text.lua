@@ -799,7 +799,9 @@ end
 -- just calls get_all_modifiers but puts them all in a single string
 function GetRunText:get_all_modifier_desc()
     local edi,enh,seal = GetRunText:get_all_modifiers()
-    local ret = "These are all the card/joker modifiers in the game. A card can only have one edition, enhancement and seal at a time. You should remember these: " .. 
+    local ret = "These are all the playing card and joker modifiers in the game. " ..
+        "A playing card can only have one edition, enhancement and seal at a time, while jokers can only have one edition. " ..
+        "You should remember these: " ..
         "\n- Editions:" .. table.table_to_string(edi) ..
         "\n- Enhancements:" .. table.table_to_string(enh) ..
         "\n- Seals:" .. table.table_to_string(seal)
