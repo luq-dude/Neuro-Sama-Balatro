@@ -52,18 +52,10 @@ function RunHelper:get_query_string(state)
     local query_string = ""
     local state_string = ""
     if state == G.STATES.SELECTING_HAND or state == G.STATES.PLAY_TAROT then
-        local modifiers = {GetRunText:get_current_hand_modifiers(table.combine_tables(G.hand.cards,G.jokers.cards))}
         query_string = "It's time to pick cards in your hand to play or discard. You can also use consumables re-order jokers, or sell either jokers or consumables."
         state_string = "You have " .. tostring(G.GAME.current_round.hands_left) .. " hands left and " .. tostring(G.GAME.current_round.discards_left) .. " discards left. " ..
                         "You have " .. tostring(#G.deck.cards) .. " cards remaining in your deck that can be drawn, out of the " .. tostring(G.deck.config.card_limit) .. " cards in it.\n"
-        for key, value in ipairs(modifiers) do
-            if value ~= "" then
-                if not string.find(state_string,"These are what the card modifiers on your cards") then
-                    state_string = state_string .. "These are what the card modifiers on your cards or your jokers do. A playing card can have one edition, enhancements and seal at one: "
-                end
-                state_string = state_string .. "\n" .. value
-            end
-        end
+
         if #state_string ~= 0 then
             state_string = state_string .. "\n"
         end
@@ -83,20 +75,6 @@ function RunHelper:get_query_string(state)
     elseif state == G.STATES.SHOP then
         query_string = "You are now in the shop! You can use your money to buy cards, booster packs or vouchers to help your run. You can also use consumables and sell jokers/consumables you no longer need. When done shopping, you can exit the shop to blind selection."
         state_string = "You currently have $" .. tostring(G.GAME.dollars) .. " to spend."
-        local modifiers
-        if #G.shop_jokers.cards > 0 then
-            modifiers = {GetRunText:get_current_hand_modifiers(table.combine_tables(G.shop_jokers.cards,G.jokers.cards))}
-        else
-            modifiers = {GetRunText:get_current_hand_modifiers(G.jokers.cards)}
-        end
-        for key, value in ipairs(modifiers) do
-            if value ~= "" then
-                if not string.find(state_string,"These are what the card modifiers on your cards") then
-                    state_string = state_string .. "\nThese are what the card modifiers on the cards in the shop or your jokers do. A playing card can have one edition, enhancements and seal at one: "
-                end
-                state_string = state_string .. "\n" .. value
-            end
-        end
     elseif state == 999 then
         if SMODS.OPENED_BOOSTER.config.center.draw_hand then
             query_string = "You have opened a booster pack containing consumables and can now pick a consumable to immediately use from it. You can also select cards from your hand to use if the consumable needs it."
