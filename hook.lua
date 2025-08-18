@@ -19,6 +19,8 @@ Hook.__index = Hook
 local should_unlock = NeuroConfig.UNLOCK_ALL
 
 G.can_restart = NeuroConfig.CAN_RESTART_ON_CRASH
+MAX_PLAYED_BLINDS = NeuroConfig.RESEND_MODIFIER_BLIND_AMOUNT
+PLAYED_BLINDS = 0
 
 local function load_profile(delay)
     G.E_MANAGER:add_event(Event({
@@ -252,6 +254,7 @@ local function hook_blind_select()
         }))
     end
 end
+
 function Hook:hook_game()
     if not neuro_profile or neuro_profile < 1 or neuro_profile > 3 then
         neuro_profile = 3
@@ -276,6 +279,7 @@ function Hook:hook_game()
     PlayingRun:hook_play_cards()
     PlayingRun:hook_discard_cards()
     PlayingRun:hook_evaluate_play()
+    PlayingRun:hook_new_round()
 
     hook_blind_select()
 

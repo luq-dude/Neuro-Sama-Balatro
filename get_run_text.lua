@@ -552,6 +552,29 @@ function GetRunText:get_hand_names(cards_table)
 	return cards
 end
 
+local function get_text(loc_nodes,current_description)
+    local description = current_description
+    if #loc_nodes > 0 then
+        for _, line in ipairs(loc_nodes) do
+            for _, word in ipairs(line) do
+                if word.nodes ~= nil then
+                    if word.nodes[1].config.object ~= nil then
+                        description = description .. word.nodes[1].config.object.string
+                    else
+                        description = description .. word.nodes[1].config.text
+                    end
+                else
+                    if not word.config.text then break end -- removes table that contains stuff for setting up UI
+                    description = description .. word.config.text
+                end
+                description = description .. " "
+            end
+        end
+    end
+
+    return description
+end
+
 function GetRunText:get_hand_editions(cards_table)
 	local cards = {}
 	for _, card in ipairs(cards_table) do
@@ -583,19 +606,7 @@ function GetRunText:get_hand_editions(cards_table)
                 localize{type = 'descriptions', key = g_card.key or key_override, set = g_card.set or card.ability.set, nodes = loc_nodes, vars = loc_args}
 
                 local description = "\n -- " .. name .. " : "
-                for _, line in ipairs(loc_nodes) do
-                    for _, word in ipairs(line) do
-                        if word.nodes ~= nil then
-                            if word.nodes[1].config.object then -- I think this is used for formatting, we don't need it though
-                                break;
-                            end
-                            description = description .. word.nodes[1].config.text
-                        else
-                            description = description .. word.config.text
-                        end
-                        description = description .. " "
-                    end
-                end
+                description = get_text(loc_nodes,description)
 
                 edition_desc = description
             ::continue::
@@ -644,21 +655,7 @@ function GetRunText:get_hand_enhancements(cards_table)
                 localize{type = 'descriptions', key = key_override or g_card.key, set = set_override or g_card.set, nodes = loc_nodes, vars = loc_args} -- doesn't get character's like + idk why as others do, needs to be fixed before releasing though
 
                 local description = "\n -- " .. name .. " : "
-                for _, line in ipairs(loc_nodes) do
-                    for _, word in ipairs(line) do
-                        if word.nodes ~= nil then
-                            if word.nodes[1].config.object ~= nil then
-                                description = description .. word.nodes[1].config.object.string
-                            else
-                                description = description .. word.nodes[1].config.text
-                            end
-                        else
-                            if not word.config.text then break end -- removes table that contains stuff for setting up UI
-                            description = description .. word.config.text
-                        end
-                        description = description .. " "
-                    end
-                end
+                description = get_text(loc_nodes,description)
 
                 enhancement_desc = description
             ::continue::
@@ -704,16 +701,7 @@ function GetRunText:get_hand_seals(cards_table)
                 localize{type = 'descriptions', set = "Other" or g_card.set, key= key_override or g_card.key, nodes = loc_nodes, vars = loc_args}
 
                 local description = "\n -- " .. name.. " Seal"  .. " : "
-                for _, line in ipairs(loc_nodes) do
-                    for _, word in ipairs(line) do
-                        if word.nodes ~= nil then
-                            description = description .. word.nodes[1].config.text
-                        else
-                            description = description .. word.config.text
-                        end
-                        description = description .. " "
-                    end
-                end
+                description = get_text(loc_nodes,description)
 
                 seal_desc = description
             ::continue::
@@ -725,26 +713,100 @@ function GetRunText:get_hand_seals(cards_table)
     return cards
 end
 
-function GetRunText:get_current_hand_modifiers(cards_table)
-    local enhancements = table.table_to_string(self:get_hand_enhancements(cards_table))
-    local editions = table.table_to_string(self:get_hand_editions(cards_table))
-    local seals = table.table_to_string(self:get_hand_seals(cards_table))
 
-    local enhancements_string = "- Enhancements: " .. enhancements
-    local editions_string = "- Editions: " .. editions
-    local seals_string = "- Seals: " .. seals
+local function get_modifiers_vars(card_table,loc_lookup)
+    local description,name,loc_args = "","",{}
+    if card_table.loc_txt then
+        loc_args = table.get_values(card_table.config)
+        name = card_table.loc_txt.name
+    elseif type(loc_lookup) == "table" then
+        for _, v in ipairs(loc_lookup) do
+            if card_table.config then
+                table.insert(loc_args,card_table.config[v])
+            else
+                table.insert(loc_args,v) -- this is for the slightly jank seal loc implementation
+            end
+        end
+    elseif type(loc_lookup) == "function" then
+        loc_args = loc_lookup(card_table)
+    else
+        sendErrorMessage("Could not find localize for enhancement" .. card_table.key)
+    end
 
-    if enhancements == "" or enhancements == nil then
-        enhancements_string = ""
-    end
-    if editions == "" or editions == nil then
-        editions_string = ""
-    end
-    if seals == "" or seals == nil then
-        seals_string = ""
+    return description,name,loc_args
+end
+
+function GetRunText:get_all_modifiers()
+    local edition_descriptions = {}
+    local enhancement_descriptions = {}
+    local seal_descriptions = {}
+
+    for _, g_card in pairs(G.P_CENTER_POOLS.Edition) do
+        local loc_lookup, loc_nodes = Edition_Loc[g_card.key], {}
+        local name = g_card.name
+        local description,func_name,loc_args = get_modifiers_vars(g_card,loc_lookup)
+        if func_name ~= "" then name = func_name end
+
+        localize{type = 'descriptions', key = g_card.key, set = g_card.set, nodes = loc_nodes, vars = loc_args}
+
+        description = get_text(loc_nodes,description)
+
+        edition_descriptions[#edition_descriptions+1] = "\n -- " .. name.. " : " .. description
     end
 
-    return enhancements_string,editions_string,seals_string
+    for _, g_card in pairs(G.P_CENTER_POOLS.Enhanced) do
+        local loc_lookup, loc_nodes = Enhancement_Loc[g_card.key], {}
+        local name = g_card.label
+        local key_override,set_override = g_card.key, g_card.set
+        local description,func_name,loc_args = get_modifiers_vars(g_card,loc_lookup)
+        if func_name ~= "" then name = func_name end
+        if g_card.key == "m_bonus" then
+            key_override = "card_extra_chips"
+            set_override = "Other"
+        elseif g_card.key == "m_steel" then
+            loc_args = {1.5}
+        end
+
+        localize{type = 'descriptions', key = key_override or g_card.key, set = set_override or g_card.set, nodes = loc_nodes, vars = loc_args} -- doesn't get character's like + idk why as others do, needs to be fixed before releasing though
+
+        description = get_text(loc_nodes,description)
+
+        enhancement_descriptions[#enhancement_descriptions+1] = "\n -- " .. name.. " : " .. description
+    end
+
+    for _, g_card in pairs(G.P_CENTER_POOLS.Seal) do
+        local loc_lookup,loc_nodes = Seal_Loc[g_card.key], {}
+        local name,key_override = g_card.key,""
+        local description,func_name,loc_args = get_modifiers_vars(g_card,loc_lookup)
+        if func_name ~= "" then name = func_name end
+        if g_card.loc_txt then
+            key_override = g_card.key .. '_seal' -- smods thing
+        else
+            name = name .. " seal"
+            key_override = loc_args[1] -- seal loc gets key not args
+        end
+
+        localize{type = 'descriptions', set = "Other" or g_card.set, key= key_override or g_card.key, nodes = loc_nodes, vars = loc_args}
+
+        description = get_text(loc_nodes,description)
+
+        seal_descriptions[#seal_descriptions+1] = "\n -- " .. name.. ": " .. description
+    end
+
+    return edition_descriptions,enhancement_descriptions,seal_descriptions
+end
+
+-- just calls get_all_modifiers but puts them all in a single string
+function GetRunText:get_all_modifier_desc()
+    local edi,enh,seal = GetRunText:get_all_modifiers()
+    local ret = "These are all the playing card and joker modifiers in the game. " ..
+        "A playing card can only have one edition, enhancement and seal at a time, while jokers can only have one edition. " ..
+        "You should remember these: " ..
+        "\n- Editions:" .. table.table_to_string(edi) ..
+        "\n- Enhancements:" .. table.table_to_string(enh) ..
+        "\n- Seals:" .. table.table_to_string(seal)
+    
+    return ret
 end
 
 return GetRunText

@@ -67,6 +67,15 @@ function table.get_keys(t)
     return keys
 end
 
+-- convers tables into array
+function table.get_values(t)
+    local values = {}
+    for _, value in pairs(t) do
+        table.insert(values,value)
+    end
+    return values
+end
+
 function table.table_to_string(tbl)
     local s = ""
     for i, value in ipairs(tbl) do

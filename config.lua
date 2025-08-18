@@ -5,6 +5,10 @@ return {
     -- Delay in seconds before attempting to reconnect
     ["RECONNECT_DELAY"] = 5,
 
+    -- This determines the amount of played blinds needed to resend the descriptions of card modifiers.
+    -- Default = 15 blinds or 5 full antes
+    ["RESEND_MODIFIER_BLIND_AMOUNT"] = 15,
+
     -- The profile Neuro should use. If save data exists in this slot, we are going to assume it belongs to Neuro and
     -- continue the game from there if there's an active run. If there's no save data, we will create a new
     -- profile in this slot.
