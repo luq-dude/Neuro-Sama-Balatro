@@ -30,10 +30,7 @@ end
 
 function ModifierInformation:_execute_action(state)
     local edi,enh,seal = GetRunText:get_all_modifiers()
-    Context.send("These are all of the available card modifers, you should remember this: " ..
-    "\n-Editions:" .. table.table_to_string(edi) ..
-    "\n-Enhancements:" ..table.table_to_string(enh)..
-    "\n-Seals:" .. table.table_to_string(seal),true)
+    Context.send(GetRunText:get_all_modifier_desc(), true)
 
 	if G.STATE == G.STATES.SHOP then
         self.hook:register_store_actions(0)

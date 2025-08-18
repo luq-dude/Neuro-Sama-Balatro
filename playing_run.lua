@@ -263,11 +263,7 @@ function PlayingRun:hook_new_round()
 
         if PLAYED_BLINDS >= MAX_PLAYED_BLINDS then
             PLAYED_BLINDS = 0
-            local edi,enh,seal = GetRunText:get_all_modifiers()
-            Context.send("These are all of the available card modifers, you should remember this: " .. -- TODO: Luq improve this context please I'm lazy and illiterate
-            "\n-Editions:" .. table.table_to_string(edi) ..
-            "\n-Enhancements:" ..table.table_to_string(enh)..
-            "\n-Seals:" .. table.table_to_string(seal),true)
+            Context.send(GetRunText:get_all_modifier_desc(), true)
         end
     end
 end

@@ -713,27 +713,6 @@ function GetRunText:get_hand_seals(cards_table)
     return cards
 end
 
-function GetRunText:get_current_hand_modifiers(cards_table)
-    local enhancements = table.table_to_string(self:get_hand_enhancements(cards_table))
-    local editions = table.table_to_string(self:get_hand_editions(cards_table))
-    local seals = table.table_to_string(self:get_hand_seals(cards_table))
-
-    local enhancements_string = "- Enhancements: " .. enhancements
-    local editions_string = "- Editions: " .. editions
-    local seals_string = "- Seals: " .. seals
-
-    if enhancements == "" or enhancements == nil then
-        enhancements_string = ""
-    end
-    if editions == "" or editions == nil then
-        editions_string = ""
-    end
-    if seals == "" or seals == nil then
-        seals_string = ""
-    end
-
-    return enhancements_string,editions_string,seals_string
-end
 
 local function get_modifiers_vars(card_table,loc_lookup)
     local description,name,loc_args = "","",{}
@@ -815,6 +794,17 @@ function GetRunText:get_all_modifiers()
     end
 
     return edition_descriptions,enhancement_descriptions,seal_descriptions
+end
+
+-- just calls get_all_modifiers but puts them all in a single string
+function GetRunText:get_all_modifier_desc()
+    local edi,enh,seal = GetRunText:get_all_modifiers()
+    local ret = "These are all the card/joker modifiers in the game. A card can only have one edition, enhancement and seal at a time. You should remember these: " .. 
+        "\n- Editions:" .. table.table_to_string(edi) ..
+        "\n- Enhancements:" .. table.table_to_string(enh) ..
+        "\n- Seals:" .. table.table_to_string(seal)
+    
+    return ret
 end
 
 return GetRunText

@@ -2,6 +2,8 @@ local GamePrep = {}
 
 local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
 local SelectDeck = ModCache.load("custom-actions/select_deck.lua")
+local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
+local GetRunText = ModCache.load("get_run_text.lua")
 
 local neuro_profile = NeuroConfig.PROFILE_SLOT
 
@@ -78,6 +80,7 @@ function GamePrep.start_from_title()
         func = function()
             G.MAIN_MENU_UI:get_UIE_by_ID('main_menu_play'):click()
             select_deck(2)
+            Context.send(GetRunText:get_all_modifier_desc(), true)
             return true
         end
     }))
