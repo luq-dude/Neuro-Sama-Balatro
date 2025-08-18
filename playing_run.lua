@@ -10,6 +10,7 @@ local GetRunText = ModCache.load("get_run_text.lua")
 local SkipPack = ModCache.load("custom-actions/skip_pack.lua")
 local DeckTypes = ModCache.load("custom-actions/deck_type.lua")
 local PokerHandInfo = ModCache.load("custom-actions/get_poker_hand_info.lua")
+local ModifierInformation = ModCache.load("custom-actions/modifier_information.lua")
 
 local ExitShop = ModCache.load("custom-actions/shop-actions/exit_shop.lua")
 local RerollShop = ModCache.load("custom-actions/shop-actions/reroll_shop.lua")
@@ -46,7 +47,8 @@ function PlayingRun:play_card(delay)
             window:add_action(UseHandCards:new(window, {PlayingRun}))
             window:add_action(DeckTypes:new(window,{PlayingRun}))
             window:add_action(PokerHandInfo:new(window,{PlayingRun}))
-            extra_card_action_check(window,{UseHandCards,DeckTypes,PokerHandInfo})
+            window:add_action(ModifierInformation:new(window,{PlayingRun}))
+            extra_card_action_check(window,{UseHandCards,DeckTypes,PokerHandInfo,ModifierInformation})
             window:register()
             return true
         end
@@ -253,6 +255,23 @@ function PlayingRun:hook_reroll_shop()
     end
 end
 
+function PlayingRun:hook_new_round()
+    local func = new_round
+    function new_round()
+        func()
+        PLAYED_BLINDS = PLAYED_BLINDS + 1
+
+        if PLAYED_BLINDS >= MAX_PLAYED_BLINDS then
+            PLAYED_BLINDS = 0
+            local edi,enh,seal = GetRunText:get_all_modifiers()
+            Context.send("These are all of the available card modifers, you should remember this: " .. -- TODO: Luq improve this context please I'm lazy and illiterate
+            "\n-Editions:" .. table.table_to_string(edi) ..
+            "\n-Enhancements:" ..table.table_to_string(enh)..
+            "\n-Seals:" .. table.table_to_string(seal),true)
+        end
+    end
+end
+
 function PlayingRun:register_store_actions(delay,hook)
     G.E_MANAGER:add_event(Event({
         trigger = "after",
@@ -283,6 +302,7 @@ function PlayingRun:register_store_actions(delay,hook)
 
             actions[#actions+1] = DeckTypes
             actions[#actions+1] = PokerHandInfo
+            actions[#actions+1] = ModifierInformation
 
             extra_card_action_check(window,actions)
 
