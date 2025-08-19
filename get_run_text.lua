@@ -766,8 +766,14 @@ function GetRunText:get_all_modifiers()
         localize{type = 'descriptions', key = g_card.key, set = g_card.set, nodes = loc_nodes, vars = loc_args}
 
         description = get_text(loc_nodes,description)
-
-        edition_descriptions[#edition_descriptions+1] = "\n -- " .. name.. " : " .. description
+        -- is this hacky? yes. do i have a better idea? no
+        if g_card.key == 'e_negative' then
+            edition_descriptions[#edition_descriptions+1] = "\n -- Negative (on Jokers) : +1 Joker slot"
+            edition_descriptions[#edition_descriptions+1] = "\n -- Negative (on Consumables) : +1 Consumables slot"
+            edition_descriptions[#edition_descriptions+1] = "\n -- Negative (on Playing Cards) : +1 hand size"
+        else
+            edition_descriptions[#edition_descriptions+1] = "\n -- " .. name.. " : " .. description
+        end
     end
 
     for _, g_card in pairs(G.P_CENTER_POOLS.Enhanced) do
