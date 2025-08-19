@@ -27,7 +27,11 @@ function SkipPack:_get_schema()
 end
 
 function SkipPack:_validate_action(data, state)
-	return ExecutionResult.success("Skipping this " .. SMODS.OPENED_BOOSTER.config.center.name)
+    local name = SMODS.OPENED_BOOSTER.config.center.name
+    if SMODS.OPENED_BOOSTER.config.center.mod and SMODS.OPENED_BOOSTER.config.center.loc_txt then
+        name = SMODS.OPENED_BOOSTER.config.center.loc_txt.name
+    end
+	return ExecutionResult.success("Skipping this " .. name)
 end
 
 function SkipPack:_execute_action(state)

@@ -66,13 +66,18 @@ function BuyShopCard:_validate_action(data, state)
         return ExecutionResult.failure("You can only buy this card")
     end
 
-    if card.ability.set == "Joker" and #G.jokers.cards >= G.jokers.config.card_limit then
-        return ExecutionResult.failure("You do not have enough space to add a joker.")
+    if card.ability.set == "Joker" and #G.jokers.cards >= G.jokers.config.card_limit
+        and (card.edition == nil or card.edition.key ~= "e_negative") then
+            return ExecutionResult.failure("You do not have enough space to buy this joker.")
     end
 
-    if card.ability.set ~= "Joker" and selected_action == "buy" and #G.consumeables.cards >= G.consumeables.config.card_limit then -- might cause issues with modded sets if they don't use G.consumeables
+    -- idt consumables in shop can ever have a modifier but lets check for it anyway
+    if (card.ability.set == "Planet" or card.ability.set == "Tarot" or card.ability.set == "Spectral")
+        and selected_action == "buy" and #G.consumeables.cards >= G.consumeables.config.card_limit
+        and (card.edition == nil or card.edition.key ~= "e_negative") then -- might cause issues with modded sets if they don't use G.consumeables
+        
         return ExecutionResult.failure(
-            "You can not store this card, due to there already being too many consumables stored. You should either use of some of the stored consumables or just buy this one.")
+            "You do not have enough space to buy this consumable.")
     end
 
     if selected_action == "buy and use" and not card:can_use_consumeable() then

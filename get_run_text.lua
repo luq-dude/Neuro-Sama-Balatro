@@ -7,6 +7,19 @@ local function add_card_buy_cost(description,card)
     return description
 end
 
+local function add_consumeable_edition(desc, card)
+    if not card.edition then return desc end
+    desc = desc .. ". Edition: "
+    for _, v in ipairs(G.P_CENTER_POOLS.Edition) do
+        if v.key == card.edition.key and v.loc_txt then
+            desc = desc .. v.loc_txt.name
+        elseif v.key == card.edition.key then
+            desc = desc .. v.name
+        end
+    end
+    return desc
+end
+
 function GetRunText:get_celestial_names(card_hand)
     local cards = {}
 
@@ -51,7 +64,8 @@ function GetRunText:get_celestial_details(card_hand,add_cost,count)
                     SMODS.PokerHand.obj_table[v.config.hand_type].level,localize(v.config.hand_type, 'poker_hands'), SMODS.PokerHand.obj_table[v.config.hand_type].l_mult, SMODS.PokerHand.obj_table[v.config.hand_type].l_chips,
                     colours = {(SMODS.PokerHand.obj_table[v.config.hand_type].level==1 and G.C.UI.TEXT_DARK or G.C.HAND_LEVELS[math.min(7, SMODS.PokerHand.obj_table[v.config.hand_type].level)])}
                     }
-                localize{type = 'descriptions', key = v.key, set = v.set, nodes = loc_nodes, vars = loc_args}
+                
+                localize{type = 'descriptions', key = v.key, set = v.set, nodes = loc_nodes, vars = loc_args, AUT = card:generate_UIBox_ability_table()}
                 local description = "\n" .. (count and ("- " .. #cards + 1 .. ": ") or "") .. name .. ": "
                 for _, line in ipairs(loc_nodes) do
                     for _, word in ipairs(line) do
@@ -65,6 +79,7 @@ function GetRunText:get_celestial_details(card_hand,add_cost,count)
                 end
 
                 if add_cost then description = add_card_buy_cost(description,card) end
+                description = add_consumeable_edition(description, card)
                 planet_desc = description
             ::continue::
             end
@@ -127,8 +142,8 @@ function GetRunText:get_joker_details(card_hand,add_cost,count)
                     loc_args = LOC_ARGS
                     key_override = card.config.center_key
                 end
-
-                localize{type = 'descriptions', key = v.key, set = v.set, nodes = loc_nodes, vars = loc_args}
+                
+                localize{type = 'descriptions', key = v.key, set = v.set, nodes = loc_nodes, vars = loc_args, AUT = card:generate_UIBox_ability_table()}
 
                 local description = "\n" .. (count and ("- " .. #cards + 1 .. ": ") or "") .. name .. ": "
                 if name == "Misprint" then
@@ -210,7 +225,7 @@ function GetRunText:get_spectral_details(card_hand,add_cost,count)
                     sendErrorMessage("Could not find localize for card" .. g_card.key)
                 end
 
-                localize{type = 'descriptions', key = g_card.key or key_override, set = g_card.set, nodes = loc_nodes, vars = loc_args}
+                localize{type = 'descriptions', key = g_card.key or key_override, set = g_card.set, nodes = loc_nodes, vars = loc_args, AUT = card:generate_UIBox_ability_table()}
 
                 local description = "\n" .. (count and ("- " .. #cards + 1 .. ": ") or "") .. name .. ": "
                 for _, line in ipairs(loc_nodes) do
@@ -229,6 +244,7 @@ function GetRunText:get_spectral_details(card_hand,add_cost,count)
                 end
 
                 if add_cost then description = add_card_buy_cost(description,card) end
+                description = add_consumeable_edition(description, card)
                 spectral_desc = description
             ::continue::
             end
@@ -288,7 +304,7 @@ function GetRunText:get_tarot_details(card_hand,add_cost,count)
                     sendErrorMessage("Could not find localize for card" .. g_card.key)
                 end
 
-                localize{type = 'descriptions', key = g_card.key or key_override, set = g_card.set or card.ability.set, nodes = loc_nodes, vars = loc_args}
+                localize{type = 'descriptions', key = g_card.key or key_override, set = g_card.set or card.ability.set, nodes = loc_nodes, vars = loc_args, AUT = card:generate_UIBox_ability_table()}
 
                 local description = "\n" .. (count and ("- " .. #cards + 1 .. ": ") or "") .. name .. ": "
                 for _, line in ipairs(loc_nodes) do
@@ -307,6 +323,7 @@ function GetRunText:get_tarot_details(card_hand,add_cost,count)
                 end
 
                 if add_cost then description = add_card_buy_cost(description,card) end
+                description = add_consumeable_edition(description, card)
                 tarot_desc = description
             ::continue::
             end
@@ -343,7 +360,7 @@ function GetRunText:get_booster_details(boosters,add_cost,count)
                     loc_args = {booster.config.center.config.choose,booster.config.center.config.extra}
                 end
 
-                localize{type = 'descriptions', key = key_override, set = "Other" or booster.ability.set, nodes = loc_nodes, vars = loc_args}
+                localize{type = 'descriptions', key = key_override, set = "Other" or booster.ability.set, nodes = loc_nodes, vars = loc_args, AUT = booster:generate_UIBox_ability_table()}
 
                 local description = "\n" .. (count and ("- " .. #shop_boosters + 1 .. ": ") or "") .. name .. ": "
                 for _, line in ipairs(loc_nodes) do
@@ -397,7 +414,7 @@ function GetRunText:get_voucher_details(voucher_table,add_cost,count)
                     sendErrorMessage("Could not find localize for card" .. g_card.key)
                 end
 
-                localize{type = 'descriptions', key = g_card.key, set = g_card.set, nodes = loc_nodes, vars = loc_args}
+                localize{type = 'descriptions', key = g_card.key, set = g_card.set, nodes = loc_nodes, vars = loc_args, AUT = voucher:generate_UIBox_ability_table()}
 
                 local description = "\n" .. (count and ("- " .. #vouchers + 1 .. ": ") or "") .. name .. ": "
                 for _, line in ipairs(loc_nodes) do
@@ -747,11 +764,18 @@ function GetRunText:get_all_modifiers()
         local description,func_name,loc_args = get_modifiers_vars(g_card,loc_lookup)
         if func_name ~= "" then name = func_name end
 
+
         localize{type = 'descriptions', key = g_card.key, set = g_card.set, nodes = loc_nodes, vars = loc_args}
 
         description = get_text(loc_nodes,description)
-
-        edition_descriptions[#edition_descriptions+1] = "\n -- " .. name.. " : " .. description
+        -- is this hacky? yes. do i have a better idea? no
+        if g_card.key == 'e_negative' then
+            edition_descriptions[#edition_descriptions+1] = "\n -- Negative (on Jokers) : +1 Joker slot"
+            edition_descriptions[#edition_descriptions+1] = "\n -- Negative (on Consumables) : +1 Consumables slot"
+            edition_descriptions[#edition_descriptions+1] = "\n -- Negative (on Playing Cards) : +1 hand size"
+        else
+            edition_descriptions[#edition_descriptions+1] = "\n -- " .. name.. " : " .. description
+        end
     end
 
     for _, g_card in pairs(G.P_CENTER_POOLS.Enhanced) do

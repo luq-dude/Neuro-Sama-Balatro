@@ -38,13 +38,16 @@ function BuyBooster:_validate_action(data, state)
     end
 
 	local booster = G.shop_booster.cards[selected_index]
-
+    local name = booster.ability.name
+    if booster.config.center.mod and booster.config.center.loc_txt then
+        name = booster.config.center.loc_txt.name
+    end
     if ((G.GAME.dollars-G.GAME.bankrupt_at) - booster.children.price.parent.cost < 0) then
         return ExecutionResult.failure("You do not have the money to buy this pack")
     end
 
 	state["booster_index"] = selected_index
-    return ExecutionResult.success("Opening " .. booster.ability.name)
+    return ExecutionResult.success("Opening " .. name)
 end
 
 function BuyBooster:_execute_action(state)
