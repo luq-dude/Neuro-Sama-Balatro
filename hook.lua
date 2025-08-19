@@ -5,6 +5,7 @@ local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
 
 local SelectDeck = ModCache.load("custom-actions/select_deck.lua")
 local PlayingRun = ModCache.load("playing_run.lua")
+local GetRunText = ModCache.load("get_run_text.lua")
 
 local PlayBlind = ModCache.load("custom-actions/play_blind.lua")
 local SkipBlind = ModCache.load("custom-actions/skip_blind.lua")
@@ -255,6 +256,19 @@ local function hook_blind_select()
     end
 end
 
+local function hook_start_run()
+    local start_run = G.FUNCS.start_run
+    function G.FUNCS.start_run(e,args)
+        start_run(e,args)
+
+         -- we do this so we dont send voucher information right after starting a new run as that would be a bit redundant
+        if PLAYED_BLINDS >= MAX_PLAYED_BLINDS - MAX_PLAYED_BLINDS / 3 then
+            PLAYED_BLINDS = 0
+            Context.send(GetRunText:get_all_modifier_desc(),true)
+        end
+    end
+end
+
 function Hook:hook_game()
     if not neuro_profile or neuro_profile < 1 or neuro_profile > 3 then
         neuro_profile = 3
@@ -272,6 +286,7 @@ function Hook:hook_game()
     hook_main_menu()
     hook_game_over()
     hook_win()
+    hook_start_run()
     PlayingRun:hook_draw_card()
     PlayingRun:hook_round_eval()
     PlayingRun:hook_end_consumeable()
