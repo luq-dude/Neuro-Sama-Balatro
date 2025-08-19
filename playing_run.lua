@@ -263,7 +263,7 @@ function PlayingRun:hook_new_round()
 
         if PLAYED_BLINDS >= MAX_PLAYED_BLINDS then
             PLAYED_BLINDS = 0
-            Context.send(GetRunText:get_all_modifier_desc(), true)
+            Context.send(GetRunText:get_all_modifier_desc() .. (#G.vouchers.cards > 0 and ("\n" .. "These are the vouchers you have gotten throughout this run " .. table.table_to_string(GetRunText:get_shop_text(G.vouchers.cards))) or ""), true)
         end
     end
 end
