@@ -82,12 +82,8 @@ function PickCards:_validate_action(data, state)
     end
 
     local selected_card = G.pack_cards.cards[selected_hand_index]
-    if selected_card.ability.set == "Joker" and #G.jokers.cards >= G.jokers.config.card_limit then
+    if selected_card.ability.set == "Joker" and #G.jokers.cards >= G.jokers.config.card_limit and (selected_card.edition == nil or selected_card.edition.key ~= "e_negative") then
         return ExecutionResult.failure("You cannot add anymore jokers to your hand, you should either sell some or skip this pack")
-    end
-
-    if selected_card.ability.set == "Planet" and #G.consumeables.cards >= G.consumeables.config.card_limit then
-        return ExecutionResult.failure("You cannot add anymore consumables to your hand, you could either sell or use some of those cards or you could skip this pack")
     end
 
     state["cards_index"] = selected_hand_index
