@@ -7,7 +7,9 @@ Spectral_Loc = {
 	c_wraith = {},
 	c_sigil = {},
 	c_ouija = {},
-	c_ectoplasm = {},
+	c_ectoplasm = function (card)
+		return {G.GAME.ecto_minus or 1}
+	end,
 	c_immolate = function (card)
 		return {"5", "20"} -- these are from extra as it is a table
 	end,
