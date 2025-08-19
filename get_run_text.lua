@@ -64,7 +64,8 @@ function GetRunText:get_celestial_details(card_hand,add_cost,count)
                     SMODS.PokerHand.obj_table[v.config.hand_type].level,localize(v.config.hand_type, 'poker_hands'), SMODS.PokerHand.obj_table[v.config.hand_type].l_mult, SMODS.PokerHand.obj_table[v.config.hand_type].l_chips,
                     colours = {(SMODS.PokerHand.obj_table[v.config.hand_type].level==1 and G.C.UI.TEXT_DARK or G.C.HAND_LEVELS[math.min(7, SMODS.PokerHand.obj_table[v.config.hand_type].level)])}
                     }
-                localize{type = 'descriptions', key = v.key, set = v.set, nodes = loc_nodes, vars = loc_args, AUT = card.ability_UIBox_table}
+                
+                localize{type = 'descriptions', key = v.key, set = v.set, nodes = loc_nodes, vars = loc_args, AUT = card:generate_UIBox_ability_table()}
                 local description = "\n" .. (count and ("- " .. #cards + 1 .. ": ") or "") .. name .. ": "
                 for _, line in ipairs(loc_nodes) do
                     for _, word in ipairs(line) do
@@ -141,8 +142,8 @@ function GetRunText:get_joker_details(card_hand,add_cost,count)
                     loc_args = LOC_ARGS
                     key_override = card.config.center_key
                 end
-
-                localize{type = 'descriptions', key = v.key, set = v.set, nodes = loc_nodes, vars = loc_args, AUT = card.ability_UIBox_table}
+                
+                localize{type = 'descriptions', key = v.key, set = v.set, nodes = loc_nodes, vars = loc_args, AUT = card:generate_UIBox_ability_table()}
 
                 local description = "\n" .. (count and ("- " .. #cards + 1 .. ": ") or "") .. name .. ": "
                 if name == "Misprint" then
@@ -224,7 +225,7 @@ function GetRunText:get_spectral_details(card_hand,add_cost,count)
                     sendErrorMessage("Could not find localize for card" .. g_card.key)
                 end
 
-                localize{type = 'descriptions', key = g_card.key or key_override, set = g_card.set, nodes = loc_nodes, vars = loc_args, AUT = card.ability_UIBox_table}
+                localize{type = 'descriptions', key = g_card.key or key_override, set = g_card.set, nodes = loc_nodes, vars = loc_args, AUT = card:generate_UIBox_ability_table()}
 
                 local description = "\n" .. (count and ("- " .. #cards + 1 .. ": ") or "") .. name .. ": "
                 for _, line in ipairs(loc_nodes) do
@@ -303,7 +304,7 @@ function GetRunText:get_tarot_details(card_hand,add_cost,count)
                     sendErrorMessage("Could not find localize for card" .. g_card.key)
                 end
 
-                localize{type = 'descriptions', key = g_card.key or key_override, set = g_card.set or card.ability.set, nodes = loc_nodes, vars = loc_args, AUT = card.ability_UIBox_table}
+                localize{type = 'descriptions', key = g_card.key or key_override, set = g_card.set or card.ability.set, nodes = loc_nodes, vars = loc_args, AUT = card:generate_UIBox_ability_table()}
 
                 local description = "\n" .. (count and ("- " .. #cards + 1 .. ": ") or "") .. name .. ": "
                 for _, line in ipairs(loc_nodes) do
@@ -359,7 +360,7 @@ function GetRunText:get_booster_details(boosters,add_cost,count)
                     loc_args = {booster.config.center.config.choose,booster.config.center.config.extra}
                 end
 
-                localize{type = 'descriptions', key = key_override, set = "Other" or booster.ability.set, nodes = loc_nodes, vars = loc_args, AUT = booster.ability_UIBox_table}
+                localize{type = 'descriptions', key = key_override, set = "Other" or booster.ability.set, nodes = loc_nodes, vars = loc_args, AUT = booster:generate_UIBox_ability_table()}
 
                 local description = "\n" .. (count and ("- " .. #shop_boosters + 1 .. ": ") or "") .. name .. ": "
                 for _, line in ipairs(loc_nodes) do
@@ -413,7 +414,7 @@ function GetRunText:get_voucher_details(voucher_table,add_cost,count)
                     sendErrorMessage("Could not find localize for card" .. g_card.key)
                 end
 
-                localize{type = 'descriptions', key = g_card.key, set = g_card.set, nodes = loc_nodes, vars = loc_args, AUT = voucher.ability_UIBox_table}
+                localize{type = 'descriptions', key = g_card.key, set = g_card.set, nodes = loc_nodes, vars = loc_args, AUT = voucher:generate_UIBox_ability_table()}
 
                 local description = "\n" .. (count and ("- " .. #vouchers + 1 .. ": ") or "") .. name .. ": "
                 for _, line in ipairs(loc_nodes) do
@@ -619,7 +620,7 @@ function GetRunText:get_hand_editions(cards_table)
                     sendErrorMessage("Could not find localize for edition" .. g_card.key)
                 end
 
-                localize{type = 'descriptions', key = g_card.key or key_override, set = g_card.set or card.ability.set, nodes = loc_nodes, vars = loc_args, AUT = card.ability_UIBox_table}
+                localize{type = 'descriptions', key = g_card.key or key_override, set = g_card.set or card.ability.set, nodes = loc_nodes, vars = loc_args}
 
                 local description = "\n -- " .. name .. " : "
                 description = get_text(loc_nodes,description)
@@ -668,7 +669,7 @@ function GetRunText:get_hand_enhancements(cards_table)
                     set_override = "Other"
                 end
 
-                localize{type = 'descriptions', key = key_override or g_card.key, set = set_override or g_card.set, nodes = loc_nodes, vars = loc_args, AUT = g_card.ability_UIBox_table} -- doesn't get character's like + idk why as others do, needs to be fixed before releasing though
+                localize{type = 'descriptions', key = key_override or g_card.key, set = set_override or g_card.set, nodes = loc_nodes, vars = loc_args} -- doesn't get character's like + idk why as others do, needs to be fixed before releasing though
 
                 local description = "\n -- " .. name .. " : "
                 description = get_text(loc_nodes,description)
@@ -763,7 +764,8 @@ function GetRunText:get_all_modifiers()
         local description,func_name,loc_args = get_modifiers_vars(g_card,loc_lookup)
         if func_name ~= "" then name = func_name end
 
-        localize{type = 'descriptions', key = g_card.key, set = g_card.set, nodes = loc_nodes, vars = loc_args, AUT = g_card.ability_UIBox_table}
+
+        localize{type = 'descriptions', key = g_card.key, set = g_card.set, nodes = loc_nodes, vars = loc_args}
 
         description = get_text(loc_nodes,description)
         -- is this hacky? yes. do i have a better idea? no
@@ -789,7 +791,7 @@ function GetRunText:get_all_modifiers()
             loc_args = {1.5}
         end
 
-        localize{type = 'descriptions', key = key_override or g_card.key, set = set_override or g_card.set, nodes = loc_nodes, vars = loc_args, AUT = g_card.ability_UIBox_table} -- doesn't get character's like + idk why as others do, needs to be fixed before releasing though
+        localize{type = 'descriptions', key = key_override or g_card.key, set = set_override or g_card.set, nodes = loc_nodes, vars = loc_args} -- doesn't get character's like + idk why as others do, needs to be fixed before releasing though
 
         description = get_text(loc_nodes,description)
 
@@ -808,7 +810,7 @@ function GetRunText:get_all_modifiers()
             key_override = loc_args[1] -- seal loc gets key not args
         end
 
-        localize{type = 'descriptions', set = "Other" or g_card.set, key= key_override or g_card.key, nodes = loc_nodes, vars = loc_args, AUT = g_card.ability_UIBox_table}
+        localize{type = 'descriptions', set = "Other" or g_card.set, key= key_override or g_card.key, nodes = loc_nodes, vars = loc_args}
 
         description = get_text(loc_nodes,description)
 
