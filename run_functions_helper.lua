@@ -86,26 +86,24 @@ function RunHelper:get_query_string(state)
         end
     end
 
+    state_string = state_string .. string.format("\nYou currently have %d/%d jokers in your inventory.", #G.jokers.cards, G.jokers.config.card_limit)
     if #G.jokers.cards > 0 then
         local cards = GetRunText:get_card_modifiers(G.jokers.cards)
 
         for pos, value in ipairs(cards) do
             cards[pos] = "\n" .. pos .. ": " .. string.sub(value,2) .. ". Sell value: $" .. G.jokers.cards[pos].sell_cost
         end
-        state_string = state_string .. "\nThese are the jokers in your hand, their abilites, modifiers and sell value: ".. table.concat(cards, "", 1, #cards)
-    else
-        state_string = state_string .. "\nYou do not have any jokers as of right now."
+        state_string = state_string .. " Here is a list of their abilites, modifiers and sell value: ".. table.concat(cards, "", 1, #cards)
     end
 
+    state_string = state_string .. string.format("\nYou currently have %d/%d consumables in your inventory.", #G.consumeables.cards, G.consumeables.config.card_limit)
     if #G.consumeables.cards > 0 then
         local cards = GetRunText:get_consumeables_text(G.consumeables.cards)
 
         for pos, value in ipairs(cards) do
             cards[pos] = "\n" .. pos .. ": " .. value .. ". Sell value: $" .. G.consumeables.cards[pos].sell_cost
         end
-        state_string = state_string .. "\nThese are the names of the consumables in your hand, their abilities and their sell value: " .. table.concat(cards, "", 1, #cards)
-    else
-        state_string = state_string .. "\nYou do not have any consumables as of right now."
+        state_string = state_string .. " Here is a list of their abilities and sell value: " .. table.concat(cards, "", 1, #cards)
     end
 
     return query_string, state_string
