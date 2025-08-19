@@ -7,6 +7,19 @@ local function add_card_buy_cost(description,card)
     return description
 end
 
+local function add_consumeable_edition(desc, card)
+    if not card.edition then return desc end
+    desc = desc .. ". Edition: "
+    for _, v in ipairs(G.P_CENTER_POOLS.Edition) do
+        if v.key == card.edition.key and v.loc_txt then
+            desc = desc .. v.loc_txt.name
+        elseif v.key == card.edition.key then
+            desc = desc .. v.name
+        end
+    end
+    return desc
+end
+
 function GetRunText:get_celestial_names(card_hand)
     local cards = {}
 
@@ -65,6 +78,7 @@ function GetRunText:get_celestial_details(card_hand,add_cost,count)
                 end
 
                 if add_cost then description = add_card_buy_cost(description,card) end
+                description = add_consumeable_edition(description, card)
                 planet_desc = description
             ::continue::
             end
@@ -229,6 +243,7 @@ function GetRunText:get_spectral_details(card_hand,add_cost,count)
                 end
 
                 if add_cost then description = add_card_buy_cost(description,card) end
+                description = add_consumeable_edition(description, card)
                 spectral_desc = description
             ::continue::
             end
@@ -307,6 +322,7 @@ function GetRunText:get_tarot_details(card_hand,add_cost,count)
                 end
 
                 if add_cost then description = add_card_buy_cost(description,card) end
+                description = add_consumeable_edition(description, card)
                 tarot_desc = description
             ::continue::
             end
