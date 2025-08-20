@@ -12,10 +12,10 @@ end
 ''' # This is added by smods and can only be found in dumps made by lovely
 position = "before"
 payload = '''
-WEBSOCKET._client:close()
 if G.can_restart then
-    SMODS.restart_game()
+    G.on_crash_callback()
 end
+WEBSOCKET._client:close()
 '''
 match_indent = true
 times = 1

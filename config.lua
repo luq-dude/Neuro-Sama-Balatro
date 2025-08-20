@@ -18,6 +18,14 @@ return {
     -- This should be set to false if you need to see logs without checking their respective folder.
     ["CAN_RESTART_ON_CRASH"] = true,
 
+    -- The amount of time in seconds to wait before restarting the game after a crash.
+    -- If CAN_RESTART_ON_CRASH is false then this does nothing.
+    -- This changes how long the stack trace will be visible for before the game automatically restarts.
+    -- We request this be set to at least 1 second so we have an opportunity to see the stack trace 
+    -- and try to find out what caused a crash if one happens on stream without requiring the logs to be sent over manually.
+    -- Setting it to 0 or a negative value will cause the game to instantly restart.
+    ["RESTART_DELAY"] = 3,
+
     -- If true, Neuro will have all decks, jokers, vouchers, etc unlocked
     ["UNLOCK_ALL"] = true,
 
