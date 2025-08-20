@@ -1,5 +1,6 @@
 local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
+local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
 
 local NeuroActionHandler = ModCache.load("game-sdk/actions/neuro_action_handler.lua")
 
@@ -24,6 +25,7 @@ function SkipPack:_get_description()
 end
 
 function SkipPack:_get_schema()
+    return JsonUtils.wrap_schema({})
 end
 
 function SkipPack:_validate_action(data, state)

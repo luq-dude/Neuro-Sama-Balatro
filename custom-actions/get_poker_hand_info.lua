@@ -22,7 +22,7 @@ function PokerHandInfo:_get_description()
 end
 
 function PokerHandInfo:_get_schema()
-    return JsonUtils.wrap_schema({},false)
+    return JsonUtils.wrap_schema({})
 end
 
 function PokerHandInfo:_validate_action()

@@ -21,7 +21,7 @@ function ModifierInformation:_get_description()
 end
 
 function ModifierInformation:_get_schema()
-    return JsonUtils.wrap_schema({},false)
+    return JsonUtils.wrap_schema({})
 end
 
 function ModifierInformation:_validate_action(data, state)

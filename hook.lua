@@ -276,8 +276,7 @@ function Hook:hook_game()
     end
 
     GameHooks.load()
-    
-    
+
     local ran_crash_callback = false
     local crash_start_time = 0
     G.on_crash_callback = function()
