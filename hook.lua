@@ -269,6 +269,8 @@ local function hook_start_run()
     end
 end
 
+local ran_crash_callback = false
+local crash_start_time = 0
 function Hook:hook_game()
     if not neuro_profile or neuro_profile < 1 or neuro_profile > 3 then
         neuro_profile = 3
@@ -276,6 +278,22 @@ function Hook:hook_game()
     end
 
     GameHooks.load()
+    
+    G.on_crash_callback = function()
+        if not ran_crash_callback then
+            crash_start_time = love.timer.getTime()
+            Context.send("There's a problem with the Balatro integration and the game has crashed. " ..
+            "We'll automatically restart the game for you, but you'll lose your current run progress. ")
+            GameHooks.update() -- Game.update isnt called when the game has crashed so we have to manually update it here 
+            ran_crash_callback = true
+        end
+
+        -- we cant use G.E_MANAGER since Game.update isnt being called
+        -- so we have to manually check the time passed 
+        if love.timer.getTime() - crash_start_time >= NeuroConfig.RESTART_DELAY then
+            SMODS.restart_game()
+        end
+    end
 
     local update = Game.update
     function Game:update(dt)
