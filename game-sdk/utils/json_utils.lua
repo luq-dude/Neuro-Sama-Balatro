@@ -6,10 +6,12 @@ EMPTY_REQUIRED_TABLE = {} -- this is also used in json.lua ,I know global vars a
 local JsonUtils = {}
 
 function wrap_schema(schema, add_required)
-    add_required = add_required or true
+    if add_required == nil then
+        add_required = true
+    end
     if add_required then
         local required = table.get_keys(schema)
-        if #schema == 0 then
+        if #required== 0 then
             required = {EMPTY_REQUIRED_TABLE}
         end
         return {
