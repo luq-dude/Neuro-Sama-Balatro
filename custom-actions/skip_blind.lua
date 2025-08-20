@@ -22,7 +22,7 @@ function SkipBlind:_get_description()
 end
 
 function SkipBlind:_get_schema()
-    return JsonUtils.wrap_schema({}, false)
+    return JsonUtils.wrap_schema({})
 end
 
 function SkipBlind:_validate_action()

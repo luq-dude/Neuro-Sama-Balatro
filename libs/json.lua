@@ -46,6 +46,9 @@ local function encode_table(val, stack)
 
   if rawget(val, 1) ~= nil then
     -- Treat as array -- check keys are valid and it is not sparse
+    if val[1] == EMPTY_REQUIRED_TABLE then -- we do this if we want the an empty table as this json implementation seems to not support empty tables.
+      return "[]"
+    end
     local n = 0
     for k in pairs(val) do
       if type(k) ~= "number" then

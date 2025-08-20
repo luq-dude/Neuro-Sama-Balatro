@@ -31,7 +31,7 @@ function BuyVoucher:_get_schema()
         }
         })
     end
-    return JsonUtils.wrap_schema({},false)
+    return JsonUtils.wrap_schema({})
 end
 
 function BuyVoucher:_validate_action(data, state)
