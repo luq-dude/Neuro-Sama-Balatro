@@ -290,7 +290,7 @@ function Hook:hook_game()
 
         -- we cant use G.E_MANAGER since Game.update isnt being called
         -- so we have to manually check the time passed 
-        if love.timer.getTime() - crash_start_time >= NeuroConfig.RESTART_DELAY then
+        if NeuroConfig.RESTART_DELAY <= 0 or love.timer.getTime() - crash_start_time >= NeuroConfig.RESTART_DELAY then
             SMODS.restart_game()
         end
     end
