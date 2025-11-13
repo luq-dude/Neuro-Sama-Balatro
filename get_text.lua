@@ -4,117 +4,108 @@ local ALLOWED_DECKS = NeuroConfig.ALLOWED_DECKS
 local ALLOWED_STAKES = NeuroConfig.ALLOWED_STAKES
 
 local GetText = {}
-function GetText:get_back_descriptions()
-    local backs = {}
-    for _, back in pairs(G.P_CENTER_POOLS.Back) do
-        local name = back.loc_txt and back.loc_txt.name or back.name
-        if back.set ~= "Back" then goto continue end
-        if not back.unlocked or not table.any(ALLOWED_DECKS, function(check) return check == name end) then goto continue end
 
-        local lookup = Back_Loc[back.key]
-        local args = {}
-        local nodes = {}
-        local desc = ""
-        local key_override = nil
-        if back.loc_vars and type(back.loc_vars) == "function" then
-            local res = back:loc_vars() or {}
-            args = res.vars or {}
-            key_override = res.key
-        elseif type(lookup) == "table" then
-            for _, v in ipairs(lookup) do
-                table.insert(args, back.config[v])
+--- Returns the localized descriptions for objects in a center,
+--- localized through the given localization table 
+---@param center table The center of objects to get localized descriptions for
+---@param set string The name of the set expected for objects in the center 
+---@param whitelist table|nil Whitelist of names to get the descriptions for, or nil to get all
+---@param lookup_table table The lookup localization table to use
+---@return table The table of descriptions for the whitelisted objects in the given center, {1="name1: desc1", 2="name2: desc2", ...}
+local function get_lookup_tbl_descriptions(center, set, whitelist, lookup_table)
+    local objs = {}
+    for _, obj in pairs(center) do
+        local name = obj.loc_txt and obj.loc_txt.name or obj.name
+        if obj.set == set and obj.unlocked and (type(whitelist) == "nil" or table.any(whitelist, function (check)
+            return check == name
+        end)) then
+            local lookup = lookup_table[obj.key]
+            local args = {}
+            local nodes = {}
+            local desc = ""
+            local key_override = nil
+
+            if type(obj.loc_vars) == "function" then
+                -- the object is a modded object with its own custom loc_vars function
+                -- so call it to get the arguments and then call localize 
+                local res = obj:loc_vars() or {}
+                args = res.vars or {}
+                key_override = res.key
+            elseif type(lookup) == "table" then
+                -- not a modded one, so lets get the args from the localization table
+                -- in this case the localization table has a list of static strings as localization args
+                for _, v in ipairs(lookup) do
+                    table.insert(args, obj.config[v])
+                end
+            elseif type(lookup) == "function" then
+                -- in this case the localization table has a function that returns a string
+                args = lookup(obj)
             end
-        elseif type(lookup) == "function" then
-            args = lookup(back)
-        end
 
-        localize { type = "descriptions", key = key_override or back.key, set = "Back", nodes = nodes, vars = args }
-        for _, line in ipairs(nodes) do
-            for _, v in ipairs(line) do
-                desc = desc .. v.config.text
+            -- now just call localize
+            localize { type = "descriptions", key = key_override or obj.key, set = set, nodes = nodes, vars = args }
+            for _, line in ipairs(nodes) do
+                for _, v in ipairs(line) do
+                    desc = desc .. v.config.text
+                end
+                desc = desc .. "   "
             end
-            desc = desc .. "   "
-        end
 
-        backs[#backs+1] = name .. ": " .. desc
-        ::continue::
+            objs[#objs+1] = name .. ": " .. desc
+        end
     end
-    return backs
+    return objs
+end
+
+--- Returns a list of the names of objects from a center
+--- @param center table The center of objects to get the name of
+--- @param set string The expected set for objects in the center
+--- @param key_indexed boolean true if the list should be indexed by object keys, false if it should be indexed by number
+--- @param whitelist table|nil Whitelist of names to return, or nil for all
+--- @return table The names of object in the center, indexed by key if key_indexed otherwise as a list
+local function get_obj_names(center, set, key_indexed, whitelist)
+    local objs = {}
+    for _, obj in pairs(center) do
+        local name
+        if obj.set == set then
+            if obj.loc_txt and obj.loc_txt.name then
+                name = obj.loc_txt.name
+            else
+                name = obj.name
+            end
+
+            if (type(whitelist) == "nil" or table.any(whitelist, function (check)
+                return check == name
+            end)) then
+                if key_indexed then
+                    objs[obj.key] = name
+                else
+                    objs[#objs + 1] = name
+                end
+            end
+        end
+    end
+    return objs
+end
+
+function GetText:get_back_descriptions()
+    return get_lookup_tbl_descriptions(G.P_CENTER_POOLS.Back, "Back", ALLOWED_DECKS, Back_Loc)
 end
 
 function GetText:get_back_names(keys, allDecks)
-    local backs = {}
-    for _, back in pairs(G.P_CENTER_POOLS.Back) do
-        local name
-        if back.loc_txt then
-            name = back.loc_txt.name
-        else
-            name = back.name
-        end
-
-        if (back.unlocked and table.any(ALLOWED_DECKS, function(check) return check == name end)) or allDecks then
-            if keys then
-                backs[back.key] = name
-            else
-                backs[#backs + 1] = name
-            end
-        end
-    end
-    return backs
+    local whitelist = ALLOWED_DECKS
+    if allDecks then whitelist = nil end
+    return get_obj_names(G.P_CENTER_POOLS.Back, "Back", keys, whitelist)
 end
 
 function GetText:get_stake_descriptions()
-    local stakes = {}
-    for _, stake in pairs(G.P_CENTER_POOLS.Stake) do
-        local name = stake.loc_txt and stake.loc_txt.name or stake.name
-        if stake.set ~= "Stake" then goto continue end
-        if not table.any(ALLOWED_STAKES, function(check) return check == name end) then goto continue end
-
-        local lookup = Stake_Loc[stake.key]
-        local args = {}
-        local nodes = {}
-        local desc = ""
-        local key_override = nil
-        if stake.loc_vars and type(stake.loc_vars) == "function" then
-            local res = stake:loc_vars() or {}
-            args = res.vars or {}
-            key_override = res.key
-        elseif type(lookup) == "table" then
-            for _, v in ipairs(lookup) do
-                table.insert(args, stake.config[v])
-            end
-        elseif type(lookup) == "function" then
-            args = lookup(stake)
-        end
-
-        localize { type = "descriptions", key = key_override or stake.key, set = "Stake", nodes = nodes, vars = args }
-        for _, line in ipairs(nodes) do
-            for _, v in ipairs(line) do
-                desc = desc .. v.config.text
-            end
-            desc = desc .. " "
-        end
-
-        stakes[#stakes+1] = name ..": " .. desc
-        ::continue::
-    end
-    return stakes
+    return get_lookup_tbl_descriptions(G.P_CENTER_POOLS.Stake, "Stake", ALLOWED_STAKES, Stake_Loc)
 end
 
 function GetText:get_stake_names(keys, allStakes)
-    local stakes = {}
-    for _, stake in pairs(G.P_CENTER_POOLS.Stake) do
-        local name = localize { type = 'name_text', key = stake.key, set = 'Stake' }
-
-        if (table.any(ALLOWED_STAKES, function(check) return check == name end)) or allStakes then
-            if keys then
-                stakes[stake.key] = name
-            else
-                stakes[#stakes + 1] = name
-            end
-        end
-    end
-    return stakes
+    local whitelist = ALLOWED_STAKES
+    if allStakes then whitelist = nil end
+    return get_obj_names(G.P_CENTER_POOLS.Stake, "Stake", keys, whitelist)
 end
 
 function GetText:generate_blind_descriptions()
