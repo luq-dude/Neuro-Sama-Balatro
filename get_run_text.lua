@@ -1,5 +1,11 @@
 local GetRunText = {}
 
+local copy_jokers = {"Brainstorm", "Blueprint"} -- jokers that copy other jokers
+local description_overrides = {
+    c_black_hole = "Upgrades all poker hands by 1 level",
+    j_misprint = "Gives a random amount of mult from +0 to +23 (inclusive)",
+}
+
 local function add_card_buy_cost(description,card)
     if not card.cost then return end
 
@@ -18,6 +24,25 @@ local function add_consumeable_edition(desc, card)
         end
     end
     return desc
+end
+
+local function description_from_loc_nodes(loc_nodes)
+    local description = ""
+    for _, line in ipairs(loc_nodes) do
+        for _, word in ipairs(line) do
+            if word.nodes ~= nil then
+                if word.nodes[1].config.text ~= nil then
+                    description = description .. word.nodes[1].config.text
+                elseif word.nodes[1].config.object ~= nil then
+                    description = description .. word.nodes[1].config.object.config.string[1]
+                end
+            else
+                description = description .. word.config.text
+            end
+            description = description .. " "
+        end
+    end
+    return description
 end
 
 function GetRunText:get_celestial_names(card_hand)
@@ -64,19 +89,10 @@ function GetRunText:get_celestial_details(card_hand,add_cost,count)
                     SMODS.PokerHand.obj_table[v.config.hand_type].level,localize(v.config.hand_type, 'poker_hands'), SMODS.PokerHand.obj_table[v.config.hand_type].l_mult, SMODS.PokerHand.obj_table[v.config.hand_type].l_chips,
                     colours = {(SMODS.PokerHand.obj_table[v.config.hand_type].level==1 and G.C.UI.TEXT_DARK or G.C.HAND_LEVELS[math.min(7, SMODS.PokerHand.obj_table[v.config.hand_type].level)])}
                     }
-                
+
                 localize{type = 'descriptions', key = v.key, set = v.set, nodes = loc_nodes, vars = loc_args, AUT = card:generate_UIBox_ability_table()}
                 local description = "\n" .. (count and ("- " .. #cards + 1 .. ": ") or "") .. name .. ": "
-                for _, line in ipairs(loc_nodes) do
-                    for _, word in ipairs(line) do
-                        if word.nodes ~= nil then
-                            description = description .. word.nodes[1].config.text
-                        else
-                            description = description .. word.config.text
-                        end
-                        description = description .. " "
-                    end
-                end
+                description = description .. description_from_loc_nodes(loc_nodes)
 
                 if add_cost then description = add_card_buy_cost(description,card) end
                 description = add_consumeable_edition(description, card)
@@ -142,7 +158,7 @@ function GetRunText:get_joker_details(card_hand,add_cost,count)
                     loc_args = LOC_ARGS
                     key_override = card.config.center_key
                 end
-                
+
                 localize{type = 'descriptions', key = v.key, set = v.set, nodes = loc_nodes, vars = loc_args, AUT = card:generate_UIBox_ability_table()}
 
                 local description = "\n" .. (count and ("- " .. #cards + 1 .. ": ") or "") .. name .. ": "
@@ -154,7 +170,7 @@ function GetRunText:get_joker_details(card_hand,add_cost,count)
                         if word.nodes ~= nil then
                             if word.nodes[1].config.text ~= nil then
                                 description = description .. word.nodes[1].config.text
-                            elseif word.nodes[1].config.object ~= nil then -- get modded vars
+                            elseif word.nodes[1].config.object ~= nil then
                                 description = description .. word.nodes[1].config.object.config.string[1]
                             end
                         else
@@ -217,10 +233,10 @@ function GetRunText:get_spectral_details(card_hand,add_cost,count)
                     loc_args = loc_lookup(g_card)
                 elseif g_card.mod then
                     name = g_card.loc_txt.name
-                    if type(g_card.loc_vars) == "function" then 
+                    if type(g_card.loc_vars) == "function" then
                         local res = g_card:loc_vars({}, card) or {}
                         loc_args = res.vars
-                    end 
+                    end
                 else
                     sendErrorMessage("Could not find localize for card" .. g_card.key)
                 end
@@ -228,20 +244,7 @@ function GetRunText:get_spectral_details(card_hand,add_cost,count)
                 localize{type = 'descriptions', key = g_card.key or key_override, set = g_card.set, nodes = loc_nodes, vars = loc_args, AUT = card:generate_UIBox_ability_table()}
 
                 local description = "\n" .. (count and ("- " .. #cards + 1 .. ": ") or "") .. name .. ": "
-                for _, line in ipairs(loc_nodes) do
-                    for _, word in ipairs(line) do
-                        if word.nodes ~= nil then
-                            if word.nodes[1].config.text ~= nil then
-                                description = description .. word.nodes[1].config.text
-                            elseif word.nodes[1].config.object ~= nil then
-                                description = description .. word.nodes[1].config.object.config.string[1]
-                            end
-                        else
-                            description = description .. word.config.text
-                        end
-                        description = description .. " "
-                    end
-                end
+                description = description .. description_from_loc_nodes(loc_nodes)
 
                 if add_cost then description = add_card_buy_cost(description,card) end
                 description = add_consumeable_edition(description, card)
@@ -296,10 +299,10 @@ function GetRunText:get_tarot_details(card_hand,add_cost,count)
                     loc_args = loc_lookup(card)
                 elseif g_card.mod then
                     name = g_card.loc_txt.name
-                    if type(g_card.loc_vars) == "function" then 
+                    if type(g_card.loc_vars) == "function" then
                         local res = g_card:loc_vars({}, card) or {}
                         loc_args = res.vars
-                    end 
+                    end
                 else
                     sendErrorMessage("Could not find localize for card" .. g_card.key)
                 end
@@ -307,20 +310,7 @@ function GetRunText:get_tarot_details(card_hand,add_cost,count)
                 localize{type = 'descriptions', key = g_card.key or key_override, set = g_card.set or card.ability.set, nodes = loc_nodes, vars = loc_args, AUT = card:generate_UIBox_ability_table()}
 
                 local description = "\n" .. (count and ("- " .. #cards + 1 .. ": ") or "") .. name .. ": "
-                for _, line in ipairs(loc_nodes) do
-                    for _, word in ipairs(line) do
-                        if word.nodes ~= nil then
-                            if word.nodes[1].config.text ~= nil then
-                                description = description .. word.nodes[1].config.text
-                            elseif word.nodes[1].config.object ~= nil then
-                                description = description .. word.nodes[1].config.object.config.string[1]
-                            end
-                        else
-                            description = description .. word.config.text
-                        end
-                        description = description .. " "
-                    end
-                end
+                description = description .. description_from_loc_nodes(loc_nodes)
 
                 if add_cost then description = add_card_buy_cost(description,card) end
                 description = add_consumeable_edition(description, card)
@@ -363,20 +353,7 @@ function GetRunText:get_booster_details(boosters,add_cost,count)
                 localize{type = 'descriptions', key = key_override, set = "Other" or booster.ability.set, nodes = loc_nodes, vars = loc_args, AUT = booster:generate_UIBox_ability_table()}
 
                 local description = "\n" .. (count and ("- " .. #shop_boosters + 1 .. ": ") or "") .. name .. ": "
-                for _, line in ipairs(loc_nodes) do
-                    for _, word in ipairs(line) do
-                        if word.nodes ~= nil then
-                            if word.nodes[1].config.text ~= nil then
-                                description = description .. word.nodes[1].config.text
-                            elseif word.nodes[1].config.object ~= nil then
-                                description = description .. word.nodes[1].config.object.config.string[1]
-                            end
-                        else
-                            description = description .. word.config.text
-                        end
-                        description = description .. " "
-                    end
-                end
+                description = description .. description_from_loc_nodes(loc_nodes)
 
                 if add_cost then description = add_card_buy_cost(description,booster) end
                 booster_desc = description
@@ -417,20 +394,7 @@ function GetRunText:get_voucher_details(voucher_table,add_cost,count)
                 localize{type = 'descriptions', key = g_card.key, set = g_card.set, nodes = loc_nodes, vars = loc_args, AUT = voucher:generate_UIBox_ability_table()}
 
                 local description = "\n" .. (count and ("- " .. #vouchers + 1 .. ": ") or "") .. name .. ": "
-                for _, line in ipairs(loc_nodes) do
-                    for _, word in ipairs(line) do
-                        if word.nodes ~= nil then
-                            if word.nodes[1].config.text ~= nil then
-                                description = description .. word.nodes[1].config.text
-                            elseif word.nodes[1].config.object ~= nil then
-                                description = description .. word.nodes[1].config.object.config.string[1]
-                            end
-                        else
-                            description = description .. word.config.text
-                        end
-                        description = description .. " "
-                    end
-                end
+                description = description .. description_from_loc_nodes(loc_nodes)
 
                 if add_cost then description = add_card_buy_cost(description,voucher) end
                 voucher_desc = description
@@ -829,7 +793,7 @@ function GetRunText:get_all_modifier_desc()
         "\n- Editions:" .. table.table_to_string(edi) ..
         "\n- Enhancements:" .. table.table_to_string(enh) ..
         "\n- Seals:" .. table.table_to_string(seal)
-    
+
     return ret
 end
 
