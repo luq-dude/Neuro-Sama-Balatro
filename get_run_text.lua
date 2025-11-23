@@ -420,25 +420,81 @@ function GetRunText:get_shop_text(card_table,add_cost,count)
     end
 end
 
+
+local function get_card_modifiers(card)
+    local modifiers = {
+        edition=nil,
+        enhancement=nil, --technically no enchantment means the enchantment is "Base", but we're gonna ignore that 
+        seal=nil,
+        debuffed = card.debuff,
+        forced = card.ability.forced_selection
+    }
+
+    if card.edition then
+        local proto = G.P_CENTER_POOLS.Edition[card.edition.key]
+        modifiers.edition = (proto.loc_txt and proto.loc_txt.name) or proto.name
+    end
+    print(card.ability.effect)
+    if card.ability.effect and card.ability.effect ~= "Base" then
+        local proto = G.P_CENTER_POOLS.Enhanced[card.config.center_key]
+        modifiers.enhancement = (proto.loc_txt and proto.loc_txt.name) or proto.name
+    end
+
+    if card.ability.seal then
+        local proto = G.P_CENTER_POOLS.Seal[card.seal]
+        modifiers.enhancement = (proto.loc_txt and proto.loc_txt.name) or proto.name
+    end
+    return modifiers
+end
+
+-- Gets the description for any card object
+-- This includes playing cards, jokers, consumables and vouchers 
+local function get_card_description(card, include_debuff, add_cost)
+    local set = card.ability.set
+    local loc_vars, _, __ = card:generate_UIBox_ability_table(true)
+    loc_vars = loc_vars or {}
+    local loc_nodes = {}
+
+    localize{
+        type = 'descriptions',
+        key = card.config.center.key,
+        set = card.ability.set,
+        nodes = loc_nodes,
+        vars = loc_vars,
+        AUT = card:generate_UIBox_ability_table()}
+
+    local desc = description_from_loc_nodes(loc_nodes)
+    local modifiers = get_card_modifiers(card)
+    if modifiers.edition or
+        modifiers.enhancement or
+        modifiers.seal or
+        modifiers.debuffed or
+        modifiers.forced then
+
+        local mod_str = ""
+        if modifiers.edition then mod_str = mod_str .. ", Edition: " .. modifiers.edition end
+        if modifiers.enhancement then mod_str = mod_str .. ", Enhancement: " .. modifiers.enhancement end
+        if modifiers.seal then mod_str = mod_str .. ", Seal: " .. modifiers.seal end
+        if modifiers.debuffed and include_debuff then mod_str = mod_str .. ", Debuffed: " .. tostring(modifiers.edition) end
+        if modifiers.forced then mod_str = mod_str .. ", Forced: " .. tostring(modifiers.edition) end
+        mod_str = "[" .. string.sub(mod_str, 2) .. "]"
+        desc = desc .. " " .. mod_str
+    end
+
+    if add_cost then desc = add_card_buy_cost(desc,card) end
+
+    return desc
+end
+
+
 function GetRunText:get_consumeables_text(cards,add_cost,count)
     add_cost = add_cost or false
     count = count or false
     local cards_details = {}
 
-    for index, card in ipairs(cards) do
-        if card.ability.set == "Planet" then
-            cards_details[#cards_details+1] = (count and ("\n" .. "- " .. #cards_details + 1 .. ": ") or "") .. string.sub(GetRunText:get_celestial_details({card},add_cost)[1], 2) 
-        elseif card.ability.set == "Tarot" then
-            cards_details[#cards_details+1] = (count and ("\n" .. "- " .. #cards_details + 1 .. ": ") or "") .. string.sub(GetRunText:get_tarot_details({card},add_cost)[1], 2)
-        elseif card.ability.set == "Spectral" then
-            cards_details[#cards_details+1] = (count and ("\n" .. "- " .. #cards_details + 1 .. ": ") or "") .. string.sub(GetRunText:get_spectral_details({card},add_cost)[1], 2)
-        elseif card.ability.set == "Joker" then
-            cards_details[#cards_details+1] = (count and ("\n" .. "- " .. #cards_details + 1 .. ": ") or "") .. string.sub(GetRunText:get_card_modifiers({card},false,false,add_cost)[1], 2)
-        elseif card.config.card ~= nil then -- this handles playing cards for magic trick
-            cards_details[#cards_details+1] = (count and ("\n" .. "- " .. #cards_details + 1 .. ": ") or "") .. string.sub(GetRunText:get_card_modifiers({card})[1], 7)
-        end
+    for _, card in ipairs(cards) do
+        cards_details[#cards_details+1] = (count and ("\n" .. "- " .. #cards_details + 1 .. ": ") or "") .. get_card_description(card, false, add_cost)
     end
-
     return cards_details
 end
 
