@@ -263,7 +263,7 @@ function PlayingRun:hook_new_round()
 
         if PLAYED_BLINDS >= MAX_PLAYED_BLINDS then
             PLAYED_BLINDS = 0
-            Context.send(GetRunText:get_all_modifier_desc() .. (#G.vouchers.cards > 0 and ("\n" .. "These are the vouchers you have gotten throughout this run " .. table.table_to_string(GetRunText:get_shop_text(G.vouchers.cards))) or ""), true)
+            Context.send(GetRunText.get_all_modifier_desc() .. (#G.vouchers.cards > 0 and ("\n" .. "These are the vouchers you have gotten throughout this run " .. table.table_to_string(GetRunText.get_hand_details(G.vouchers.cards))) or ""), true)
         end
     end
 end
@@ -285,15 +285,15 @@ function PlayingRun:register_store_actions(delay,hook)
             end
             if #G.shop_jokers.cards > 0 then
                 actions[#actions+1] = BuyShopCard
-                state = state .. "\nThese are the cards in the shop right now: " .. table.table_to_string(GetRunText:get_consumeables_text(G.shop_jokers.cards,true, true))
+                state = state .. "\nThese are the cards in the shop right now: " .. table.table_to_string(GetRunText.get_hand_details(G.shop_jokers.cards,true, true, nil, true))
             end
             if #G.shop_booster.cards > 0 then
                 actions[#actions+1] = BuyShopBooster
-                state = state .. "\nThese are the booster packs in the shop: " .. table.table_to_string(GetRunText:get_shop_text(G.shop_booster.cards,true, true))
+                state = state .. "\nThese are the booster packs in the shop: " .. table.table_to_string(GetRunText.get_hand_details(G.shop_booster.cards,true, true, "Other"))
             end
             if #G.shop_vouchers.cards > 0 then
                 actions[#actions+1] = BuyShopVoucher
-                state = state .. "\nThis is the voucher in the shop: " .. table.table_to_string(GetRunText:get_shop_text(G.shop_vouchers.cards,true, true))
+                state = state .. "\nThis is the voucher in the shop: " .. table.table_to_string(GetRunText.get_hand_details(G.shop_vouchers.cards,true, true))
             end
 
             actions[#actions+1] = DeckTypes

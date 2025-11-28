@@ -80,7 +80,7 @@ function GamePrep.start_from_title()
         func = function()
             G.MAIN_MENU_UI:get_UIE_by_ID('main_menu_play'):click()
             select_deck(2)
-            Context.send(GetRunText:get_all_modifier_desc(), true)
+            Context.send(GetRunText.get_all_modifier_desc(), true)
             return true
         end
     }))

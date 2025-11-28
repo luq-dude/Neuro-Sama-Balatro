@@ -3,58 +3,25 @@ local GetRunText = ModCache.load("get_run_text.lua")
 
 local RunContext = {}
 
-function RunContext:no_hand_booster()
-	if G.pack_cards == nil or G.pack_cards.cards == nil or G.pack_cards.cards == {} then return end
-    if SMODS.OPENED_BOOSTER.config.center.kind == "Buffoon" or G.pack_cards.cards[1].ability.set == "Joker" then
-        local hand = table.table_to_string(GetRunText:get_joker_details(G.pack_cards.cards, false, true))
+function RunContext.booster()
+    local hand_str = ""
+    if G.hand.cards and #G.hand.cards > 0 then
+        local hand = table.table_to_string(GetRunText.get_hand_details(G.hand.cards, true))
 
-        return string.format("These are the jokers in this pack: " ..
-        hand .. "\n" ..
-        "You can only select a joker if you have the inventory space for it. " ..
-        "Jokers are the main deckbuilding component of Balatro and can provide a variety of effects that help in scoring or provide extra money or consumables.")
-    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Celestial" or G.pack_cards.cards[1].ability.set == "Celestial" then
-        local hand = table.table_to_string(GetRunText:get_celestial_details(G.pack_cards.cards, false, true))
-
-        return string.format("These are the planet cards in this pack: " ..
-        hand .. "\n" ..
-        "Planet cards level up the base chips and mult of a specific poker hand.")
-    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Standard" or G.pack_cards.cards[1].ability.set == "Base" then
-        local hand = table.table_to_string(GetRunText:get_card_modifiers(G.pack_cards.cards))
-
-        local return_string = "These are the playing cards in this pack: " .. hand .. "\n" .. "\n"
-        return return_string
-    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Spectral" or G.pack_cards.cards[1].ability.set == "Spectral" then
-        sendErrorMessage("Spectral should not be called from pick_pack_card")
-        return
-    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Arcana" or G.pack_cards.cards[1].ability.set == "Tarot" then
-        sendErrorMessage("Arcana should not be called from pick_pack_card")
-        return
-    else -- modded packs that dont contain contain a default set or if there is something I forgot
-        local hand = table.table_to_string(GetRunText:get_hand_names(G.pack_cards.cards))
-
-        return string.format("This is the hand of cards that are in this pack: " .. hand)
-    end
-end
-
-function RunContext:hand_pack_booster()
-    local hand_string = ""
-    if #G.hand.cards > 0 then
-        local hand = table.table_to_string(GetRunText:get_card_modifiers(G.hand.cards))
-
-        hand_string = string.format("These are the playing cards in your hand: " .. hand)
+        hand_str = string.format("These are the playing cards in your hand: %s\n", hand)
     end
 
     if G.pack_cards == nil or G.pack_cards.cards == nil or G.pack_cards.cards == {} then return end
-    if SMODS.OPENED_BOOSTER.config.center.kind == "Spectral" then
-        local pack_hand = table.table_to_string(GetRunText:get_spectral_details(G.pack_cards.cards, false, true))
-        return string.format("These are the consumables in this pack: " .. pack_hand), hand_string
-    elseif SMODS.OPENED_BOOSTER.config.center.kind == "Arcana" then
-        local pack_hand = table.table_to_string(GetRunText:get_tarot_details(G.pack_cards.cards, false, true))
-        return string.format("These are the consumables in this pack: " .. pack_hand), hand_string
-    else -- modded packs that dont contain contain a default set or if there is something I forgot
-        local pack_hand = table.table_to_string(GetRunText:get_hand_details(G.pack_cards.cards, false, true))
-        return string.format("These are the consumables in this pack: " .. pack_hand), hand_string
-    end
+    local set = G.pack_cards.cards[1].ability.set
+    local type = "cards"
+    if set == "Joker" then type = "jokers"
+    elseif set == "Celestial" then type = "planet cards"
+    elseif set == "Base" then type = "playing cards"
+    elseif set == "Spectral" then type = "spectral cards"
+    elseif set == "Tarot" then type = "tarot cards" end
+
+    local pack_str = table.table_to_string(GetRunText.get_hand_details(G.pack_cards.cards, true, false, nil, true))
+    return string.format("%sThese are the %s in this pack: %s", hand_str, type, pack_str)
 end
 
 function RunContext:hand_type_information()

@@ -64,41 +64,32 @@ function RunHelper:get_query_string(state)
         else
             state_string = state_string .. "These are the cards in your hand and their modifiers: "
         end
-        local forced = false
-        if table.any(G.hand.cards,function (card)
-                return card.ability.forced_selection
-            end) == true then
-            forced = true
-            state_string = string.sub(state_string,1,#state_string - 2) .. ". If a card is forced you must select it when playing, discarding or using a consumable that needs cards: " -- string sub to remove colon from boss blinds
-        end
-        state_string = state_string .. table.table_to_string(GetRunText:get_card_modifiers(G.hand.cards, G.GAME.blind.boss, forced))
+        state_string = state_string .. table.table_to_string(GetRunText.get_hand_details(G.hand.cards, true))
     elseif state == G.STATES.SHOP then
         query_string = "You are now in the shop! You can use your money to buy cards, booster packs or vouchers to help your run. You can also use consumables and sell jokers/consumables you no longer need. When done shopping, you can exit the shop to blind selection."
         state_string = "You currently have $" .. tostring(G.GAME.dollars) .. " to spend."
     elseif state == 999 then
         if SMODS.OPENED_BOOSTER.config.center.draw_hand then
             query_string = "You have opened a booster pack containing consumables and can now pick a consumable to immediately use from it. You can also select cards from your hand to use if the consumable needs it."
-            local pack_cards, hand_cards = RunContext:hand_pack_booster()
-            state_string = pack_cards .. "\n" .. hand_cards
         else
             query_string = "You have opened a booster pack containing cards and can now select cards to keep from it."
-            state_string = RunContext:no_hand_booster()
         end
+        state_string = RunContext.booster()
     end
 
     state_string = state_string .. string.format("\nYou currently have %d/%d jokers in your inventory.", #G.jokers.cards, G.jokers.config.card_limit)
     if #G.jokers.cards > 0 then
-        local cards = GetRunText:get_card_modifiers(G.jokers.cards)
+        local cards = GetRunText.get_hand_details(G.jokers.cards, false, false, nil, true)
 
         for pos, value in ipairs(cards) do
-            cards[pos] = "\n" .. pos .. ": " .. string.sub(value,2) .. ". Sell value: $" .. G.jokers.cards[pos].sell_cost
+            cards[pos] = "\n" .. pos .. ": " .. value .. ". Sell value: $" .. G.jokers.cards[pos].sell_cost
         end
-        state_string = state_string .. " Here is a list of their abilites, modifiers and sell value: ".. table.concat(cards, "", 1, #cards)
+        state_string = state_string .. " Here is a list of their abilities, modifiers and sell value: ".. table.concat(cards, "", 1, #cards)
     end
 
     state_string = state_string .. string.format("\nYou currently have %d/%d consumables in your inventory.", #G.consumeables.cards, G.consumeables.config.card_limit)
     if #G.consumeables.cards > 0 then
-        local cards = GetRunText:get_consumeables_text(G.consumeables.cards)
+        local cards = GetRunText.get_hand_details(G.consumeables.cards)
 
         for pos, value in ipairs(cards) do
             cards[pos] = "\n" .. pos .. ": " .. value .. ". Sell value: $" .. G.consumeables.cards[pos].sell_cost
@@ -112,7 +103,7 @@ end
 function RunHelper:get_consumable_validation(card,selected_hand_index,selected_action,forced_selection)
     selected_action = selected_action or "Use"
     forced_selection = forced_selection or false
-    local success_string = "Using " .. string.sub(GetRunText:get_consumeables_text({card})[1], 1)
+    local success_string = "Using " .. GetRunText.get_card_description(card)
     if selected_action == "Sell" then
         success_string = "Selling the " .. card.config.center.name .. " for " .. card.sell_cost
     end

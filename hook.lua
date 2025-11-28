@@ -264,7 +264,7 @@ local function hook_start_run()
          -- we do this so we dont send voucher information right after starting a new run as that would be a bit redundant
         if PLAYED_BLINDS >= MAX_PLAYED_BLINDS - MAX_PLAYED_BLINDS / 3 then
             PLAYED_BLINDS = 0
-            Context.send(GetRunText:get_all_modifier_desc(),true)
+            Context.send(GetRunText.get_all_modifier_desc(),true)
         end
     end
 end
