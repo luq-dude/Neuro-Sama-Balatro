@@ -1,6 +1,6 @@
 local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
-local GetText = ModCache.load("get_text.lua")
+local PreRunLoc = ModCache.load("pre_run_loc.lua")
 
 local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
 
@@ -19,7 +19,7 @@ end
 function SelectStake:_get_description()
     local description = "Select a stake (dificulty) to start the game with."
 
-    for k, v in pairs(GetText:get_stake_descriptions()) do
+    for k, v in pairs(PreRunLoc:get_stake_descriptions()) do
         description = description .. "\n" .. v
     end
 
@@ -29,7 +29,7 @@ end
 function SelectStake:_get_schema()
     return JsonUtils.wrap_schema({
         stake = {
-            enum = GetText:get_stake_names()
+            enum = PreRunLoc:get_stake_names()
         }
     })
 end
@@ -40,7 +40,7 @@ function SelectStake:_validate_action(data, state)
         return ExecutionResult.failure(SDK_Strings.action_failed_missing_required_parameter("stake"))
     end
 
-    local stakes = GetText:get_stake_names()
+    local stakes = PreRunLoc:get_stake_names()
     if not table.any(stakes, function(possible_stake)
             return possible_stake == stake
         end) then
@@ -57,7 +57,7 @@ function SelectStake:_execute_action(state)
         orderedStakeNames[#orderedStakeNames + 1] = v.name
     end
 
-    for id, stake in pairs(GetText:get_stake_names()) do
+    for id, stake in pairs(PreRunLoc:get_stake_names()) do
         if stake == selectedStakeName then
             local args = { to_val = orderedStakeNames[id], to_key = id }
             G.FUNCS.change_stake(args)

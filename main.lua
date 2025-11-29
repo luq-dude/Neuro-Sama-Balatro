@@ -3,8 +3,7 @@ assert(SMODS.load_file("game-sdk/utils/table_utils.lua"))()
 assert(SMODS.load_file("game-sdk/sdk_string_consts.lua"))()
 
 assert(SMODS.load_file("modifier_loc.lua"))()
-assert(SMODS.load_file("card_loc.lua"))()
-assert(SMODS.load_file("voucher_loc.lua"))()
+assert(SMODS.load_file("card_info.lua"))()
 assert(SMODS.load_file("deck_loc.lua"))()
 
 

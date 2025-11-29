@@ -108,6 +108,20 @@ function RunHelper:get_consumable_validation(card,selected_hand_index,selected_a
         success_string = "Selling the " .. card.config.center.name .. " for " .. card.sell_cost
     end
 
+    if card.config.center_key == "c_aura" then
+        if G.STATE == G.STATES.SHOP and selected_action == "Use" then
+            success_string = "You cannot use aura in the shop."
+            return false, success_string
+        end
+
+        if #selected_hand_index ~= 1 and selected_action == "Use" then
+            success_string = "Aura requires for only one card to be selected."
+            return false, success_string
+        end
+
+        return true, success_string
+    end
+
     if table.contains_key(Non_Valid_Modify_Joker_Consumables,card.config.center_key) == true then
         if #G.jokers.cards < 1 and selected_action == "Use" then
             success_string = "This card requires a joker to be used."
@@ -188,20 +202,6 @@ function RunHelper:get_consumable_validation(card,selected_hand_index,selected_a
             success_string = "You must select the force selected card."
             return false, success_string
         end
-    end
-
-    if card.config.center_key == "c_aura" then
-        if G.STATE == G.STATES.SHOP and selected_action == "Use" then
-            success_string = "You cannot use aura in the shop."
-            return false, success_string
-        end
-
-        if #selected_hand_index ~= 1 and selected_action == "Use" then
-            success_string = "Aura requires for only one card to be selected."
-            return false, success_string
-        end
-
-        return true, success_string
     end
 
     return nil, success_string

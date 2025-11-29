@@ -20,6 +20,7 @@ local BuyShopVoucher = ModCache.load("custom-actions/shop-actions/buy_shop_vouch
 
 local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
 local RunHelper = ModCache.load("run_functions_helper.lua")
+local RunContext = ModCache.load("run_context.lua")
 
 local PlayingRun = {}
 
@@ -263,7 +264,7 @@ function PlayingRun:hook_new_round()
 
         if PLAYED_BLINDS >= MAX_PLAYED_BLINDS then
             PLAYED_BLINDS = 0
-            Context.send(GetRunText.get_all_modifier_desc() .. (#G.vouchers.cards > 0 and ("\n" .. "These are the vouchers you have gotten throughout this run " .. table.table_to_string(GetRunText.get_hand_details(G.vouchers.cards))) or ""), true)
+            Context.send(RunContext.get_all_modifier_desc() .. (#G.vouchers.cards > 0 and ("\n" .. "These are the vouchers you have gotten throughout this run " .. table.table_to_string(GetRunText.get_hand_details(G.vouchers.cards))) or ""), true)
         end
     end
 end

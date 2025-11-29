@@ -1,4 +1,3 @@
-local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
 local GetRunText = ModCache.load("get_run_text.lua")
 
 local RunContext = {}
@@ -45,4 +44,15 @@ function RunContext:hand_type_information()
     return context_hands
 end
 
+function RunContext.get_all_modifier_desc()
+    local edi,enh,seal = GetRunText.get_all_modifiers()
+    local ret = "These are all the playing card and joker modifiers in the game. " ..
+        "A playing card can only have one edition, enhancement and seal at a time, while jokers can only have one edition. " ..
+        "You should remember these: " ..
+        "\n- Editions:" .. table.table_to_string(edi) ..
+        "\n- Enhancements:" .. table.table_to_string(enh) ..
+        "\n- Seals:" .. table.table_to_string(seal)
+
+    return ret
+end
 return RunContext

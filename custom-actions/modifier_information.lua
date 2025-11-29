@@ -3,6 +3,8 @@ local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
 local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
 local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
 local GetRunText = ModCache.load("get_run_text.lua")
+local RunContext = ModCache.load("run_context.lua")
+
 local ModifierInformation = setmetatable({}, { __index = NeuroAction })
 ModifierInformation.__index = ModifierInformation
 
@@ -30,7 +32,7 @@ end
 
 function ModifierInformation:_execute_action(state)
     local edi,enh,seal = GetRunText.get_all_modifiers()
-    Context.send(GetRunText.get_all_modifier_desc(), true)
+    Context.send(RunContext.get_all_modifier_desc(), true)
 
 	if G.STATE == G.STATES.SHOP then
         self.hook:register_store_actions(0)
