@@ -62,18 +62,30 @@ local function get_card_modifiers(card)
 end
 
 -- Gets the description for any card object
--- This includes playing cards, jokers, consumables and vouchers
+-- This includes playing cards, jokers, consumables and vouchers (and tags)
 function GetRunText.get_card_description(card, include_debuff, add_cost, set_override, add_blueprint)
     local set = set_override or card.ability.set
-    local loc_vars, main_start, main_end = card:generate_UIBox_ability_table(true)
+    local key = card.config.center_key or card.key
+
+    local tag = false
+    local loc_vars, main_start, main_end
+    if card.generate_UIBox_ability_table then
+        loc_vars, main_start, main_end = card:generate_UIBox_ability_table(true)
+    elseif card.get_uibox_table then -- to support tags
+        loc_vars = card:get_uibox_table(nil, true)
+        set = "Tag"
+        tag = true
+    else
+        sendErrorMessage(string.format("get_card_description called on invalid card/tag"))
+    end
 
     -- dont ask me how this works, it just does
-    if not loc_vars or #loc_vars == 0 then
+    if not tag and (not loc_vars or #loc_vars == 0) then
         loc_vars = generate_card_ui(card.config.center, nil, loc_vars, card.ability.set or "None", {}, false, main_start, main_end, card, true)
     end
 
-    local p_card = G.P_CENTERS[card.config.center_key]
-    local name = (p_card.loc_txt and p_card.loc_txt.name) or card.ability.name
+    local p_card = G.P_CENTERS[key] or G.P_TAGS[key]
+    local name = (p_card.loc_txt and p_card.loc_txt.name) or card.ability.name or card.name
 
     local key_override, vars_override, name_override
     if (not loc_vars or #loc_vars == 0) and p_card.loc_txt and type(p_card.loc_vars) == 'function' then
@@ -89,13 +101,13 @@ function GetRunText.get_card_description(card, include_debuff, add_cost, set_ove
     else
         localize{
             type = 'descriptions',
-            key = key_override or card.config.center.key,
-            set = set,
+            key = key_override or key,
+            set = set_override or set,
             nodes = loc_nodes,
             vars = vars_override or loc_vars,
-            AUT = card:generate_UIBox_ability_table()}
+            AUT = not tag and card:generate_UIBox_ability_table()}
     end
-    local modifiers = get_card_modifiers(card)
+    local modifiers = not tag and get_card_modifiers(card) or {}
     if playing_card and modifiers.enhancement == "Stone Card" then
         name_override = "Stone Card (+50 chips, no rank or suit)"
     end
@@ -124,7 +136,6 @@ function GetRunText.get_card_description(card, include_debuff, add_cost, set_ove
     if add_cost then desc = add_card_buy_cost(desc,card) end
     return desc
 end
-
 
 function GetRunText.get_hand_details(hand, count, add_cost, set_override, check_blueprint)
     local details = {}
@@ -231,6 +242,35 @@ function GetRunText.get_all_modifier_desc()
         "\n- Seals:" .. table.table_to_string(seal)
 
     return ret
+end
+
+function GetRunText.get_blind_descriptions()
+    local descs = {}
+    for _, blind in pairs({"Small", "Big", "Boss"}) do
+        local p_blind = G.P_BLINDS[G.GAME.round_resets.blind_choices[blind]]
+        local chips = number_format(get_blind_amount(G.GAME.round_resets.blind_ante) * p_blind.mult *
+            G.GAME.starting_params.ante_scaling)
+        local status = G.GAME.round_resets.blind_states[blind]
+
+        local desc = string.format("%s Blind (%s):\nRequired score to beat: %s\n",
+            blind,
+            status,
+            chips
+        )
+
+        if blind ~= "Boss" then
+            local tag = Tag(G.GAME.round_resets.blind_tags[blind], nil, blind)
+            desc = desc .. string.format("Skip Reward: %s\n", GetRunText.get_card_description(tag))
+        else
+            local boss_desc = localize{type = 'raw_descriptions',
+                                        key = p_blind.key,
+                                        set = 'Blind',
+                                        vars = { localize(G.GAME.current_round.most_played_poker_hand, 'poker_hands') } }
+            desc = desc .. string.format("Boss Blind effect: %s", table.table_to_string(boss_desc))
+        end
+        descs[#descs+1] = desc
+    end
+    return descs
 end
 
 return GetRunText

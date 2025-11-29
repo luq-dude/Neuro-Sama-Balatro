@@ -239,7 +239,7 @@ local function hook_blind_select()
 
                 local window = ActionWindow:new()
                 window:set_force(0.0, "Choose to select or skip the currently selected blind",
-                    GetText:generate_blind_descriptions())
+                    table.table_to_string(GetRunText.get_blind_descriptions()))
                 window:add_action(PlayBlind:new(window))
                 if G.GAME.blind_on_deck ~= "Boss" then
                     window:add_action(SkipBlind:new(window))

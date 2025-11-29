@@ -3,7 +3,7 @@ local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
 local PlayBlind = ModCache.load("custom-actions/play_blind.lua")
 local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
 local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
-local GetText = ModCache.load("get_text.lua")
+local GetRunText = ModCache.load("get_run_text.lua")
 local RerollBlind = setmetatable({}, { __index = NeuroAction })
 RerollBlind.__index = RerollBlind
 
@@ -40,7 +40,7 @@ function RerollBlind:_execute_action(state)
         blocking = false,
         func = function()
             local window = ActionWindow:new()
-            window:set_force(0.0, "Choose to select or reroll the current blind.", GetText:generate_blind_descriptions())
+            window:set_force(0.0, "Choose to select or reroll the current blind.", table.table_to_string(GetRunText.get_blind_descriptions()))
             window:add_action(PlayBlind:new(window))
 
             if (G.GAME.dollars - G.GAME.bankrupt_at) - 10 >= 0 and
