@@ -119,6 +119,10 @@ function RunHelper:get_consumable_validation(card,selected_hand_index,selected_a
             return false, success_string
         end
 
+        if selected_action == "Use" and G.hand.cards[selected_hand_index[1]].edition then
+            success_string = "Cannot use Aura on a card that already has an edition."
+            return false, success_string
+        end
         return true, success_string
     end
 
