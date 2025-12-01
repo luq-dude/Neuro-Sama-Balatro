@@ -86,7 +86,7 @@ function BuyShopCard:_validate_action(data, state)
 
     state["selected_action"] = selected_action
     state["selected_index"] = selected_index
-    return ExecutionResult.success("Buying " .. (selected_action == "buy and use" and "and using " or "") .. string.sub(GetRunText:get_consumeables_text({card})[1], 1))
+    return ExecutionResult.success("Buying " .. (selected_action == "buy and use" and "and using " or "") ..GetRunText.get_card_description(card))
 end
 
 function BuyShopCard:_execute_action(state)

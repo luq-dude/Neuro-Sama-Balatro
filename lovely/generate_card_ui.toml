@@ -1,0 +1,19 @@
+[manifest]
+version = "1.0.0"
+priority = 100
+
+[[patches]]
+[patches.pattern]
+target = 'functions/common_events.lua'
+match_indent = true
+position = 'at'
+pattern = 'function generate_card_ui(_c, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end, card)'
+payload = 'function generate_card_ui(_c, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end, card, vars_only)'
+
+[[patches]]
+[patches.pattern]
+target = 'functions/common_events.lua'
+match_indent = true
+position = 'before'
+pattern = 'for _, v in ipairs(info_queue) do'
+payload = 'if vars_only then return loc_vars end'

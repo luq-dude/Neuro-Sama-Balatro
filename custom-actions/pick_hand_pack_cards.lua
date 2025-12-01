@@ -15,8 +15,6 @@ local RunContext = ModCache.load("run_context.lua")
 local PickHandPackCards = setmetatable({}, { __index = NeuroAction })
 PickHandPackCards.__index = PickHandPackCards
 
-local cards_picked = 0
-
 local function pick_hand_pack_card(delay, hook)
     G.E_MANAGER:add_event(Event({
         trigger = "after",
@@ -142,7 +140,7 @@ function PickHandPackCards:_execute_action(state)
     G.pack_cards:add_to_highlighted(consumable)
 
     -- only select cards in hand if they are required
-    if consumable.config.center.config.max_highlighted ~= nil then
+    if consumable.config.center.config.max_highlighted ~= nil or consumable.config.center_key == "c_aura" then
         if #selected_index > 0 then
             RunHelper:reorder_card_area(G.hand, selected_index)
         end
@@ -178,12 +176,9 @@ function PickHandPackCards:_execute_action(state)
     }))
 
 
-    cards_picked = cards_picked + 1
-    if SMODS.OPENED_BOOSTER.config.center.config.choose > cards_picked then
+    if (G.GAME.pack_choices or 1) > 1 then
         pick_hand_pack_card(5, self.hook)
         return true
-    else
-        cards_picked = 0
     end
 
     self.hook.HookRan = false

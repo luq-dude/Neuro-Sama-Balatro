@@ -1,5 +1,7 @@
 local GetRunText = {}
 
+local copy_jokers = {"j_blueprint", "j_brainstorm"} -- jokers that copy other jokers
+
 local function add_card_buy_cost(description,card)
     if not card.cost then return end
 
@@ -7,735 +9,159 @@ local function add_card_buy_cost(description,card)
     return description
 end
 
-local function add_consumeable_edition(desc, card)
-    if not card.edition then return desc end
-    desc = desc .. ". Edition: "
-    for _, v in ipairs(G.P_CENTER_POOLS.Edition) do
-        if v.key == card.edition.key and v.loc_txt then
-            desc = desc .. v.loc_txt.name
-        elseif v.key == card.edition.key then
-            desc = desc .. v.name
-        end
-    end
-    return desc
-end
-
-function GetRunText:get_celestial_names(card_hand)
-    local cards = {}
-
-	for pos, card in ipairs(card_hand) do
-        for _, v in pairs(G.P_CENTER_POOLS.Planet) do
-            local name = card.ability.name
-
-            if v.key ~= card.config.center_key then goto continue end
-            if v.loc_txt and type(v.loc_vars) == 'function' then
-                name = v.loc_txt.name -- get name that shows on hover
+local function description_from_loc_nodes(loc_nodes)
+    local description = ""
+    for _, line in ipairs(loc_nodes) do
+        for _, word in ipairs(line) do
+            if word.nodes ~= nil then
+                if word.nodes[1].config.text ~= nil then
+                    description = description .. word.nodes[1].config.text
+                elseif word.nodes[1].config.object ~= nil then
+                    description = description .. word.nodes[1].config.object.config.string[1]
+                end
+            else
+                if not word.config.text then break end
+                description = description .. word.config.text
             end
-            sendDebugMessage("card name: " .. name)
-            cards[#cards + 1] = name
-            ::continue::
-        end
-        sendDebugMessage("past continue")
-    end
-    return cards
-end
-
-function GetRunText:get_celestial_details(card_hand,add_cost,count)
-    add_cost = add_cost or false
-    count = count or false
-    local cards = {}
-
-	for pos, card in ipairs(card_hand) do
-		sendDebugMessage("start for loop")
-		local planet_desc = ""
-        if card.ability.name == "Black Hole" then
-            planet_desc = "\n" .. (count and ("- " .. #cards + 1 .. ": ") or "") .. "Black Hole: Upgrades all poker hands by 1 level"
-        elseif card.ability.set == "Planet" then
-            for _, v in pairs(G.P_CENTER_POOLS.Planet) do
-                local loc_args,loc_nodes = {}, {}
-                local name = card.ability.name
-
-                if v.key ~= card.config.center_key then goto continue end
-                if v.loc_txt and type(v.loc_vars) == 'function' then
-                    local res = v:loc_vars() or {}
-                    name = v.loc_txt.name
-                end
-                loc_args = {  -- SMODS.PokerHand contains both smods added hands and vanilla (haven't tested modded cards, so it could still break, sorry if so.)
-                    SMODS.PokerHand.obj_table[v.config.hand_type].level,localize(v.config.hand_type, 'poker_hands'), SMODS.PokerHand.obj_table[v.config.hand_type].l_mult, SMODS.PokerHand.obj_table[v.config.hand_type].l_chips,
-                    colours = {(SMODS.PokerHand.obj_table[v.config.hand_type].level==1 and G.C.UI.TEXT_DARK or G.C.HAND_LEVELS[math.min(7, SMODS.PokerHand.obj_table[v.config.hand_type].level)])}
-                    }
-                
-                localize{type = 'descriptions', key = v.key, set = v.set, nodes = loc_nodes, vars = loc_args, AUT = card:generate_UIBox_ability_table()}
-                local description = "\n" .. (count and ("- " .. #cards + 1 .. ": ") or "") .. name .. ": "
-                for _, line in ipairs(loc_nodes) do
-                    for _, word in ipairs(line) do
-                        if word.nodes ~= nil then
-                            description = description .. word.nodes[1].config.text
-                        else
-                            description = description .. word.config.text
-                        end
-                        description = description .. " "
-                    end
-                end
-
-                if add_cost then description = add_card_buy_cost(description,card) end
-                description = add_consumeable_edition(description, card)
-                planet_desc = description
-            ::continue::
-            end
-        end
-		cards[#cards+1] = planet_desc
-    end
-    return cards
-end
-
-function GetRunText:get_joker_names(card_hand)
-    local cards = {}
-	for pos, card in ipairs(card_hand) do
-        for _, v in pairs(G.P_CENTER_POOLS.Joker) do
-            local name = card.ability.name
-
-            if v.key ~= card.config.center_key then goto continue end
-            if v.loc_txt and type(v.loc_vars) == 'function' then
-                name = v.loc_txt.name
-            end
-            sendDebugMessage("card name: " .. name)
-            cards[#cards + 1] = name
-            ::continue::
-        end
-        sendDebugMessage("past continue")
-    end
-    return cards
-end
-
-function GetRunText:get_joker_details(card_hand,add_cost,count)
-    add_cost = add_cost or false
-    count = count or false
-    local cards = {}
-    local add_blueprint = false
-    for _, v in ipairs(G.jokers.cards) do
-        if v.ability.name == "Blueprint" or v.ability.name == "Brainstorm" then
-            add_blueprint = true
+            description = description .. " "
         end
     end
-
-	for pos, card in ipairs(card_hand) do
-		local joker_desc = ""
-
-        if card.ability.set == 'Joker' then
-            local key_override = nil
-            for _, v in pairs(G.P_CENTER_POOLS.Joker) do
-                local loc_args,loc_nodes = {}, {}
-                local name = card.ability.name
-
-                if v.key ~= card.config.center_key then goto continue end
-                if v.loc_txt and v.mod then
-                    if v.loc_vars then
-                        local res = v:loc_vars({},card) or {} -- need to pass these to get vars (atleast in neurocards mod)
-                        loc_args = res.vars or {}
-                    end
-                    key_override = v.key
-                    name = card.config.center.loc_txt.name_parsed[1][1].strings[1]
-				else
-                    LOC_ARGS = {}
-                    card:generate_UIBox_ability_table()
-                    loc_args = LOC_ARGS
-                    key_override = card.config.center_key
-                end
-                
-                localize{type = 'descriptions', key = v.key, set = v.set, nodes = loc_nodes, vars = loc_args, AUT = card:generate_UIBox_ability_table()}
-
-                local description = "\n" .. (count and ("- " .. #cards + 1 .. ": ") or "") .. name .. ": "
-                if name == "Misprint" then
-                    description = description .. "Gives a random amount of mult from +0 to +23 (inclusive)"
-                end
-                for _, line in ipairs(loc_nodes) do
-                    for _, word in ipairs(line) do
-                        if word.nodes ~= nil then
-                            if word.nodes[1].config.text ~= nil then
-                                description = description .. word.nodes[1].config.text
-                            elseif word.nodes[1].config.object ~= nil then -- get modded vars
-                                description = description .. word.nodes[1].config.object.config.string[1]
-                            end
-                        else
-                            description = description .. word.config.text
-                        end
-                        description = description .. " "
-                    end
-                end
-
-                if add_cost then description = add_card_buy_cost(description,card) end
-                if add_blueprint then description = description .. ". Blueprint/Brainstorm compatible: " .. tostring(card.config.center.blueprint_compat) end
-                joker_desc = description
-            ::continue::
-            end
-        end
-		cards[#cards+1] = joker_desc
-    end
-    return cards
-end
-
-function GetRunText:get_spectral_names(card_hand)
-    local cards = {}
-
-	for pos, card in ipairs(card_hand) do
-        for _, v in pairs(G.P_CENTER_POOLS.Spectral) do
-            local name = card.ability.name
-
-            if v.key ~= card.config.center_key then goto continue end
-            if v.loc_txt and type(v.loc_vars) == 'function' then
-                name = v.loc_txt.name
-            end
-            cards[#cards + 1] = name
-            ::continue::
-        end
-    end
-    return cards
-end
-
-function GetRunText:get_spectral_details(card_hand,add_cost,count)
-    add_cost = add_cost or false
-    count = count or false
-    local cards = {}
-
-	for pos, card in ipairs(card_hand) do
-		local spectral_desc = ""
-
-        if card.ability.set == 'Spectral' then
-            local key_override = nil
-            for card_id, g_card in pairs(G.P_CENTERS) do
-                if g_card.name ~= card.ability.name then goto continue end
-                local loc_lookup = Spectral_Loc[card_id]
-                local loc_args = {}
-                local loc_nodes = {}
-                local name = card.ability.name
-                if type(loc_lookup) == "table" then
-                    for _, v in ipairs(loc_lookup) do
-                        table.insert(loc_args,g_card.config[v])
-                    end
-                elseif type(loc_lookup) == "function" then
-                    loc_args = loc_lookup(g_card)
-                elseif g_card.mod then
-                    name = g_card.loc_txt.name
-                    if type(g_card.loc_vars) == "function" then 
-                        local res = g_card:loc_vars({}, card) or {}
-                        loc_args = res.vars
-                    end 
-                else
-                    sendErrorMessage("Could not find localize for card" .. g_card.key)
-                end
-
-                localize{type = 'descriptions', key = g_card.key or key_override, set = g_card.set, nodes = loc_nodes, vars = loc_args, AUT = card:generate_UIBox_ability_table()}
-
-                local description = "\n" .. (count and ("- " .. #cards + 1 .. ": ") or "") .. name .. ": "
-                for _, line in ipairs(loc_nodes) do
-                    for _, word in ipairs(line) do
-                        if word.nodes ~= nil then
-                            if word.nodes[1].config.text ~= nil then
-                                description = description .. word.nodes[1].config.text
-                            elseif word.nodes[1].config.object ~= nil then
-                                description = description .. word.nodes[1].config.object.config.string[1]
-                            end
-                        else
-                            description = description .. word.config.text
-                        end
-                        description = description .. " "
-                    end
-                end
-
-                if add_cost then description = add_card_buy_cost(description,card) end
-                description = add_consumeable_edition(description, card)
-                spectral_desc = description
-            ::continue::
-            end
-        end
-		cards[#cards+1] = spectral_desc
-    end
-    return cards
-end
-
-function GetRunText:get_tarot_names(card_hand)
-    local cards = {}
-
-	for pos, card in ipairs(card_hand) do
-        for _, v in pairs(G.P_CENTER_POOLS.Tarot) do
-            local name = card.ability.name
-
-            if v.key ~= card.config.center_key then goto continue end
-            if v.loc_txt and type(v.loc_vars) == 'function' then
-                name = v.loc_txt.namer
-            end
-            cards[#cards + 1] = name
-            ::continue::
-        end
-    end
-    return cards
-end
-
-function GetRunText:get_tarot_details(card_hand,add_cost,count)
-    add_cost = add_cost or false
-    count = count or false
-    local cards = {}
-
-	for pos, card in ipairs(card_hand) do
-		local tarot_desc = ""
-
-        if card.ability.set == 'Tarot' or card.ability.name == "The Soul" then
-            local key_override = nil
-            for card_id, g_card in pairs(G.P_CENTERS) do
-                if g_card.name ~= card.ability.name then goto continue end
-                local loc_lookup = Tarot_Loc[card_id] or Spectral_Loc[card_id]
-                local loc_args = {}
-                local loc_nodes = {}
-                local name = card.ability.name
-                if type(loc_lookup) == "table" then
-                    for _, v in ipairs(loc_lookup) do
-                        table.insert(loc_args,g_card.config[v])
-                    end
-                elseif type(loc_lookup) == "function" then
-                    loc_args = loc_lookup(card)
-                elseif g_card.mod then
-                    name = g_card.loc_txt.name
-                    if type(g_card.loc_vars) == "function" then 
-                        local res = g_card:loc_vars({}, card) or {}
-                        loc_args = res.vars
-                    end 
-                else
-                    sendErrorMessage("Could not find localize for card" .. g_card.key)
-                end
-
-                localize{type = 'descriptions', key = g_card.key or key_override, set = g_card.set or card.ability.set, nodes = loc_nodes, vars = loc_args, AUT = card:generate_UIBox_ability_table()}
-
-                local description = "\n" .. (count and ("- " .. #cards + 1 .. ": ") or "") .. name .. ": "
-                for _, line in ipairs(loc_nodes) do
-                    for _, word in ipairs(line) do
-                        if word.nodes ~= nil then
-                            if word.nodes[1].config.text ~= nil then
-                                description = description .. word.nodes[1].config.text
-                            elseif word.nodes[1].config.object ~= nil then
-                                description = description .. word.nodes[1].config.object.config.string[1]
-                            end
-                        else
-                            description = description .. word.config.text
-                        end
-                        description = description .. " "
-                    end
-                end
-
-                if add_cost then description = add_card_buy_cost(description,card) end
-                description = add_consumeable_edition(description, card)
-                tarot_desc = description
-            ::continue::
-            end
-        end
-		cards[#cards+1] = tarot_desc
-    end
-    return cards
-end
-
-function GetRunText:get_booster_details(boosters,add_cost,count)
-    add_cost = add_cost or false
-    count = count or false
-    local shop_boosters = {}
-
-	for pos, booster in ipairs(boosters) do
-		local booster_desc = ""
-
-        if booster.ability.set == 'Booster' then
-            local key_override = nil
-            for card_id, g_card in pairs(G.P_CENTER_POOLS.Booster) do
-                local loc_args = {}
-                local loc_nodes = {}
-                local name = booster.ability.name
-                if g_card.key ~= booster.config.center_key then goto continue end
-                if g_card.mod then
-                    local res = g_card:loc_vars(nil,booster) or {}
-                    name = g_card.loc_txt.name
-                    loc_args = res.vars
-                    key_override = g_card.key
-                else
-                    name = booster.ability.name
-                    local key = "" .. string.sub(booster.config.center_key,1,#booster.config.center_key - 2) -- need to remove the booster's number from the key to use in localize
-                    key_override = key
-                    loc_args = {booster.config.center.config.choose,booster.config.center.config.extra}
-                end
-
-                localize{type = 'descriptions', key = key_override, set = "Other" or booster.ability.set, nodes = loc_nodes, vars = loc_args, AUT = booster:generate_UIBox_ability_table()}
-
-                local description = "\n" .. (count and ("- " .. #shop_boosters + 1 .. ": ") or "") .. name .. ": "
-                for _, line in ipairs(loc_nodes) do
-                    for _, word in ipairs(line) do
-                        if word.nodes ~= nil then
-                            if word.nodes[1].config.text ~= nil then
-                                description = description .. word.nodes[1].config.text
-                            elseif word.nodes[1].config.object ~= nil then
-                                description = description .. word.nodes[1].config.object.config.string[1]
-                            end
-                        else
-                            description = description .. word.config.text
-                        end
-                        description = description .. " "
-                    end
-                end
-
-                if add_cost then description = add_card_buy_cost(description,booster) end
-                booster_desc = description
-            ::continue::
-            end
-        end
-		shop_boosters[#shop_boosters+1] = booster_desc
-    end
-    return shop_boosters
-end
-
-function GetRunText:get_voucher_details(voucher_table,add_cost,count)
-    add_cost = add_cost or false
-    count = count or false
-    local vouchers = {}
-
-	for pos, voucher in ipairs(voucher_table) do
-		local voucher_desc = ""
-
-        if voucher.ability.set == 'Voucher' then
-            local key_override = nil
-            for card_id, g_card in pairs(G.P_CENTER_POOLS.Voucher) do
-                local loc_lookup = Voucher_Loc[g_card.key]
-                local loc_args = {}
-                local loc_nodes = {}
-                local name = voucher.ability.name
-                if g_card.key ~= voucher.config.center_key then goto continue end
-                if type(loc_lookup) == "table" then
-                    for _, v in ipairs(loc_lookup) do
-                        table.insert(loc_args,g_card.config[v])
-                    end
-                elseif type(loc_lookup) == "function" then
-                    loc_args = loc_lookup(g_card)
-                else
-                    sendErrorMessage("Could not find localize for card" .. g_card.key)
-                end
-
-                localize{type = 'descriptions', key = g_card.key, set = g_card.set, nodes = loc_nodes, vars = loc_args, AUT = voucher:generate_UIBox_ability_table()}
-
-                local description = "\n" .. (count and ("- " .. #vouchers + 1 .. ": ") or "") .. name .. ": "
-                for _, line in ipairs(loc_nodes) do
-                    for _, word in ipairs(line) do
-                        if word.nodes ~= nil then
-                            if word.nodes[1].config.text ~= nil then
-                                description = description .. word.nodes[1].config.text
-                            elseif word.nodes[1].config.object ~= nil then
-                                description = description .. word.nodes[1].config.object.config.string[1]
-                            end
-                        else
-                            description = description .. word.config.text
-                        end
-                        description = description .. " "
-                    end
-                end
-
-                if add_cost then description = add_card_buy_cost(description,voucher) end
-                voucher_desc = description
-            ::continue::
-            end
-        end
-		vouchers[#vouchers+1] = voucher_desc
-    end
-    return vouchers
-end
-
-function GetRunText:get_shop_text(card_table,add_cost,count)
-    add_cost = add_cost or false
-    count = count or false
-    local card = card_table[1]
-
-    if card.ability.set == "Booster" then
-        return GetRunText:get_booster_details(card_table,add_cost,count)
-    elseif card.ability.set == "Voucher" then
-        return GetRunText:get_voucher_details(card_table,add_cost,count)
-    elseif card.ability.set == "Joker" then
-        return GetRunText:get_card_modifiers(card_table,false,false,add_cost,count)
-    end
-end
-
-function GetRunText:get_consumeables_text(cards,add_cost,count)
-    add_cost = add_cost or false
-    count = count or false
-    local cards_details = {}
-
-    for index, card in ipairs(cards) do
-        if card.ability.set == "Planet" then
-            cards_details[#cards_details+1] = (count and ("\n" .. "- " .. #cards_details + 1 .. ": ") or "") .. string.sub(GetRunText:get_celestial_details({card},add_cost)[1], 2) 
-        elseif card.ability.set == "Tarot" then
-            cards_details[#cards_details+1] = (count and ("\n" .. "- " .. #cards_details + 1 .. ": ") or "") .. string.sub(GetRunText:get_tarot_details({card},add_cost)[1], 2)
-        elseif card.ability.set == "Spectral" then
-            cards_details[#cards_details+1] = (count and ("\n" .. "- " .. #cards_details + 1 .. ": ") or "") .. string.sub(GetRunText:get_spectral_details({card},add_cost)[1], 2)
-        elseif card.ability.set == "Joker" then
-            cards_details[#cards_details+1] = (count and ("\n" .. "- " .. #cards_details + 1 .. ": ") or "") .. string.sub(GetRunText:get_card_modifiers({card},false,false,add_cost)[1], 2)
-        elseif card.config.card ~= nil then -- this handles playing cards for magic trick
-            cards_details[#cards_details+1] = (count and ("\n" .. "- " .. #cards_details + 1 .. ": ") or "") .. string.sub(GetRunText:get_card_modifiers({card})[1], 7)
-        end
-    end
-
-    return cards_details
-end
-
--- playing card stuff
-function GetRunText:get_card_modifiers(card_hand,add_debuff_state,add_forced_state,add_cost,count)
-    add_debuff_state = add_debuff_state or false
-    add_forced_state = add_forced_state or false
-    add_cost = add_cost or false
-    count = count or false
-    local cards = {}
-
-	for pos, card in ipairs(card_hand) do
-        local card_desc = ""
-        if card.ability.set == "Joker" then
-            card_desc = GetRunText:get_joker_details({card},add_cost,count)[1]
-        else
-            card_desc = "\n" .. "- " .. pos .. ": " .. card.base.name
-        end
-
-        if card.edition then
-            for _, v in ipairs(G.P_CENTER_POOLS.Edition) do
-                local description = ""
-                if v.key == card.edition.key and v.loc_txt then
-                    description = ", Card Edition: " .. v.loc_txt.name
-                elseif v.key ~= card.edition.key then
-                    goto continue
-                else
-                    description = ", Card Edition: " .. v.name
-                end
-
-                card_desc = card_desc .. description
-                ::continue::
-            end
-        end
-
-        if card.ability.effect ~= "Base" then
-            for _, v in ipairs(G.P_CENTER_POOLS.Enhanced) do
-                local description
-                if v.key == card.config.center_key and v.loc_txt then
-                    description = ", Card Enhancement: " .. v.loc_txt.name
-                elseif v.key ~= card.config.center_key then
-                    goto continue
-                else
-                    description = ", Card Enhancement: " .. card.ability.name
-                end
-
-                card_desc = card_desc .. description
-                ::continue::
-            end
-        end
-
-        if card.ability.seal then
-            for _, v in ipairs(G.P_CENTER_POOLS.Seal) do
-                local description
-                if v.key == card.seal and v.loc_txt then
-                    description = ", Card Seal: " .. v.loc_txt.name
-                elseif v.key ~= card.seal then
-                    goto continue
-                else
-                    description = ", Card Seal: " .. card.seal .. " Seal"
-                end
-
-                card_desc = card_desc .. description
-                ::continue::
-            end
-        end
-
-        if add_debuff_state then
-            card_desc = card_desc .. ", Debuffed: " .. tostring(card.debuff) -- this is a boolean
-        end
-
-        if add_forced_state then
-            if card.ability.forced_selection then
-                card_desc = card_desc .. ", Force selected: " .. tostring(card.ability.forced_selection)
-            end
-        end
-
-        cards[#cards+1] = card_desc
-    end
-
-    return cards
-end
-
-function GetRunText:get_hand_names(cards_table)
-    local cards = {}
-    for pos, card in ipairs(cards_table) do
-        local name = card.base.name
-
-        sendDebugMessage("name: " .. name)
-		cards[#cards+1] = name
-	end
-	return cards
-end
-
-local function get_text(loc_nodes,current_description)
-    local description = current_description
-    if #loc_nodes > 0 then
-        for _, line in ipairs(loc_nodes) do
-            for _, word in ipairs(line) do
-                if word.nodes ~= nil then
-                    if word.nodes[1].config.object ~= nil then
-                        description = description .. word.nodes[1].config.object.string
-                    else
-                        description = description .. word.nodes[1].config.text
-                    end
-                else
-                    if not word.config.text then break end -- removes table that contains stuff for setting up UI
-                    description = description .. word.config.text
-                end
-                description = description .. " "
-            end
-        end
-    end
-
     return description
 end
 
-function GetRunText:get_hand_editions(cards_table)
-	local cards = {}
-	for _, card in ipairs(cards_table) do
 
-        local edition_desc = ""
+local function get_card_modifiers(card)
+    local modifiers = {
+        edition=nil,
+        enhancement=nil,
+        seal=nil,
+        debuffed = card.debuff,
+        forced = card.ability.forced_selection,
+        blueprint_compat = nil
+    }
 
-        if card.edition then
-            local key_override
-            for _, g_card in pairs(G.P_CENTER_POOLS.Edition) do
-                if g_card.key ~= card.edition.key then goto continue end
-                local loc_lookup, loc_args, loc_nodes = Edition_Loc[g_card.key], {}, {}
-                local name = g_card.name
-                if g_card.key == card.edition.key and g_card.loc_txt then
-                    if g_card.loc_vars then
-                        local res = g_card:loc_vars(nil,card) or {}
-                        loc_args = res.vars or res.loc_txt.text
-                    end
-                    name = g_card.loc_txt.name
-                elseif type(loc_lookup) == "table" then
-                    for _, v in ipairs(loc_lookup) do
-                        table.insert(loc_args,g_card.config[v])
-                    end
-                elseif type(loc_lookup) == "function" then
-                    loc_args = loc_lookup(g_card)
-                else
-                    sendErrorMessage("Could not find localize for edition" .. g_card.key)
-                end
-
-                localize{type = 'descriptions', key = g_card.key or key_override, set = g_card.set or card.ability.set, nodes = loc_nodes, vars = loc_args}
-
-                local description = "\n -- " .. name .. " : "
-                description = get_text(loc_nodes,description)
-
-                edition_desc = description
-            ::continue::
-            end
-        end
-
-        if table.any(cards, function(edition) return edition == edition_desc end) then edition_desc = "" end -- get rid of duplicates
-		cards[#cards+1] = edition_desc
+    if card.ability.set == "Joker" then
+        modifiers.blueprint_compat = G.P_CENTERS[card.config.center_key].blueprint_compat
     end
-    return cards
+
+    if card.edition then
+        local proto = G.P_CENTERS[card.edition.key]
+        modifiers.edition = (proto.loc_txt and proto.loc_txt.name) or proto.name
+    end
+
+    for k, v in pairs(SMODS.get_enhancements(card)) do
+        local proto = G.P_CENTERS[k]
+        modifiers.enhancement = (proto.loc_txt and proto.loc_txt.name) or proto.name
+    end
+
+    if card.seal then
+        local proto = G.P_SEALS[card.seal]
+        modifiers.seal = (proto.loc_txt and proto.loc_txt.name) or card.seal
+    end
+    return modifiers
 end
 
-function GetRunText:get_hand_enhancements(cards_table)
-    local cards = {}
-	for pos, card in ipairs(cards_table) do
+-- Gets the description for any card object
+-- This includes playing cards, jokers, consumables and vouchers (and tags)
+function GetRunText.get_card_description(card, include_debuff, add_cost, set_override, add_blueprint)
+    local set = set_override or card.ability.set
+    local key = card.config.center_key or card.key
 
-        local enhancement_desc = ""
-
-        if card.ability.effect ~= "Base" then
-            for _, g_card in pairs(G.P_CENTER_POOLS.Enhanced) do
-                if g_card.key ~= card.config.center_key then goto continue end
-                local loc_lookup, loc_args, loc_nodes = Enhancement_Loc[g_card.key], {}, {}
-                local name = card.ability.name
-                local key_override = g_card.key
-                local set_override = g_card.set
-                if g_card.key == card.config.center_key and g_card.loc_txt then
-                    if g_card.loc_vars then
-                        local res = g_card:loc_vars(nil,card) or {}
-                        loc_args = res.vars or res.loc_txt.text
-                    end
-                    name = g_card.loc_txt.name
-                elseif type(loc_lookup) == "table" then
-                    for _, v in ipairs(loc_lookup) do
-                        table.insert(loc_args,g_card.config[v])
-                    end
-                elseif type(loc_lookup) == "function" then
-                    loc_args = loc_lookup(g_card)
-                else
-                    sendErrorMessage("Could not find localize for enhancement" .. g_card.key)
-                end
-                if g_card.key == "m_bonus" then
-                    key_override = "card_extra_chips"
-                    set_override = "Other"
-                end
-
-                localize{type = 'descriptions', key = key_override or g_card.key, set = set_override or g_card.set, nodes = loc_nodes, vars = loc_args} -- doesn't get character's like + idk why as others do, needs to be fixed before releasing though
-
-                local description = "\n -- " .. name .. " : "
-                description = get_text(loc_nodes,description)
-
-                enhancement_desc = description
-            ::continue::
-            end
-        end
-        if table.any(cards, function(enhancement) return enhancement == enhancement_desc end) then enhancement_desc = "" end
-		cards[#cards+1] = enhancement_desc
+    local tag = false
+    local loc_vars, main_start, main_end
+    if card.generate_UIBox_ability_table then
+        loc_vars, main_start, main_end = card:generate_UIBox_ability_table(true)
+    elseif card.get_uibox_table then -- to support tags
+        loc_vars = card:get_uibox_table(nil, true)
+        set = "Tag"
+        tag = true
+    else
+        sendErrorMessage(string.format("get_card_description called on invalid card/tag"))
     end
-    return cards
+
+    -- dont ask me how this works, it just does
+    if not tag and (not loc_vars or #loc_vars == 0) then
+        loc_vars = generate_card_ui(card.config.center, nil, loc_vars, card.ability.set or "None", {}, false, main_start, main_end, card, true)
+    end
+
+    local p_card = G.P_CENTERS[key] or G.P_TAGS[key]
+    local name = (p_card.loc_txt and p_card.loc_txt.name) or card.ability.name or card.name
+
+    local key_override, vars_override, name_override
+    if (not loc_vars or #loc_vars == 0) and p_card.loc_txt and type(p_card.loc_vars) == 'function' then
+        local res = p_card:loc_vars({}, card) or {}
+        vars_override = res.vars or {}
+        key_override = res.key
+    end
+
+    local loc_nodes = {}
+    local playing_card = card.playing_card or card.ability.set == 'Default' or card.ability.set == 'Enhanced'
+    if playing_card then
+        name_override = card.base.name
+    else
+        localize{
+            type = 'descriptions',
+            key = key_override or key,
+            set = set_override or set,
+            nodes = loc_nodes,
+            vars = vars_override or loc_vars,
+            AUT = not tag and card:generate_UIBox_ability_table()}
+    end
+    local modifiers = not tag and get_card_modifiers(card) or {}
+    if playing_card and modifiers.enhancement == "Stone Card" then
+        name_override = "Stone Card (+50 chips, no rank or suit)"
+    end
+    local desc = (name_override or name) .. (not playing_card and ": " .. description_from_loc_nodes(loc_nodes) or "")
+
+    if modifiers.edition or
+        modifiers.enhancement or
+        modifiers.seal or
+        modifiers.debuffed or
+        modifiers.forced or
+        add_blueprint then
+
+        local mod_str = ""
+        if modifiers.edition then mod_str = mod_str .. ", Edition: " .. modifiers.edition end
+        if modifiers.enhancement and modifiers.enhancement ~= "Stone Card" then mod_str = mod_str .. ", Enhancement: " .. modifiers.enhancement end
+        if modifiers.seal then mod_str = mod_str .. ", Seal: " .. modifiers.seal end
+        if modifiers.debuffed and include_debuff then mod_str = mod_str .. ", Debuffed: " .. tostring(modifiers.edition) end
+        if modifiers.forced then mod_str = mod_str .. ", Forced: " .. tostring(modifiers.edition) end
+        if add_blueprint and type(modifiers.blueprint_compat) == "boolean" then
+             mod_str = mod_str .. ", Blueprint/Brainstorm Compatible: " .. tostring(modifiers.blueprint_compat)
+        end
+        mod_str = "[" .. string.sub(mod_str, 3) .. "]"
+        desc = desc .. " " .. mod_str
+    end
+
+    if add_cost then desc = add_card_buy_cost(desc,card) end
+    return desc
 end
 
-function GetRunText:get_hand_seals(cards_table)
-    local cards = {}
-
-	for pos, card in ipairs(cards_table) do
-
-        local seal_desc = ""
-
-        if card.ability.seal then
-            local key_override = nil
-            for _, g_card in pairs(G.P_CENTER_POOLS.Seal) do
-                local loc_lookup,loc_nodes,loc_args = Seal_Loc[card.seal], {}, {}
-                local name = ""
-                if g_card.key ~= card.seal then goto continue end
-                if g_card.key == card.seal and g_card.loc_txt then
-                    if g_card.loc_vars then
-                        local res = g_card:loc_vars(nil,card) or {} -- osu seal needs these or crash
-                        loc_args = res.vars or res.loc_txt.text
-                    end
-                    name = g_card.loc_txt.name
-                    key_override = g_card.key .. '_seal' -- Smods does this however doesn't mention it in any documentation :)
-                elseif type(loc_lookup) == "table" then
-                    key_override = loc_lookup[1]
-                    name = card.seal
-                elseif type(loc_lookup) == "function" then
-                    key_override = loc_lookup[1]
-                    loc_args = loc_lookup(g_card)
-                    name = card.seal
-                else
-                    sendErrorMessage("Could not find localize for edition" .. g_card.key)
-                end
-
-                localize{type = 'descriptions', set = "Other" or g_card.set, key= key_override or g_card.key, nodes = loc_nodes, vars = loc_args}
-
-                local description = "\n -- " .. name.. " Seal"  .. " : "
-                description = get_text(loc_nodes,description)
-
-                seal_desc = description
-            ::continue::
+function GetRunText.get_hand_details(hand, count, add_cost, set_override, check_blueprint)
+    local details = {}
+    local blueprint = false
+    if check_blueprint then
+        for _, v in ipairs(G.jokers.cards) do
+            if table.any(copy_jokers, function (check) return check == v.config.center_key end) then
+                blueprint = true
+                break
             end
         end
-        if table.any(cards, function(seal) return seal == seal_desc end) then seal_desc = "" end
-		cards[#cards+1] = seal_desc
     end
-    return cards
-end
 
+    for _, card in ipairs(hand) do
+         details[#details+1] = (count and ("\n" .. "- " .. #details + 1 .. ": ") or "") .. GetRunText.get_card_description(card, true, add_cost, set_override, blueprint)
+    end
+    return details
+end
 
 local function get_modifiers_vars(card_table,loc_lookup)
     local description,name,loc_args = "","",{}
     if card_table.loc_txt then
-        loc_args = table.get_values(card_table.config)
         name = card_table.loc_txt.name
+    end
+    if type(card_table.loc_vars) == 'function' then
+        loc_args = card_table:loc_vars({}, card_table:create_fake_card()).vars or {}
     elseif type(loc_lookup) == "table" then
         for _, v in ipairs(loc_lookup) do
             if card_table.config then
@@ -747,90 +173,90 @@ local function get_modifiers_vars(card_table,loc_lookup)
     elseif type(loc_lookup) == "function" then
         loc_args = loc_lookup(card_table)
     else
-        sendErrorMessage("Could not find localize for enhancement" .. card_table.key)
+        sendErrorMessage(string.format("Could not find loc_vars for %s, defaulting to {}", card_table.key))
     end
-
     return description,name,loc_args
 end
 
-function GetRunText:get_all_modifiers()
-    local edition_descriptions = {}
-    local enhancement_descriptions = {}
-    local seal_descriptions = {}
 
-    for _, g_card in pairs(G.P_CENTER_POOLS.Edition) do
-        local loc_lookup, loc_nodes = Edition_Loc[g_card.key], {}
-        local name = g_card.name
-        local description,func_name,loc_args = get_modifiers_vars(g_card,loc_lookup)
-        if func_name ~= "" then name = func_name end
-
-
-        localize{type = 'descriptions', key = g_card.key, set = g_card.set, nodes = loc_nodes, vars = loc_args}
-
-        description = get_text(loc_nodes,description)
-        -- is this hacky? yes. do i have a better idea? no
-        if g_card.key == 'e_negative' then
-            edition_descriptions[#edition_descriptions+1] = "\n -- Negative (on Jokers) : +1 Joker slot"
-            edition_descriptions[#edition_descriptions+1] = "\n -- Negative (on Consumables) : +1 Consumables slot"
-            edition_descriptions[#edition_descriptions+1] = "\n -- Negative (on Playing Cards) : +1 hand size"
-        else
-            edition_descriptions[#edition_descriptions+1] = "\n -- " .. name.. " : " .. description
-        end
-    end
-
-    for _, g_card in pairs(G.P_CENTER_POOLS.Enhanced) do
-        local loc_lookup, loc_nodes = Enhancement_Loc[g_card.key], {}
-        local name = g_card.label
-        local key_override,set_override = g_card.key, g_card.set
-        local description,func_name,loc_args = get_modifiers_vars(g_card,loc_lookup)
-        if func_name ~= "" then name = func_name end
-        if g_card.key == "m_bonus" then
-            key_override = "card_extra_chips"
-            set_override = "Other"
-        elseif g_card.key == "m_steel" then
-            loc_args = {1.5}
-        end
-
-        localize{type = 'descriptions', key = key_override or g_card.key, set = set_override or g_card.set, nodes = loc_nodes, vars = loc_args} -- doesn't get character's like + idk why as others do, needs to be fixed before releasing though
-
-        description = get_text(loc_nodes,description)
-
-        enhancement_descriptions[#enhancement_descriptions+1] = "\n -- " .. name.. " : " .. description
-    end
-
-    for _, g_card in pairs(G.P_CENTER_POOLS.Seal) do
-        local loc_lookup,loc_nodes = Seal_Loc[g_card.key], {}
-        local name,key_override = g_card.key,""
-        local description,func_name,loc_args = get_modifiers_vars(g_card,loc_lookup)
-        if func_name ~= "" then name = func_name end
-        if g_card.loc_txt then
-            key_override = g_card.key .. '_seal' -- smods thing
-        else
-            name = name .. " seal"
-            key_override = loc_args[1] -- seal loc gets key not args
-        end
-
-        localize{type = 'descriptions', set = "Other" or g_card.set, key= key_override or g_card.key, nodes = loc_nodes, vars = loc_args}
-
-        description = get_text(loc_nodes,description)
-
-        seal_descriptions[#seal_descriptions+1] = "\n -- " .. name.. ": " .. description
-    end
-
-    return edition_descriptions,enhancement_descriptions,seal_descriptions
+local function add_modifier_desc(descs, name, desc)
+    descs[#descs+1] = "\n -- " .. name .. " : " .. desc
 end
 
--- just calls get_all_modifiers but puts them all in a single string
-function GetRunText:get_all_modifier_desc()
-    local edi,enh,seal = GetRunText:get_all_modifiers()
-    local ret = "These are all the playing card and joker modifiers in the game. " ..
-        "A playing card can only have one edition, enhancement and seal at a time, while jokers can only have one edition. " ..
-        "You should remember these: " ..
-        "\n- Editions:" .. table.table_to_string(edi) ..
-        "\n- Enhancements:" .. table.table_to_string(enh) ..
-        "\n- Seals:" .. table.table_to_string(seal)
-    
-    return ret
+function GetRunText.get_all_modifiers()
+    local editions, enhancements, seals = {}, {}, {}
+    local sets = {
+        {G.P_CENTER_POOLS.Edition, Edition_Loc, editions},
+        {G.P_CENTER_POOLS.Enhanced, Enhancement_Loc, enhancements},
+        {G.P_CENTER_POOLS.Seal, Seal_Loc, seals}
+    }
+
+    for _, mod_set in ipairs(sets) do
+        local pool, loc, res = mod_set[1], mod_set[2], mod_set[3]
+
+        for _, p_mod in pairs(pool) do
+            if pool == G.P_CENTER_POOLS.Edition and p_mod.key == "e_negative" then
+                add_modifier_desc(res, "Negative (on Jokers)", "+1 Joker slot")
+                add_modifier_desc(res, "Negative (on Consumables)", "+1 Consumable slot")
+                add_modifier_desc(res, "Negative (on Playing Card)", "+1 Hand size")
+            else
+                local key, set = p_mod.key, p_mod.set
+                local desc, fname, args = get_modifiers_vars(p_mod, loc[key])
+                local name = fname ~= "" and fname or (p_mod.label or p_mod.name or p_mod.key)
+                local nodes = {}
+
+                if pool == G.P_CENTER_POOLS.Enhanced then
+                    if key == "m_bonus" or key == "m_stone" or key == "m_mult" then args[1] = SMODS.signed(args[1]) end
+                    if key == "m_gold" then args[1] = SMODS.signed_dollars(args[1]) end
+
+                    if key == "m_bonus" then key, set = "card_extra_chips", "Other" end
+                end
+
+                if pool == G.P_CENTER_POOLS.Seal then
+                    if p_mod.loc_txt then
+                        key = key .. "_seal"
+                    else
+                        name = name .. " seal"
+                        key = args[1]
+                    end
+                    set = "Other"
+                end
+
+                localize{type='descriptions', key=key, set=set, nodes=nodes, vars=args}
+                add_modifier_desc(res, name, description_from_loc_nodes(nodes) .. (desc or ""))
+            end
+        end
+    end
+    return editions, enhancements, seals
+end
+
+function GetRunText.get_blind_descriptions()
+    local descs = {}
+    for _, blind in pairs({"Small", "Big", "Boss"}) do
+        local p_blind = G.P_BLINDS[G.GAME.round_resets.blind_choices[blind]]
+        local chips = number_format(get_blind_amount(G.GAME.round_resets.blind_ante) * p_blind.mult *
+            G.GAME.starting_params.ante_scaling)
+        local status = G.GAME.round_resets.blind_states[blind]
+
+        local desc = string.format("%s Blind (%s):\nRequired score to beat: %s\n",
+            blind,
+            status,
+            chips
+        )
+
+        if blind ~= "Boss" then
+            local tag = Tag(G.GAME.round_resets.blind_tags[blind], nil, blind)
+            desc = desc .. string.format("Skip Reward: %s\n", GetRunText.get_card_description(tag))
+        else
+            local boss_desc = localize{type = 'raw_descriptions',
+                                        key = p_blind.key,
+                                        set = 'Blind',
+                                        vars = { localize(G.GAME.current_round.most_played_poker_hand, 'poker_hands') } }
+            desc = desc .. string.format("Boss Blind effect: %s", table.table_to_string(boss_desc))
+        end
+        descs[#descs+1] = desc
+    end
+    return descs
 end
 
 return GetRunText

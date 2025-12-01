@@ -43,7 +43,7 @@ function BuyVoucher:_validate_action(data, state)
     end
 
     if #G.shop_vouchers.cards <= 1 then
-        return ExecutionResult.success("Bought " .. string.sub(GetRunText:get_shop_text({voucher})[1], 2))
+        return ExecutionResult.success("Bought " .. GetRunText.get_card_description(voucher))
     end
 
     local valid_voucher_indices = RunHelper:get_hand_length(G.shop_vouchers.cards)
@@ -52,7 +52,7 @@ function BuyVoucher:_validate_action(data, state)
     end
 
     state["voucher_index"] = selected_index
-    return ExecutionResult.success("Bought " .. string.sub(GetRunText:get_shop_text({voucher})[1], 2))
+    return ExecutionResult.success("Bought " .. GetRunText.get_card_description(voucher))
 end
 
 function BuyVoucher:_execute_action(state)
