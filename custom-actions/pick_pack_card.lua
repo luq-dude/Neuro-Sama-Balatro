@@ -14,8 +14,6 @@ local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
 local PickCards = setmetatable({}, { __index = NeuroAction })
 PickCards.__index = PickCards
 
-local cards_picked = 0
-
 local function pick_pack_card(delay,hook)
     G.E_MANAGER:add_event(Event({
         trigger = "after",
@@ -110,12 +108,9 @@ function PickCards:_execute_action(state)
     end
     button:click()
 
-    cards_picked = cards_picked + 1
-    if SMODS.OPENED_BOOSTER.config.center.config.choose > cards_picked then
+    if (G.GAME.pack_choices or 1) > 1 then
         pick_pack_card(5,self.hook) -- call action again if more than one pack card can be picked. This is to reduce cooldown of action being registered
         return true
-    else
-        cards_picked = 0
     end
     self.hook.HookRan = false
     return true
