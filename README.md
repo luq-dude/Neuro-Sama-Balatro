@@ -37,7 +37,7 @@ only specify the keys you want to change from their defaults. For example:
 
 ```lua
 return {
-    ["NEURO_SDK_WS_URL"] = "ws://some.other.url:8000"
+    ["NEURO_SDK_WS_URL"] = "ws://some.other.url:8000",
     ["CAN_RESTART_ON_CRASH"] = false
 }
 ```
