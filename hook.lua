@@ -16,10 +16,11 @@ local RerollBlind = ModCache.load("custom-actions/reroll_blind.lua")
 local Hook = {}
 Hook.__index = Hook
 
-local should_unlock = NeuroConfig.UNLOCK_ALL
+local should_unlock = NeuroConfig.get("UNLOCK_ALL")
+local neuro_profile = NeuroConfig.get("PROFILE_SLOT")
 
-G.can_restart = NeuroConfig.CAN_RESTART_ON_CRASH
-MAX_PLAYED_BLINDS = NeuroConfig.RESEND_MODIFIER_BLIND_AMOUNT
+G.can_restart = NeuroConfig.get("CAN_RESTART_ON_CRASH")
+MAX_PLAYED_BLINDS = NeuroConfig.get("RESEND_MODIFIER_BLIND_AMOUNT")
 PLAYED_BLINDS = 0
 
 local function hook_main_menu()
@@ -227,7 +228,7 @@ function Hook:hook_game()
 
         -- we cant use G.E_MANAGER since Game.update isnt being called
         -- so we have to manually check the time passed 
-        if NeuroConfig.RESTART_DELAY <= 0 or love.timer.getTime() - crash_start_time >= NeuroConfig.RESTART_DELAY then
+        if NeuroConfig.get("RESTART_DELAY") <= 0 or love.timer.getTime() - crash_start_time >= NeuroConfig.get("RESTART_DELAY") then
             SMODS.restart_game()
         end
     end

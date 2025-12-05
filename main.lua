@@ -8,7 +8,7 @@ assert(SMODS.load_file("deck_loc.lua"))()
 
 
 ModCache = assert(SMODS.load_file("module_cache.lua"))()
-NeuroConfig = ModCache.load("config.lua")
+NeuroConfig = ModCache.load("config_manager.lua")
 
 -- unlike require(), SMODS.load_file() doesn't guarantee files will only get loaded once
 -- use ModCache.load() to get them loaded once
