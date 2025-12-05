@@ -5,7 +5,7 @@ local SelectDeck = ModCache.load("custom-actions/select_deck.lua")
 local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
 local RunContext = ModCache.load("run_context.lua")
 
-local neuro_profile = NeuroConfig.PROFILE_SLOT
+local neuro_profile = NeuroConfig.get("PROFILE_SLOT")
 
 local function load_profile(delay)
     G.E_MANAGER:add_event(Event({

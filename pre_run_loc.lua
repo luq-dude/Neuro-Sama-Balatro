@@ -1,7 +1,7 @@
 require "functions/misc_functions"
 
-local ALLOWED_DECKS = NeuroConfig.ALLOWED_DECKS
-local ALLOWED_STAKES = NeuroConfig.ALLOWED_STAKES
+local ALLOWED_DECKS = NeuroConfig.get("ALLOWED_DECKS")
+local ALLOWED_STAKES = NeuroConfig.get("ALLOWED_STAKES")
 
 local GetText = {}
 
