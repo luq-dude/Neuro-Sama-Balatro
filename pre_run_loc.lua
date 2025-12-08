@@ -1,7 +1,7 @@
 require "functions/misc_functions"
 
-local ALLOWED_DECKS = NeuroConfig.get("ALLOWED_DECKS")
-local ALLOWED_STAKES = NeuroConfig.get("ALLOWED_STAKES")
+local ALLOWED_DECKS = NEURO.CONFIG["ALLOWED_DECKS"]
+local ALLOWED_STAKES = NEURO.CONFIG["ALLOWED_STAKES"]
 
 local GetText = {}
 
@@ -89,7 +89,7 @@ local function get_obj_names(center, set, key_indexed, whitelist)
 end
 
 function GetText:get_back_descriptions()
-    return get_lookup_tbl_descriptions(G.P_CENTER_POOLS.Back, "Back", ALLOWED_DECKS, Back_Loc)
+    return get_lookup_tbl_descriptions(G.P_CENTER_POOLS.Back, "Back", ALLOWED_DECKS, NEURO.LOCS.BACK)
 end
 
 function GetText:get_back_names(keys, allDecks)
@@ -99,7 +99,7 @@ function GetText:get_back_names(keys, allDecks)
 end
 
 function GetText:get_stake_descriptions()
-    return get_lookup_tbl_descriptions(G.P_CENTER_POOLS.Stake, "Stake", ALLOWED_STAKES, Stake_Loc)
+    return get_lookup_tbl_descriptions(G.P_CENTER_POOLS.Stake, "Stake", ALLOWED_STAKES, NEURO.LOCS.STAKE)
 end
 
 function GetText:get_stake_names(keys, allStakes)

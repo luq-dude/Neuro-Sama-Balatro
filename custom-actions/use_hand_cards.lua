@@ -1,10 +1,10 @@
-local Context = ModCache.load("game-sdk/messages/outgoing/Context.lua")
-local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
-local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
-local GetRunText = ModCache.load("get_run_text.lua")
-local RunHelper = ModCache.load("run_functions_helper.lua")
+local Context = NEURO.MOD_CACHE.load("game-sdk/messages/outgoing/Context.lua")
+local NeuroAction = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action.lua")
+local ExecutionResult = NEURO.MOD_CACHE.load("game-sdk/websocket/execution_result.lua")
+local GetRunText = NEURO.MOD_CACHE.load("get_run_text.lua")
+local RunHelper = NEURO.MOD_CACHE.load("run_functions_helper.lua")
 
-local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
+local JsonUtils = NEURO.MOD_CACHE.load("game-sdk/utils/json_utils.lua")
 
 local UseHandCards = setmetatable({}, { __index = NeuroAction })
 UseHandCards.__index = UseHandCards
@@ -55,14 +55,14 @@ function UseHandCards:_validate_action(data, state)
     selected_index = selected_index._data
 
     if not selected_index then
-        return ExecutionResult.failure(SDK_Strings.action_failed_missing_required_parameter("card_action"))
+        return ExecutionResult.failure(NEURO.SDK_STRINGS.action_failed_missing_required_parameter("card_action"))
     end
 
     local option = card_action_options()
     if not table.any(option, function(options)
             return options == selected_action
         end) then
-        return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("card_action"))
+        return ExecutionResult.failure(NEURO.SDK_STRINGS.action_failed_invalid_parameter("card_action"))
     end
 
     local valid_hand_indices = RunHelper:get_hand_length(G.hand.cards)
@@ -77,7 +77,7 @@ function UseHandCards:_validate_action(data, state)
     end
 
     if not selected_index then
-        return ExecutionResult.failure(SDK_Strings.action_failed_missing_required_parameter("cards_index"))
+        return ExecutionResult.failure(NEURO.SDK_STRINGS.action_failed_missing_required_parameter("cards_index"))
     end
 
     if #selected_index == 0 then return ExecutionResult.failure("At least one card must be selected.") end

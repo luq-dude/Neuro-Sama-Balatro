@@ -1,11 +1,11 @@
 local GamePrep = {}
 
-local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
-local SelectDeck = ModCache.load("custom-actions/select_deck.lua")
-local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
-local RunContext = ModCache.load("run_context.lua")
+local ActionWindow = NEURO.MOD_CACHE.load("game-sdk/actions/action_window.lua")
+local SelectDeck = NEURO.MOD_CACHE.load("custom-actions/select_deck.lua")
+local Context = NEURO.MOD_CACHE.load("game-sdk/messages/outgoing/context.lua")
+local RunContext = NEURO.MOD_CACHE.load("run_context.lua")
 
-local neuro_profile = NeuroConfig.get("PROFILE_SLOT")
+local neuro_profile = NEURO.CONFIG["PROFILE_SLOT"]
 
 local function load_profile(delay)
     G.E_MANAGER:add_event(Event({

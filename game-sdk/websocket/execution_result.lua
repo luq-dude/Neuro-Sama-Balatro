@@ -23,11 +23,11 @@ function ExecutionResult.failure(message)
 end
 
 function ExecutionResult.vedal_failure(message)
-    return ExecutionResult.failure(message .. SDK_Strings.action_failed_vedal_fault_suffix)
+    return ExecutionResult.failure(message .. NEURO.SDK_STRINGS.action_failed_vedal_fault_suffix)
 end
 
 function ExecutionResult.mod_failure(message)
-    return ExecutionResult.failure(message .. SDK_Strings.action_failed_mod_fault_suffix)
+    return ExecutionResult.failure(message .. NEURO.SDK_STRINGS.action_failed_mod_fault_suffix)
 end
 
 return ExecutionResult

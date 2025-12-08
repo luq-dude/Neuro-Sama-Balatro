@@ -1,4 +1,4 @@
-Edition_Loc = {
+NEURO.LOCS.EDITION = {
 	e_base = {},
 	e_foil = {"extra"},
 	e_holo = {"extra"},
@@ -6,7 +6,7 @@ Edition_Loc = {
 	e_negative = {"extra"}
 }
 
-Enhancement_Loc = {
+NEURO.LOCS.ENHANCEMENT = {
 	m_bonus = {"bonus"},
 	m_mult = {"mult"},
 	m_wild = {},
@@ -21,7 +21,7 @@ Enhancement_Loc = {
 	m_steel = {"h_x_mult"}
 }
 
-Seal_Loc = {
+NEURO.LOCS.SEAL = {
 	Gold = {"gold_seal"},
 	Red = {"red_seal"},
 	Blue = {"blue_seal"},

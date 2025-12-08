@@ -1,9 +1,9 @@
-local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
-local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
-local RunHelper = ModCache.load("run_functions_helper.lua")
-local GetRunText = ModCache.load("get_run_text.lua")
+local NeuroAction = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action.lua")
+local ExecutionResult = NEURO.MOD_CACHE.load("game-sdk/websocket/execution_result.lua")
+local RunHelper = NEURO.MOD_CACHE.load("run_functions_helper.lua")
+local GetRunText = NEURO.MOD_CACHE.load("get_run_text.lua")
 
-local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
+local JsonUtils = NEURO.MOD_CACHE.load("game-sdk/utils/json_utils.lua")
 
 local BuyShopCard = setmetatable({}, { __index = NeuroAction })
 BuyShopCard.__index = BuyShopCard
@@ -45,12 +45,12 @@ function BuyShopCard:_validate_action(data, state)
 
     local option = card_actions()
     if not RunHelper:value_in_table(option, selected_action) then
-        return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("card_action"))
+        return ExecutionResult.failure(NEURO.SDK_STRINGS.action_failed_invalid_parameter("card_action"))
     end
 
     local valid_hand_indices = RunHelper:get_hand_length(G.shop_jokers.cards)
     if not RunHelper:value_in_table(valid_hand_indices, selected_index) then
-        return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("card_index"))
+        return ExecutionResult.failure(NEURO.SDK_STRINGS.action_failed_invalid_parameter("card_index"))
     end
 
     local card = G.shop_jokers.cards[selected_index]

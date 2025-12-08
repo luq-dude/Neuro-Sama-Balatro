@@ -3,7 +3,7 @@
 
 -- Modified by LuqDude
 
-SDK_Strings = {
+NEURO.SDK_STRINGS = {
     action_failed_invalid_json = "Action failed. Could not parse action parameters from JSON.",
     action_failed_no_data = "Action failed. Missing command data.",
     action_failed_no_id = "Action failed. Missing command field 'id'.",

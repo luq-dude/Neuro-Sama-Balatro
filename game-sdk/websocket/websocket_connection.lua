@@ -3,20 +3,20 @@
 
 -- Modified by LuqDude
 
-local websocket =  ModCache.load("libs/websocket.lua")
+local websocket =  NEURO.MOD_CACHE.load("libs/websocket.lua")
 
-local MessageQueue = ModCache.load("game-sdk/websocket/message_queue.lua")
-local CommandHandler = ModCache.load("game-sdk/websocket/command_handler.lua")
-local IncomingData = ModCache.load("game-sdk/messages/api/incoming_data.lua")
-local Startup = ModCache.load("game-sdk/messages/outgoing/startup.lua")
+local MessageQueue = NEURO.MOD_CACHE.load("game-sdk/websocket/message_queue.lua")
+local CommandHandler = NEURO.MOD_CACHE.load("game-sdk/websocket/command_handler.lua")
+local IncomingData = NEURO.MOD_CACHE.load("game-sdk/messages/api/incoming_data.lua")
+local Startup = NEURO.MOD_CACHE.load("game-sdk/messages/outgoing/startup.lua")
 
-local json = ModCache.load("libs/json.lua")
+local json = NEURO.MOD_CACHE.load("libs/json.lua")
 
 local WebsocketConnection = {}
 WebsocketConnection.__index = WebsocketConnection
 
-local RECONNECT_DELAY = NeuroConfig.get("RECONNECT_DELAY") or 5
-local WS_URL = NeuroConfig.get("NEURO_SDK_WS_URL")
+local RECONNECT_DELAY = NEURO.CONFIG["RECONNECT_DELAY"] or 5
+local WS_URL = NEURO.CONFIG["NEURO_SDK_WS_URL"]
 
 function WebsocketConnection:new()
     local self = setmetatable({}, WebsocketConnection)

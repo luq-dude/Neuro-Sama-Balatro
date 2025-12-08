@@ -1,10 +1,10 @@
-local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
-local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
-local PreRunLoc = ModCache.load("pre_run_loc.lua")
-local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
-local SelectStake = ModCache.load("custom-actions/select_stake.lua")
+local NeuroAction = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action.lua")
+local ExecutionResult = NEURO.MOD_CACHE.load("game-sdk/websocket/execution_result.lua")
+local PreRunLoc = NEURO.MOD_CACHE.load("pre_run_loc.lua")
+local ActionWindow = NEURO.MOD_CACHE.load("game-sdk/actions/action_window.lua")
+local SelectStake = NEURO.MOD_CACHE.load("custom-actions/select_stake.lua")
 
-local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
+local JsonUtils = NEURO.MOD_CACHE.load("game-sdk/utils/json_utils.lua")
 
 local SelectDeck = setmetatable({}, { __index = NeuroAction })
 SelectDeck.__index = SelectDeck
@@ -49,14 +49,14 @@ end
 function SelectDeck:_validate_action(data, state)
     local back = data:get_string("deck")
     if not back then
-        return ExecutionResult.failure(SDK_Strings.action_failed_missing_required_parameter("deck"))
+        return ExecutionResult.failure(NEURO.SDK_STRINGS.action_failed_missing_required_parameter("deck"))
     end
 
     local backs = PreRunLoc:get_back_names()
     if not table.any(backs, function(possible_back)
             return possible_back == back
         end) then
-        return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("deck"))
+        return ExecutionResult.failure(NEURO.SDK_STRINGS.action_failed_invalid_parameter("deck"))
     end
     state["deck"] = back
     return ExecutionResult.success(string.format("Starting the game with the %s.", back))

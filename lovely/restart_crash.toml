@@ -12,7 +12,7 @@ end
 ''' # This is added by smods and can only be found in dumps made by lovely
 position = "before"
 payload = '''
-if G.can_restart then
+if NEURO.CAN_RESTART then
     G.on_crash_callback()
 end
 WEBSOCKET._client:close()

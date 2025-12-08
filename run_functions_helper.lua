@@ -1,6 +1,6 @@
-local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
-local GetRunText = ModCache.load("get_run_text.lua")
-local RunContext = ModCache.load("run_context.lua")
+local ActionWindow = NEURO.MOD_CACHE.load("game-sdk/actions/action_window.lua")
+local GetRunText = NEURO.MOD_CACHE.load("get_run_text.lua")
+local RunContext = NEURO.MOD_CACHE.load("run_context.lua")
 
 local RunHelper = {}
 
@@ -126,7 +126,7 @@ function RunHelper:get_consumable_validation(card,selected_hand_index,selected_a
         return true, success_string
     end
 
-    if table.contains_key(Non_Valid_Modify_Joker_Consumables,card.config.center_key) == true then
+    if table.contains_key(NEURO.CARD_INFO.MODIFY_JOKER_CONSUMABLE_OVERWRITE,card.config.center_key) == true then
         if #G.jokers.cards < 1 and selected_action == "Use" then
             success_string = "This card requires a joker to be used."
             return false, success_string
@@ -141,7 +141,7 @@ function RunHelper:get_consumable_validation(card,selected_hand_index,selected_a
     end
 
     -- these are cards that need room but do not list needed space in their config. These all add to joker
-    if table.contains_key(Non_Valid_Add_Joker_Consumables,card.config.center_key) == true then
+    if table.contains_key(NEURO.CARD_INFO.ADD_JOKER_CONSUMABLE_OVERWRITE,card.config.center_key) == true then
         if #G.jokers.cards >= G.jokers.config.card_limit and selected_action == "Use" then
             success_string = "You can not use this card as you already have the maximum amount of jokers."
             return false, success_string

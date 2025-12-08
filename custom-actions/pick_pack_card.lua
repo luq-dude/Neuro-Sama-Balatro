@@ -1,15 +1,15 @@
-local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
+local ActionWindow = NEURO.MOD_CACHE.load("game-sdk/actions/action_window.lua")
 
-local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
-local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
-local RunHelper = ModCache.load("run_functions_helper.lua")
-local GetRunText = ModCache.load("get_run_text.lua")
+local NeuroAction = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action.lua")
+local ExecutionResult = NEURO.MOD_CACHE.load("game-sdk/websocket/execution_result.lua")
+local RunHelper = NEURO.MOD_CACHE.load("run_functions_helper.lua")
+local GetRunText = NEURO.MOD_CACHE.load("get_run_text.lua")
 
-local SkipPack = ModCache.load("custom-actions/skip_pack.lua")
-local JokerInteraction = ModCache.load("custom-actions/joker_interaction.lua")
-local UseConsumable = ModCache.load("custom-actions/use_consumables.lua")
+local SkipPack = NEURO.MOD_CACHE.load("custom-actions/skip_pack.lua")
+local JokerInteraction = NEURO.MOD_CACHE.load("custom-actions/joker_interaction.lua")
+local UseConsumable = NEURO.MOD_CACHE.load("custom-actions/use_consumables.lua")
 
-local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
+local JsonUtils = NEURO.MOD_CACHE.load("game-sdk/utils/json_utils.lua")
 
 local PickCards = setmetatable({}, { __index = NeuroAction })
 PickCards.__index = PickCards
@@ -76,7 +76,7 @@ function PickCards:_validate_action(data, state)
     if not table.any(valid_hand_indices, function(options)
             return options == selected_hand_index
         end) then
-        return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("pack_card_index"))
+        return ExecutionResult.failure(NEURO.SDK_STRINGS.action_failed_invalid_parameter("pack_card_index"))
     end
 
     local selected_card = G.pack_cards.cards[selected_hand_index]

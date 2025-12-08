@@ -3,7 +3,7 @@
 
 -- Modified by LuqDude
 
-local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
+local ExecutionResult = NEURO.MOD_CACHE.load("game-sdk/websocket/execution_result.lua")
 
 local IncomingMessage = {}
 IncomingMessage.__index = IncomingMessage
@@ -16,7 +16,7 @@ function IncomingMessage:validate(command, message_data, state)
     local result = self:_validate(command, message_data, state)
     if result == nil then
         print("IncomingMessage._validate() returned null. An error probably occurred.")
-        return ExecutionResult.mod_failure(SDK_Strings.action_failed_error)
+        return ExecutionResult.mod_failure(NEURO.SDK_STRINGS.action_failed_error)
     end
     return result
 end

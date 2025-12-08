@@ -3,7 +3,7 @@
 
 -- Modified by LuqDude
 
-local WsMessage = ModCache.load("game-sdk/messages/api/ws_message.lua")
+local WsMessage = NEURO.MOD_CACHE.load("game-sdk/messages/api/ws_message.lua")
 
 local OutgoingMessage = {}
 OutgoingMessage.__index = OutgoingMessage

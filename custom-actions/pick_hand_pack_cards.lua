@@ -1,16 +1,16 @@
-local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
+local ActionWindow = NEURO.MOD_CACHE.load("game-sdk/actions/action_window.lua")
 
-local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
-local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
-local RunHelper = ModCache.load("run_functions_helper.lua")
+local NeuroAction = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action.lua")
+local ExecutionResult = NEURO.MOD_CACHE.load("game-sdk/websocket/execution_result.lua")
+local RunHelper = NEURO.MOD_CACHE.load("run_functions_helper.lua")
 
-local NeuroActionHandler = ModCache.load("game-sdk/actions/neuro_action_handler.lua")
-local SkipPack = ModCache.load("custom-actions/skip_pack.lua")
-local JokerInteraction = ModCache.load("custom-actions/joker_interaction.lua")
-local UseConsumable = ModCache.load("custom-actions/use_consumables.lua")
+local NeuroActionHandler = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action_handler.lua")
+local SkipPack = NEURO.MOD_CACHE.load("custom-actions/skip_pack.lua")
+local JokerInteraction = NEURO.MOD_CACHE.load("custom-actions/joker_interaction.lua")
+local UseConsumable = NEURO.MOD_CACHE.load("custom-actions/use_consumables.lua")
 
-local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
-local RunContext = ModCache.load("run_context.lua")
+local JsonUtils = NEURO.MOD_CACHE.load("game-sdk/utils/json_utils.lua")
+local RunContext = NEURO.MOD_CACHE.load("run_context.lua")
 
 local PickHandPackCards = setmetatable({}, { __index = NeuroAction })
 PickHandPackCards.__index = PickHandPackCards
@@ -98,7 +98,7 @@ function PickHandPackCards:_validate_action(data, state)
     if not table.any(valid_hand_indices, function(options)
             return options == selected_pack_card
         end) then
-        return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("pack_card_index"))
+        return ExecutionResult.failure(NEURO.SDK_STRINGS.action_failed_invalid_parameter("pack_card_index"))
     end
 
     if #selected_hand_index > G.hand.config.highlighted_limit then
