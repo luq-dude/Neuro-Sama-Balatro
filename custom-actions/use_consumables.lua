@@ -1,13 +1,13 @@
-local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
+local ActionWindow = NEURO.MOD_CACHE.load("game-sdk/actions/action_window.lua")
 
-local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
-local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
-local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
-local RunHelper = ModCache.load("run_functions_helper.lua")
+local NeuroAction = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action.lua")
+local ExecutionResult = NEURO.MOD_CACHE.load("game-sdk/websocket/execution_result.lua")
+local Context = NEURO.MOD_CACHE.load("game-sdk/messages/outgoing/context.lua")
+local RunHelper = NEURO.MOD_CACHE.load("run_functions_helper.lua")
 
-local NeuroActionHandler = ModCache.load("game-sdk/actions/neuro_action_handler.lua")
+local NeuroActionHandler = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action_handler.lua")
 
-local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
+local JsonUtils = NEURO.MOD_CACHE.load("game-sdk/utils/json_utils.lua")
 
 local UseConsumable = setmetatable({}, { __index = NeuroAction })
 UseConsumable.__index = UseConsumable
@@ -73,7 +73,7 @@ function UseConsumable:_validate_action(data, state)
     if not table.any(indexs, function(options) -- check Neuro doesn't send a invalid index
             return options == selected_consumable
         end) then
-        return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("consumable_index"))
+        return ExecutionResult.failure(NEURO.SDK_STRINGS.action_failed_invalid_parameter("consumable_index"))
     end
 
     local card = G.consumeables.cards[tonumber(selected_consumable)]
@@ -91,7 +91,7 @@ function UseConsumable:_validate_action(data, state)
     if not table.any(option, function(options)
             return options == selected_action
         end) then
-        return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("card_action"))
+        return ExecutionResult.failure(NEURO.SDK_STRINGS.action_failed_invalid_parameter("card_action"))
     end
 
     local valid_hand_indices = RunHelper:get_hand_length(G.hand.cards)

@@ -3,11 +3,11 @@
 
 -- Modified by LuqDude
 
-local ActionsForce = ModCache.load("game-sdk/messages/outgoing/action_force.lua")
+local ActionsForce = NEURO.MOD_CACHE.load("game-sdk/messages/outgoing/action_force.lua")
 
-local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
-local NeuroActionHandler = ModCache.load("game-sdk/actions/neuro_action_handler.lua")
-local WebsocketConnection = ModCache.load("game-sdk/websocket/websocket_connection.lua")
+local Context = NEURO.MOD_CACHE.load("game-sdk/messages/outgoing/context.lua")
+local NeuroActionHandler = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action_handler.lua")
+local WebsocketConnection = NEURO.MOD_CACHE.load("game-sdk/websocket/websocket_connection.lua")
 
 State = {
     BUILDING = 1,

@@ -3,7 +3,7 @@
 
 -- Modified by LuqDude
 
-local OutgoingMessage = ModCache.load("game-sdk/messages/api/outgoing_message.lua")
+local OutgoingMessage = NEURO.MOD_CACHE.load("game-sdk/messages/api/outgoing_message.lua")
 
 local Startup = setmetatable({}, { __index = OutgoingMessage })
 Startup.__index = Startup

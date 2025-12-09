@@ -3,8 +3,8 @@
 
 -- Modified by LuqDude
 
-local WebsocketConnection = ModCache.load("game-sdk/websocket/websocket_connection.lua")
-local OutgoingMessage = ModCache.load("game-sdk/messages/api/outgoing_message.lua")
+local WebsocketConnection = NEURO.MOD_CACHE.load("game-sdk/websocket/websocket_connection.lua")
+local OutgoingMessage = NEURO.MOD_CACHE.load("game-sdk/messages/api/outgoing_message.lua")
 
 local Context = setmetatable({}, { __index = OutgoingMessage })
 Context.__index = Context

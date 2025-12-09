@@ -186,9 +186,9 @@ end
 function GetRunText.get_all_modifiers()
     local editions, enhancements, seals = {}, {}, {}
     local sets = {
-        {G.P_CENTER_POOLS.Edition, Edition_Loc, editions},
-        {G.P_CENTER_POOLS.Enhanced, Enhancement_Loc, enhancements},
-        {G.P_CENTER_POOLS.Seal, Seal_Loc, seals}
+        {G.P_CENTER_POOLS.Edition, NEURO.LOCS.EDITION, editions},
+        {G.P_CENTER_POOLS.Enhanced, NEURO.LOCS.ENHANCEMENT, enhancements},
+        {G.P_CENTER_POOLS.Seal, NEURO.LOCS.SEAL, seals}
     }
 
     for _, mod_set in ipairs(sets) do

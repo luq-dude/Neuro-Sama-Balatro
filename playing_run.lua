@@ -1,26 +1,26 @@
-local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
-local NeuroActionHandler = ModCache.load("game-sdk/actions/neuro_action_handler.lua")
+local ActionWindow = NEURO.MOD_CACHE.load("game-sdk/actions/action_window.lua")
+local NeuroActionHandler = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action_handler.lua")
 
-local UseHandCards = ModCache.load("custom-actions/use_hand_cards.lua")
-local JokerInteraction = ModCache.load("custom-actions/joker_interaction.lua")
-local UseConsumable = ModCache.load("custom-actions/use_consumables.lua")
-local PickCard = ModCache.load("custom-actions/pick_pack_card.lua")
-local PickPackCard = ModCache.load("custom-actions/pick_hand_pack_cards.lua")
-local GetRunText = ModCache.load("get_run_text.lua")
-local SkipPack = ModCache.load("custom-actions/skip_pack.lua")
-local DeckTypes = ModCache.load("custom-actions/deck_type.lua")
-local PokerHandInfo = ModCache.load("custom-actions/get_poker_hand_info.lua")
-local ModifierInformation = ModCache.load("custom-actions/modifier_information.lua")
+local UseHandCards = NEURO.MOD_CACHE.load("custom-actions/use_hand_cards.lua")
+local JokerInteraction = NEURO.MOD_CACHE.load("custom-actions/joker_interaction.lua")
+local UseConsumable = NEURO.MOD_CACHE.load("custom-actions/use_consumables.lua")
+local PickCard = NEURO.MOD_CACHE.load("custom-actions/pick_pack_card.lua")
+local PickPackCard = NEURO.MOD_CACHE.load("custom-actions/pick_hand_pack_cards.lua")
+local GetRunText = NEURO.MOD_CACHE.load("get_run_text.lua")
+local SkipPack = NEURO.MOD_CACHE.load("custom-actions/skip_pack.lua")
+local DeckTypes = NEURO.MOD_CACHE.load("custom-actions/deck_type.lua")
+local PokerHandInfo = NEURO.MOD_CACHE.load("custom-actions/get_poker_hand_info.lua")
+local ModifierInformation = NEURO.MOD_CACHE.load("custom-actions/modifier_information.lua")
 
-local ExitShop = ModCache.load("custom-actions/shop-actions/exit_shop.lua")
-local RerollShop = ModCache.load("custom-actions/shop-actions/reroll_shop.lua")
-local BuyShopCard = ModCache.load("custom-actions/shop-actions/buy_shop_card.lua")
-local BuyShopBooster = ModCache.load("custom-actions/shop-actions/buy_shop_booster.lua")
-local BuyShopVoucher = ModCache.load("custom-actions/shop-actions/buy_shop_voucher.lua")
+local ExitShop = NEURO.MOD_CACHE.load("custom-actions/shop-actions/exit_shop.lua")
+local RerollShop = NEURO.MOD_CACHE.load("custom-actions/shop-actions/reroll_shop.lua")
+local BuyShopCard = NEURO.MOD_CACHE.load("custom-actions/shop-actions/buy_shop_card.lua")
+local BuyShopBooster = NEURO.MOD_CACHE.load("custom-actions/shop-actions/buy_shop_booster.lua")
+local BuyShopVoucher = NEURO.MOD_CACHE.load("custom-actions/shop-actions/buy_shop_voucher.lua")
 
-local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
-local RunHelper = ModCache.load("run_functions_helper.lua")
-local RunContext = ModCache.load("run_context.lua")
+local Context = NEURO.MOD_CACHE.load("game-sdk/messages/outgoing/context.lua")
+local RunHelper = NEURO.MOD_CACHE.load("run_functions_helper.lua")
+local RunContext = NEURO.MOD_CACHE.load("run_context.lua")
 
 local PlayingRun = {}
 
@@ -173,7 +173,7 @@ function PlayingRun:hook_discard_cards()
     end
 end
 
-ROUND_EVAL = {} -- we set this in round_eval.toml
+NEURO.ROUND_EVAL = {} -- we set this in round_eval.toml
 local function get_round_info(round_eval)
     local context = "This is how much money you have made in the blind: "
     table.reverse(round_eval)
@@ -191,7 +191,7 @@ local function get_round_info(round_eval)
         ::continue::
     end
 
-    ROUND_EVAL = {}
+    NEURO.ROUND_EVAL = {}
     return context
 end
 
@@ -218,7 +218,7 @@ function PlayingRun:hook_round_eval()
     local update_round = add_round_eval_row
     function add_round_eval_row(config)
         update_round(config)
-        local round_eval = ROUND_EVAL
+        local round_eval = NEURO.ROUND_EVAL
 
         if config.name == "bottom" then -- bottom is the total
             Context.send(get_round_info(round_eval))
@@ -260,10 +260,10 @@ function PlayingRun:hook_new_round()
     local func = new_round
     function new_round()
         func()
-        PLAYED_BLINDS = PLAYED_BLINDS + 1
+        NEURO.PLAYED_BLINDS = NEURO.PLAYED_BLINDS + 1
 
-        if PLAYED_BLINDS >= MAX_PLAYED_BLINDS then
-            PLAYED_BLINDS = 0
+        if NEURO.PLAYED_BLINDS >= NEURO.MAX_PLAYED_BLINDS then
+            NEURO.PLAYED_BLINDS = 0
             Context.send(RunContext.get_all_modifier_desc() .. (#G.vouchers.cards > 0 and ("\n" .. "These are the vouchers you have gotten throughout this run " .. table.table_to_string(GetRunText.get_hand_details(G.vouchers.cards))) or ""), true)
         end
     end

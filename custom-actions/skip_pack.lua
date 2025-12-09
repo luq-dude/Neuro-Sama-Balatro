@@ -1,8 +1,8 @@
-local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
-local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
-local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
+local NeuroAction = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action.lua")
+local ExecutionResult = NEURO.MOD_CACHE.load("game-sdk/websocket/execution_result.lua")
+local JsonUtils = NEURO.MOD_CACHE.load("game-sdk/utils/json_utils.lua")
 
-local NeuroActionHandler = ModCache.load("game-sdk/actions/neuro_action_handler.lua")
+local NeuroActionHandler = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action_handler.lua")
 
 SkipPack = setmetatable({}, { __index = NeuroAction })
 SkipPack.__index = SkipPack

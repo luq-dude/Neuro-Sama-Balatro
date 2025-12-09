@@ -10,7 +10,7 @@ pattern = "local scale = 0.9"
 position = "after"
 payload = '''
 if config then
-	ROUND_EVAL[#ROUND_EVAL + 1] = {config.name,config.dollars}
+	NEURO.ROUND_EVAL[#NEURO.ROUND_EVAL + 1] = {config.name,config.dollars}
 end
 '''
 match_indent = true

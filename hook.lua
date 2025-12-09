@@ -1,27 +1,27 @@
-local GameHooks = ModCache.load("game-sdk/game_hooks.lua")
-local GamePrep = ModCache.load("game_prep.lua")
-local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
-local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
+local GameHooks = NEURO.MOD_CACHE.load("game-sdk/game_hooks.lua")
+local GamePrep = NEURO.MOD_CACHE.load("game_prep.lua")
+local Context = NEURO.MOD_CACHE.load("game-sdk/messages/outgoing/context.lua")
+local ActionWindow = NEURO.MOD_CACHE.load("game-sdk/actions/action_window.lua")
 
-local SelectDeck = ModCache.load("custom-actions/select_deck.lua")
-local PlayingRun = ModCache.load("playing_run.lua")
-local GetRunText = ModCache.load("get_run_text.lua")
-local RunContext = ModCache.load("run_context.lua")
+local SelectDeck = NEURO.MOD_CACHE.load("custom-actions/select_deck.lua")
+local PlayingRun = NEURO.MOD_CACHE.load("playing_run.lua")
+local GetRunText = NEURO.MOD_CACHE.load("get_run_text.lua")
+local RunContext = NEURO.MOD_CACHE.load("run_context.lua")
 
-local PlayBlind = ModCache.load("custom-actions/play_blind.lua")
-local SkipBlind = ModCache.load("custom-actions/skip_blind.lua")
-local RerollBlind = ModCache.load("custom-actions/reroll_blind.lua")
+local PlayBlind = NEURO.MOD_CACHE.load("custom-actions/play_blind.lua")
+local SkipBlind = NEURO.MOD_CACHE.load("custom-actions/skip_blind.lua")
+local RerollBlind = NEURO.MOD_CACHE.load("custom-actions/reroll_blind.lua")
 
 
 local Hook = {}
 Hook.__index = Hook
 
-local should_unlock = NeuroConfig.get("UNLOCK_ALL")
-local neuro_profile = NeuroConfig.get("PROFILE_SLOT")
+local should_unlock = NEURO.CONFIG["UNLOCK_ALL"]
+local neuro_profile = NEURO.CONFIG["PROFILE_SLOT"]
 
-G.can_restart = NeuroConfig.get("CAN_RESTART_ON_CRASH")
-MAX_PLAYED_BLINDS = NeuroConfig.get("RESEND_MODIFIER_BLIND_AMOUNT")
-PLAYED_BLINDS = 0
+NEURO.CAN_RESTART = NEURO.CONFIG["CAN_RESTART_ON_CRASH"]
+NEURO.MAX_PLAYED_BLINDS = NEURO.CONFIG["RESEND_MODIFIER_BLIND_AMOUNT"]
+NEURO.PLAYED_BLINDS = 0
 
 local function hook_main_menu()
     local main_menu = Game.main_menu
@@ -200,8 +200,8 @@ local function hook_start_run()
         start_run(e,args)
 
          -- we do this so we dont send voucher information right after starting a new run as that would be a bit redundant
-        if PLAYED_BLINDS >= MAX_PLAYED_BLINDS - MAX_PLAYED_BLINDS / 3 then
-            PLAYED_BLINDS = 0
+        if NEURO.PLAYED_BLINDS >= NEURO.MAX_PLAYED_BLINDS - NEURO.MAX_PLAYED_BLINDS / 3 then
+            NEURO.PLAYED_BLINDS = 0
             Context.send(RunContext.get_all_modifier_desc(),true)
         end
     end
@@ -228,7 +228,7 @@ function Hook:hook_game()
 
         -- we cant use G.E_MANAGER since Game.update isnt being called
         -- so we have to manually check the time passed 
-        if NeuroConfig.get("RESTART_DELAY") <= 0 or love.timer.getTime() - crash_start_time >= NeuroConfig.get("RESTART_DELAY") then
+        if NEURO.CONFIG["RESTART_DELAY"] <= 0 or love.timer.getTime() - crash_start_time >= NEURO.CONFIG["RESTART_DELAY"] then
             SMODS.restart_game()
         end
     end

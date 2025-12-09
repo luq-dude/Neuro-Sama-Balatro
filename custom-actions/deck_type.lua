@@ -1,9 +1,9 @@
-local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
-local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
-local ActionWindow = ModCache.load("game-sdk/actions/action_window.lua")
-local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
-local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
-local RunHelper = ModCache.load("run_functions_helper.lua")
+local NeuroAction = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action.lua")
+local ExecutionResult = NEURO.MOD_CACHE.load("game-sdk/websocket/execution_result.lua")
+local ActionWindow = NEURO.MOD_CACHE.load("game-sdk/actions/action_window.lua")
+local JsonUtils = NEURO.MOD_CACHE.load("game-sdk/utils/json_utils.lua")
+local Context = NEURO.MOD_CACHE.load("game-sdk/messages/outgoing/context.lua")
+local RunHelper = NEURO.MOD_CACHE.load("run_functions_helper.lua")
 local DeckInfo = setmetatable({}, { __index = NeuroAction })
 DeckInfo.__index = DeckInfo
 
@@ -42,7 +42,7 @@ function DeckInfo:_validate_action(data, state)
     if not table.any(option, function(options)
             return options == action
         end) then
-        return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("information_action"))
+        return ExecutionResult.failure(NEURO.SDK_STRINGS.action_failed_invalid_parameter("information_action"))
     end
 
 	if #G.deck.cards < 1 then

@@ -1,4 +1,4 @@
-local GetRunText = ModCache.load("get_run_text.lua")
+local GetRunText = NEURO.MOD_CACHE.load("get_run_text.lua")
 
 local RunContext = {}
 

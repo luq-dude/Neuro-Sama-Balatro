@@ -1,8 +1,8 @@
-local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
-local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
-local RunHelper = ModCache.load("run_functions_helper.lua")
+local NeuroAction = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action.lua")
+local ExecutionResult = NEURO.MOD_CACHE.load("game-sdk/websocket/execution_result.lua")
+local RunHelper = NEURO.MOD_CACHE.load("run_functions_helper.lua")
 
-local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
+local JsonUtils = NEURO.MOD_CACHE.load("game-sdk/utils/json_utils.lua")
 local BuyBooster = setmetatable({}, { __index = NeuroAction })
 BuyBooster.__index = BuyBooster
 
@@ -34,7 +34,7 @@ function BuyBooster:_validate_action(data, state)
 
 	local valid_booster_indices = RunHelper:get_hand_length(G.shop_booster.cards)
     if not RunHelper:value_in_table(valid_booster_indices,selected_index) then
-        return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("booster_index"))
+        return ExecutionResult.failure(NEURO.SDK_STRINGS.action_failed_invalid_parameter("booster_index"))
     end
 
 	local booster = G.shop_booster.cards[selected_index]

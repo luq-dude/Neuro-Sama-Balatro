@@ -3,10 +3,10 @@
 
 -- Modified by LuqDude
 
-local WebsocketConnection = ModCache.load("game-sdk/websocket/websocket_connection.lua")
-local NeuroActionHandler = ModCache.load("game-sdk/actions/neuro_action_handler.lua")
+local WebsocketConnection = NEURO.MOD_CACHE.load("game-sdk/websocket/websocket_connection.lua")
+local NeuroActionHandler = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action_handler.lua")
 
-local Action = ModCache.load("game-sdk/messages/incoming/action.lua")
+local Action = NEURO.MOD_CACHE.load("game-sdk/messages/incoming/action.lua")
 
 local GameHooks = {}
 

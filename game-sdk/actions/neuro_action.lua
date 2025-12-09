@@ -4,8 +4,8 @@
 -- Modified by LuqDude in 2025
 
 
-local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
-local WsAction = ModCache.load("game-sdk/actions/ws_action.lua")
+local ExecutionResult = NEURO.MOD_CACHE.load("game-sdk/websocket/execution_result.lua")
+local WsAction = NEURO.MOD_CACHE.load("game-sdk/actions/ws_action.lua")
 
 
 local NeuroAction = {}

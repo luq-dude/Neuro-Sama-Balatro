@@ -1,8 +1,8 @@
-local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
-local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
-local PreRunLoc = ModCache.load("pre_run_loc.lua")
+local NeuroAction = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action.lua")
+local ExecutionResult = NEURO.MOD_CACHE.load("game-sdk/websocket/execution_result.lua")
+local PreRunLoc = NEURO.MOD_CACHE.load("pre_run_loc.lua")
 
-local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
+local JsonUtils = NEURO.MOD_CACHE.load("game-sdk/utils/json_utils.lua")
 
 local SelectStake = setmetatable({}, { __index = NeuroAction })
 SelectStake.__index = SelectStake
@@ -37,14 +37,14 @@ end
 function SelectStake:_validate_action(data, state)
     local stake = data:get_string("stake")
     if not stake then
-        return ExecutionResult.failure(SDK_Strings.action_failed_missing_required_parameter("stake"))
+        return ExecutionResult.failure(NEURO.SDK_STRINGS.action_failed_missing_required_parameter("stake"))
     end
 
     local stakes = PreRunLoc:get_stake_names()
     if not table.any(stakes, function(possible_stake)
             return possible_stake == stake
         end) then
-        return ExecutionResult.failure(SDK_Strings.action_failed_invalid_parameter("stake"))
+        return ExecutionResult.failure(NEURO.SDK_STRINGS.action_failed_invalid_parameter("stake"))
     end
     state["stake"] = stake
     return ExecutionResult.success("The game has started with the " .. stake)

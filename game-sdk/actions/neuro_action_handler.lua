@@ -4,9 +4,9 @@
 -- Modified by LuqDude in 2025
 
 
-local WebsocketConnection = ModCache.load("game-sdk/websocket/websocket_connection.lua")
-local ActionsRegister = ModCache.load("game-sdk/messages/outgoing/actions_register.lua")
-local ActionsUnregister = ModCache.load("game-sdk/messages/outgoing/action_unregister.lua")
+local WebsocketConnection = NEURO.MOD_CACHE.load("game-sdk/websocket/websocket_connection.lua")
+local ActionsRegister = NEURO.MOD_CACHE.load("game-sdk/messages/outgoing/actions_register.lua")
+local ActionsUnregister = NEURO.MOD_CACHE.load("game-sdk/messages/outgoing/action_unregister.lua")
 
 local NeuroActionHandler = {}
 NeuroActionHandler.__index = NeuroActionHandler

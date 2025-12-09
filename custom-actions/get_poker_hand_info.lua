@@ -1,9 +1,9 @@
-local NeuroAction = ModCache.load("game-sdk/actions/neuro_action.lua")
-local ExecutionResult = ModCache.load("game-sdk/websocket/execution_result.lua")
-local JsonUtils = ModCache.load("game-sdk/utils/json_utils.lua")
-local RunHelper = ModCache.load("run_functions_helper.lua")
-local RunContext = ModCache.load("run_context.lua")
-local Context = ModCache.load("game-sdk/messages/outgoing/context.lua")
+local NeuroAction = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action.lua")
+local ExecutionResult = NEURO.MOD_CACHE.load("game-sdk/websocket/execution_result.lua")
+local JsonUtils = NEURO.MOD_CACHE.load("game-sdk/utils/json_utils.lua")
+local RunHelper = NEURO.MOD_CACHE.load("run_functions_helper.lua")
+local RunContext = NEURO.MOD_CACHE.load("run_context.lua")
+local Context = NEURO.MOD_CACHE.load("game-sdk/messages/outgoing/context.lua")
 local PokerHandInfo = setmetatable({}, { __index = NeuroAction })
 PokerHandInfo.__index = PokerHandInfo
 

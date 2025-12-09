@@ -3,8 +3,8 @@
 
 -- Modified by LuqDude
 
-local OutgoingMessage = ModCache.load("game-sdk/messages/api/outgoing_message.lua")
-local ActionsRegister = ModCache.load("game-sdk/messages/outgoing/actions_register.lua")
+local OutgoingMessage = NEURO.MOD_CACHE.load("game-sdk/messages/api/outgoing_message.lua")
+local ActionsRegister = NEURO.MOD_CACHE.load("game-sdk/messages/outgoing/actions_register.lua")
 
 local ActionsUnregister = setmetatable({}, { __index = OutgoingMessage })
 ActionsUnregister.__index = ActionsUnregister

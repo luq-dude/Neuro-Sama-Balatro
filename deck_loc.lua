@@ -1,4 +1,4 @@
-Back_Loc = {
+NEURO.LOCS.BACK = {
     b_red = { "discards" },
     b_blue = { "hands" },
     b_yellow = { "dollars" },
@@ -26,7 +26,7 @@ Back_Loc = {
     b_erratic = {}
 }
 
-Stake_Loc = {
+NEURO.LOCS.STAKE = {
     stake_gold = {},
     stake_white = {},
     stake_red = {},
