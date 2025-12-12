@@ -25,5 +25,17 @@ NEURO = {
     -- round evaluation data 
     ROUND_EVAL = {},
     -- strings used for SDK action failures
-    SDK_STRINGS = {}
+    SDK_STRINGS = {},
+    -- FSM
+    STATES = {
+        GAME_BOOT = 1,
+        DECK_SELECTION = 2,
+        BLIND_SELECTION = 3,
+        IN_BLIND = 4,
+        IN_SHOP = 5,
+        IN_BOOSTER_PACK = 6,
+        GAME_OVER = 7
+    },
+    STATE = 1,
+    STATE_STATUS = 0
 }

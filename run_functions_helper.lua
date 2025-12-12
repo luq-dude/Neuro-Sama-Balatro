@@ -1,4 +1,3 @@
-local ActionWindow = NEURO.MOD_CACHE.load("game-sdk/actions/action_window.lua")
 local GetRunText = NEURO.MOD_CACHE.load("get_run_text.lua")
 local RunContext = NEURO.MOD_CACHE.load("run_context.lua")
 
@@ -209,6 +208,23 @@ function RunHelper:get_consumable_validation(card,selected_hand_index,selected_a
     end
 
     return nil, success_string
+end
+
+function RunHelper.run_after(delay, func)
+    G.E_MANAGER:add_event(Event({
+        trigger = "after",
+        delay = delay,
+        func = func
+    }))
+end
+
+function RunHelper.change_state(state)
+    NEURO.STATE = state
+    NEURO.STATE_STATUS = 0
+end
+
+function RunHelper.inc_state()
+    NEURO.STATE_STATUS = NEURO.STATE_STATUS + 1
 end
 
 return RunHelper

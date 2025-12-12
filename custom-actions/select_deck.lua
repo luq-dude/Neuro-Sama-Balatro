@@ -1,22 +1,12 @@
 local NeuroAction = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = NEURO.MOD_CACHE.load("game-sdk/websocket/execution_result.lua")
 local PreRunLoc = NEURO.MOD_CACHE.load("pre_run_loc.lua")
-local ActionWindow = NEURO.MOD_CACHE.load("game-sdk/actions/action_window.lua")
-local SelectStake = NEURO.MOD_CACHE.load("custom-actions/select_stake.lua")
+local RunHelper = NEURO.MOD_CACHE.load("run_functions_helper.lua")
 
 local JsonUtils = NEURO.MOD_CACHE.load("game-sdk/utils/json_utils.lua")
 
 local SelectDeck = setmetatable({}, { __index = NeuroAction })
 SelectDeck.__index = SelectDeck
-
-local function select_stake()
-    local window = ActionWindow:new()
-    window:add_action(SelectStake:new(window, nil))
-    window:set_force(1.0, "Pick a stake", "Next you need to select a stake. The white stake is the default, with" ..
-    " every stake after making the game harder. Stakes are progressive, so a higher stake applies all previous effects.", false)
-    window:register()
-    return true
-end
 
 function SelectDeck:new(actionWindow, state)
     local obj = NeuroAction.new(self, actionWindow)
@@ -77,7 +67,7 @@ function SelectDeck:_execute_action(state)
         end
     end
 
-    select_stake()
+    RunHelper.inc_state()
 end
 
 return SelectDeck

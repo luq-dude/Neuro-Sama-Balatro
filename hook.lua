@@ -11,7 +11,8 @@ local RunContext = NEURO.MOD_CACHE.load("run_context.lua")
 local PlayBlind = NEURO.MOD_CACHE.load("custom-actions/play_blind.lua")
 local SkipBlind = NEURO.MOD_CACHE.load("custom-actions/skip_blind.lua")
 local RerollBlind = NEURO.MOD_CACHE.load("custom-actions/reroll_blind.lua")
-
+local RunHelper = NEURO.MOD_CACHE.load("run_functions_helper.lua")
+local RegisterActions = NEURO.MOD_CACHE.load("register_actions.lua")
 
 local Hook = {}
 Hook.__index = Hook
@@ -27,55 +28,9 @@ local function hook_main_menu()
     local main_menu = Game.main_menu
     function Game:main_menu(change_context)
         main_menu(self, change_context)
-
-        G.E_MANAGER:add_event(Event({
-            trigger = "after",
-            delay = 1,
-            blocking = false,
-            func = function()
-                local profile_num = G.SETTINGS.profile
-                sendDebugMessage("Currently on profile " .. profile_num, "Neuro Integration")
-                sendDebugMessage("Should unlock: " .. tostring(should_unlock), "Neuro Integration")
-                sendDebugMessage("All unlocked: " .. tostring(G.PROFILES[G.SETTINGS.profile].all_unlocked),
-                    "Neuro Integration")
-                -- if the profile isn't neuro's profile, we need to switch to it
-                if profile_num ~= neuro_profile then
-                    GamePrep.select_profile(1)
-                else
-                    -- it is neuros profile so lets unlock everything if we need to
-                    if should_unlock and not G.PROFILES[neuro_profile].all_unlocked then
-                        sendDebugMessage("On neuro's profile AND we should unlock everything AND we haven't yet",
-                            "Neuro Integration")
-                        G.PROFILES[G.SETTINGS.profile].all_unlocked = true
-                        for _, v in pairs(G.P_CENTERS) do
-                            if not v.demo and not v.wip then
-                                v.alerted = true
-                                v.discovered = true
-                                v.unlocked = true
-                            end
-                        end
-                        for _, v in pairs(G.P_BLINDS) do
-                            if not v.demo and not v.wip then
-                                v.alerted = true
-                                v.discovered = true
-                                v.unlocked = true
-                            end
-                        end
-                        for _, v in pairs(G.P_TAGS) do
-                            if not v.demo and not v.wip then
-                                v.alerted = true
-                                v.discovered = true
-                                v.unlocked = true
-                            end
-                        end
-                        SMODS.SAVE_UNLOCKS()
-                    end
-                    -- now we can start the game
-                    GamePrep.start_from_title()
-                end
-                return true
-            end
-        }))
+        if NEURO.STATE == NEURO.STATES.GAME_BOOT and NEURO.STATE_STATUS == 1 then
+            RunHelper.inc_state()
+        end
     end
 end
 
@@ -237,6 +192,7 @@ function Hook:hook_game()
     function Game:update(dt)
         update(self, dt)
         GameHooks.update(dt)
+        RegisterActions.update()
     end
 
     hook_main_menu()
@@ -253,18 +209,6 @@ function Hook:hook_game()
     PlayingRun:hook_new_round()
 
     hook_blind_select()
-
-    Context.send("Welcome to Balatro! Balatro is a roguelike deck builder based around poker. " ..
-        "In each round, or blind, you can play or discard a limited number of hands consisting of up to 5 cards. " ..
-        "Each blind has a score requirement you have to reach, otherwise you will game over. " ..
-        "Each poker hand has a base chips and multiplier that determines how much the hand will score. " ..
-        "Then, every card played has it's value added to the chips (11 for Aces, 10 for King/Queen/Jack, then 10-2 for the rest). " ..
-        "Only cards that directly count to the poker hand are counted. For example, if you play a two pair with an extra 5th card, " ..
-        "the 5th card will not be counted. You may also get cards with modifiers like granting extra chips or mult when scored. " ..
-        "The main component of Balatro deckbuilding are jokers. Jokers grant a variety of effects, from extra chips or mult to money or even consumables. " ..
-        "The order in which you play cards and sort your jokers matter, as effects activate from left to right. " ..
-        "For example, any effect that multiplies your total mult should be after any effects that increase your total mult by a flat amount. " ..
-        "With the right setup of jokers, even a single high card can score more than a straight royal flush. Good luck!")
 end
 
 return Hook
