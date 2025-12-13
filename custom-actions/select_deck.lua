@@ -67,7 +67,7 @@ function SelectDeck:_execute_action(state)
         end
     end
 
-    RunHelper.inc_state()
+    NEURO.INC_STATE()
 end
 
 return SelectDeck

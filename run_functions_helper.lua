@@ -218,13 +218,5 @@ function RunHelper.run_after(delay, func)
     }))
 end
 
-function RunHelper.change_state(state)
-    NEURO.STATE = state
-    NEURO.STATE_STATUS = 0
-end
-
-function RunHelper.inc_state()
-    NEURO.STATE_STATUS = NEURO.STATE_STATUS + 1
-end
 
 return RunHelper

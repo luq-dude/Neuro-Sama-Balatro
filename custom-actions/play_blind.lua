@@ -33,6 +33,7 @@ function PlayBlind:_execute_action(state)
         UIBox = G.blind_select_opts[string.lower(G.GAME.blind_on_deck)]
     }
     G.FUNCS.select_blind(e)
+    NEURO.INC_STATE(10)  -- inc by some amt > 2
 end
 
 return PlayBlind

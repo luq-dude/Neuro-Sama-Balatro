@@ -5,12 +5,8 @@ local ActionWindow = NEURO.MOD_CACHE.load("game-sdk/actions/action_window.lua")
 
 local SelectDeck = NEURO.MOD_CACHE.load("custom-actions/select_deck.lua")
 local PlayingRun = NEURO.MOD_CACHE.load("playing_run.lua")
-local GetRunText = NEURO.MOD_CACHE.load("get_run_text.lua")
 local RunContext = NEURO.MOD_CACHE.load("run_context.lua")
 
-local PlayBlind = NEURO.MOD_CACHE.load("custom-actions/play_blind.lua")
-local SkipBlind = NEURO.MOD_CACHE.load("custom-actions/skip_blind.lua")
-local RerollBlind = NEURO.MOD_CACHE.load("custom-actions/reroll_blind.lua")
 local RunHelper = NEURO.MOD_CACHE.load("run_functions_helper.lua")
 local RegisterActions = NEURO.MOD_CACHE.load("register_actions.lua")
 
@@ -29,7 +25,7 @@ local function hook_main_menu()
     function Game:main_menu(change_context)
         main_menu(self, change_context)
         if NEURO.STATE == NEURO.STATES.GAME_BOOT and NEURO.STATE_STATUS == 1 then
-            RunHelper.inc_state()
+            NEURO.INC_STATE()
         end
     end
 end
@@ -114,38 +110,10 @@ end
 local function hook_blind_select()
     local blind_select = Game.update_blind_select
     function Game:update_blind_select(dt)
-        local complete = G.STATE_COMPLETE
         blind_select(self, dt)
-
-        if complete then return end
-
-        G.E_MANAGER:add_event(Event({
-            trigger = "after",
-            delay = 1,
-            blocking = false,
-            func = function()
-                local msg = "Entering blind selection. Completion of a blind gives money and an opportunity to shop, " ..
-                    "while skipping a blind gives a tag instead. Failing a blind results in a game over. " ..
-                    "You must at least play the Boss Blind, which has an additional special effect to make it harder.\n"
-
-                Context.send(msg)
-
-                local window = ActionWindow:new()
-                window:set_force(0.0, "Choose to select or skip the currently selected blind",
-                    table.table_to_string(GetRunText.get_blind_descriptions()))
-                window:add_action(PlayBlind:new(window))
-                if G.GAME.blind_on_deck ~= "Boss" then
-                    window:add_action(SkipBlind:new(window))
-                end
-                if (G.GAME.dollars - G.GAME.bankrupt_at) - 10 >= 0 and
-                    G.GAME.blind_on_deck == "Boss" and (G.GAME.used_vouchers["v_retcon"] or
-                        (G.GAME.used_vouchers["v_directors_cut"] and not G.GAME.round_resets.boss_rerolled)) then
-                    window:add_action(RerollBlind:new(window))
-                end
-                window:register()
-                return true
-            end
-        }))
+        if NEURO.STATE ~= NEURO.STATES.BLIND_SELECTION then
+            NEURO.SET_STATE(NEURO.STATES.BLIND_SELECTION)
+        end
     end
 end
 

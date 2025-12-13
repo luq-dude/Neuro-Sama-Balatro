@@ -37,5 +37,17 @@ NEURO = {
         GAME_OVER = 7
     },
     STATE = 1,
-    STATE_STATUS = 0
+    STATE_STATUS = 0,
+    INC_STATE = function (amt)
+        amt = amt or 1
+        NEURO.STATE_STATUS = NEURO.STATE_STATUS + amt
+    end,
+    DEC_STATE = function (amt)
+        amt = amt or 1
+        NEURO.STATE_STATUS = NEURO.STATE_STATUS - amt
+    end,
+    SET_STATE = function (state, progress)
+        if state then NEURO.STATE = state end
+        NEURO.STATE_STATUS = progress or 0
+    end
 }

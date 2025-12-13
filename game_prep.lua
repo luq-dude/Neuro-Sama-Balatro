@@ -58,7 +58,7 @@ local function select_deck(delay)
         trigger = "after",
         delay = delay,
         func = function()
-            RunHelper.change_state(NEURO.STATES.DECK_SELECTION)
+            NEURO.SET_STATE(NEURO.STATES.DECK_SELECTION)
             return true
         end
     }

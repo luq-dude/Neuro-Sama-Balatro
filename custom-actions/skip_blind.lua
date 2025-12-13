@@ -34,36 +34,7 @@ function SkipBlind:_execute_action(state)
         UIBox = G.blind_select_opts[string.lower(G.GAME.blind_on_deck)]
     }
     G.FUNCS.skip_blind(e)
-
-    -- some tags open up another screen, like the ones that immediately open a free pack
-    -- for those we have to wait until the screen closes before asking her about the next blind
-    -- for others we can just immediately ask
-    G.E_MANAGER:add_event(Event({
-        trigger = "after",
-        delay = 2,
-        blocking = false,
-        func = function()
-            -- after a brief delay check if were on the blind select screen or not
-            -- if we are on the screen, then immediately ask again
-            -- if were not, wait the delay before trying again
-            if G.STATE ~= G.STATES.BLIND_SELECT then return false end
-            local window = ActionWindow:new()
-            window:set_force(0.0, "Choose to select, skip or reroll the currently selected blind",
-                table.table_to_string(GetRunText.get_blind_descriptions()))
-            window:add_action(PlayBlind:new(window))
-            if G.GAME.blind_on_deck ~= "Boss" then
-                window:add_action(SkipBlind:new(window))
-            end
-
-            if (G.GAME.dollars - G.GAME.bankrupt_at) - 10 >= 0 and
-                G.GAME.blind_on_deck == "Boss" and (G.GAME.used_vouchers["v_retcon"] or
-                    (G.GAME.used_vouchers["v_directors_cut"] and not G.GAME.round_resets.boss_rerolled)) then
-                window:add_action(RerollBlind:new(window))
-            end
-            window:register()
-            return true
-        end
-    }))
+    NEURO.INC_STATE()
 end
 
 return SkipBlind
