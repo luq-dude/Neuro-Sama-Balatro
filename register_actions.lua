@@ -116,26 +116,31 @@ end
 
 function RegisterActions.select_blind()
     if NEURO.STATE_STATUS == 0 then
-       RunHelper.run_after(1, function()
-            local msg = "Entering blind selection. Completion of a blind gives money and an opportunity to shop, " ..
+        G.E_MANAGER:add_event(Event({
+            trigger = "after",
+            delay = 1,
+            blocking = false,
+            func = function ()
+                local msg = "Entering blind selection. Completion of a blind gives money and an opportunity to shop, " ..
                 "while skipping a blind gives a tag instead. Failing a blind results in a game over. " ..
                 "You must at least play the Boss Blind, which has an additional special effect to make it harder.\n"
-            Context.send(msg)
-            local window = ActionWindow:new()
-            window:set_force(0.0, "Choose to select or skip the currently selected blind",
-                table.table_to_string(GetRunText.get_blind_descriptions()))
-            window:add_action(PlayBlind:new(window))
-            if G.GAME.blind_on_deck ~= "Boss" then
-                window:add_action(SkipBlind:new(window))
+                Context.send(msg)
+                local window = ActionWindow:new()
+                window:set_force(0.0, "Choose to select or skip the currently selected blind",
+                    table.table_to_string(GetRunText.get_blind_descriptions()))
+                window:add_action(PlayBlind:new(window))
+                if G.GAME.blind_on_deck ~= "Boss" then
+                    window:add_action(SkipBlind:new(window))
+                end
+                if (G.GAME.dollars - G.GAME.bankrupt_at) - 10 >= 0 and
+                    G.GAME.blind_on_deck == "Boss" and (G.GAME.used_vouchers["v_retcon"] or
+                        (G.GAME.used_vouchers["v_directors_cut"] and not G.GAME.round_resets.boss_rerolled)) then
+                    window:add_action(RerollBlind:new(window))
+                end
+                window:register()
+                return true
             end
-            if (G.GAME.dollars - G.GAME.bankrupt_at) - 10 >= 0 and
-                G.GAME.blind_on_deck == "Boss" and (G.GAME.used_vouchers["v_retcon"] or
-                    (G.GAME.used_vouchers["v_directors_cut"] and not G.GAME.round_resets.boss_rerolled)) then
-                window:add_action(RerollBlind:new(window))
-            end
-            window:register()
-            return true
-        end)
+        }))
         NEURO.INC_STATE()
     elseif NEURO.STATE_STATUS == 1 then
         -- wait for either played blind or skip blind execute
