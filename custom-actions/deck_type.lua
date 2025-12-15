@@ -9,7 +9,6 @@ DeckInfo.__index = DeckInfo
 
 function DeckInfo:new(actionWindow, state)
     local obj = NeuroAction.new(self, actionWindow)
-	obj.hook = state[1]
     return obj
 end
 
@@ -82,12 +81,7 @@ function DeckInfo:_execute_action(state)
 	end
 	table.sort(type_strings)
 	Context.send(context_string .. table.concat(type_strings,"\n"))
-
-	if G.STATE == G.STATES.SHOP then
-        self.hook:register_store_actions(0)
-        return
-    end
-	self.hook:play_card(0)
+	NEURO.DEC_STATE()
 end
 
 return DeckInfo

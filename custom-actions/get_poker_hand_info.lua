@@ -9,7 +9,6 @@ PokerHandInfo.__index = PokerHandInfo
 
 function PokerHandInfo:new(actionWindow, state)
     local obj = NeuroAction.new(self, actionWindow)
-	obj.hook = state[1]
     return obj
 end
 
@@ -31,11 +30,7 @@ end
 
 function PokerHandInfo:_execute_action(state)
 	Context.send(table.concat(RunContext:hand_type_information(),"\n"))
-    if G.STATE == G.STATES.SHOP then
-        self.hook:register_store_actions(0)
-        return
-    end
-	self.hook:play_card(0)
+	NEURO.DEC_STATE()
 end
 
 return PokerHandInfo

@@ -10,7 +10,6 @@ BuyShopCard.__index = BuyShopCard
 
 function BuyShopCard:new(actionWindow, state)
     local obj = NeuroAction.new(self, actionWindow)
-    obj.hook = state[1]
     return obj
 end
 
@@ -100,8 +99,7 @@ function BuyShopCard:_execute_action(state)
     else
         card.children.buy_and_use_button.definition.nodes[1].config.button_UIE:click()
     end
-
-    self.hook:register_store_actions(3, self.hook)
+    NEURO.DEC_STATE()
 end
 
 return BuyShopCard

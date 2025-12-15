@@ -11,7 +11,6 @@ ExitShop.__index = ExitShop
 
 function ExitShop:new(actionWindow, state)
     local obj = NeuroAction.new(self, actionWindow)
-    obj.hook = state[1]
     return obj
 end
 

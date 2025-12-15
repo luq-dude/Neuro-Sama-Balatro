@@ -9,11 +9,8 @@ local JsonUtils = NEURO.MOD_CACHE.load("game-sdk/utils/json_utils.lua")
 local JokerInteraction = setmetatable({}, { __index = NeuroAction })
 JokerInteraction.__index = JokerInteraction
 
-function JokerInteraction:new(actionWindow, state)
+function JokerInteraction:new(actionWindow)
     local obj = NeuroAction.new(self, actionWindow)
-    obj.hook = state[1]
-    obj.actions = state[2]
-    obj.consumable = state[3]
     return obj
 end
 
@@ -124,6 +121,7 @@ function JokerInteraction:_execute_action(state)
         end
     end
 
+    -- we multiply by length selected_hand_index for if Neuro sells multiple cards
     local event_delay = 0
     if selected_action == "Sell" then
         event_delay = #selected_hand_index * G.SPEEDFACTOR + 3
@@ -133,27 +131,10 @@ function JokerInteraction:_execute_action(state)
 
     G.E_MANAGER:add_event(Event({
         trigger = "after",
-        delay = event_delay, -- we mutiply by length selected_hand_index for if Neuro sells mutiple cards.
+        delay = event_delay,
         blocking = false,
         func = function()
-            local window = ActionWindow:new()
-            for index, action in ipairs(self.actions) do
-                window:add_action(action:new(window, { self.hook }))
-            end
-            if #G.jokers.cards > 0 then
-                window:add_action(JokerInteraction:new(window, { self.hook, self.actions, self.consumable }))
-            end
-
-            if #G.consumeables.cards > 0 then
-                window:add_action(self.consumable:new(window, { self.hook, self.actions, JokerInteraction }))
-            end
-            local cards = {}
-            for index, value in ipairs(G.jokers.cards) do
-                table.insert(cards, "\n" .. tostring(index) .. ": " .. value.config.center.name)
-            end
-            local query, state = RunHelper:get_query_string()
-            window:set_force(0.0, query, state, true)
-            window:register()
+            NEURO.DEC_STATE()
             return true
         end
     }))

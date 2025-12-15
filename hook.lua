@@ -111,8 +111,9 @@ local function hook_blind_select()
     local blind_select = Game.update_blind_select
     function Game:update_blind_select(dt)
         blind_select(self, dt)
-        if NEURO.STATE ~= NEURO.STATES.BLIND_SELECTION then
-            NEURO.SET_STATE(NEURO.STATES.BLIND_SELECTION)
+        if NEURO.STATE ~= NEURO.STATES.BLIND_SELECTION
+            and NEURO.STATE ~= NEURO.STATES.IN_BLIND and not NEURO.STATE_INTERRUPT then
+                NEURO.SET_STATE(NEURO.STATES.BLIND_SELECTION)
         end
     end
 end
@@ -167,15 +168,13 @@ function Hook:hook_game()
     hook_game_over()
     hook_win()
     hook_start_run()
-    PlayingRun:hook_draw_card()
     PlayingRun:hook_round_eval()
-    PlayingRun:hook_end_consumeable()
-    PlayingRun:hook_reroll_shop()
     PlayingRun:hook_play_cards()
     PlayingRun:hook_discard_cards()
     PlayingRun:hook_evaluate_play()
     PlayingRun:hook_new_round()
-
+    PlayingRun.hook_draw_to_hand()
+    PlayingRun.hook_booster_open()
     hook_blind_select()
 end
 

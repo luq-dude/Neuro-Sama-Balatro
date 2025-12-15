@@ -69,4 +69,110 @@ function RunContext.get_boot_text()
         "For example, any effect that multiplies your total mult should be after any effects that increase your total mult by a flat amount. " ..
         "With the right setup of jokers, even a single high card can score more than a straight royal flush. Good luck!"
 end
+
+function RunContext.get_jokers_text()
+    local cards = GetRunText.get_hand_details(G.jokers.cards, true, false, nil, true, true)
+
+    local state_parts = {}
+    state_parts[#state_parts+1] = string.format(
+                                    "You currently have %d/%d jokers in your inventory.",
+                                    #G.jokers.cards,
+                                    G.jokers.config.card_limit)
+    if #G.jokers.cards > 0 then
+        state_parts[#state_parts] = state_parts[#state_parts] .. " Here are their abilities, modifiers and sell value: "
+        state_parts[#state_parts+1] = table.table_to_string(cards)
+    end
+    return table.concat(state_parts, "")
+end
+
+function RunContext.get_consumeables_text()
+    local cards = GetRunText.get_hand_details(G.consumeables.cards, true, false, nil, false, true)
+
+    local state_parts = {}
+    state_parts[#state_parts+1] = string.format(
+                                    "You currently have %d/%d consumables in your inventory.",
+                                    #G.consumeables.cards,
+                                    G.consumeables.config.card_limit)
+    if #G.consumeables.cards > 0 then
+        state_parts[#state_parts] = state_parts[#state_parts] .. " Here are their abilities, modifiers and sell value: "
+        state_parts[#state_parts+1] = table.table_to_string(cards)
+    end
+
+    return table.concat(state_parts, "")
+end
+
+function RunContext.get_booster_context()
+    local query, state
+    local state_parts = {}
+    state = RunContext.booster()
+    if SMODS.OPENED_BOOSTER.config.center.draw_hand then
+        query = "You have opened a booster pack containing consumables " ..
+                "and can now immediately pick consumables to use from the pack. " ..
+                "Some consumables require a playing card as a target, " ..
+                "so you have also drawn a hand of cards to use if needed."
+    else
+        query = "You have opened a booster pack containing cards or jokers " ..
+                "and can now select cards to permanently keep from the pack."
+    end
+    state_parts[#state_parts+1] = RunContext.get_jokers_text()
+    state_parts[#state_parts+1] = RunContext.get_consumeables_text()
+    state = table.concat(state_parts, "\n")
+    return {query = query, state = state}
+end
+
+
+function RunContext.get_in_blind_context()
+    local query = "Pick cards from your hand to play or discard. " ..
+        "You can also use or sell consumables or re-order or sell jokers. " ..
+        "Failing to reach the required score after using all your hands will result in a game over."
+    local state_parts = {}
+    state_parts[#state_parts+1] = string.format(
+                                    "You have %d/%d hands left, and %d/%d discards left. " ..
+                                    "Your deck has %d/%d cards left to draw. " ..
+                                    "These are the cards in your hand and their modifiers: ",
+                                    G.GAME.current_round.hands_left,
+                                    G.GAME.current_round.hands_left + G.GAME.current_round.hands_played,
+                                    G.GAME.current_round.discards_left,
+                                    G.GAME.current_round.discards_left + G.GAME.current_round.discards_used,
+                                    #G.deck.cards,
+                                    G.deck.config.card_limit)
+
+    state_parts[#state_parts] = state_parts[#state_parts] .. "\n" .. table.table_to_string(GetRunText.get_hand_details(G.hand.cards, true))
+    state_parts[#state_parts+1] = RunContext.get_jokers_text()
+    state_parts[#state_parts+1] = RunContext.get_consumeables_text()
+    local state = table.concat(state_parts, "\n")
+    return {query = query, state = state}
+end
+
+function RunContext.get_shop_context()
+    local query = "You are now in the Shop. You can use your money to buy cards, booster packs or vouchers " ..
+    "to help your run. You can also sell jokers and consumables you no longer need. " ..
+    "You can also use consumeables that don't require a playing card as a target. " ..
+    "When done shopping, you can exit the shop to return to blind selection."
+
+    local state_parts = {}
+    state_parts[#state_parts+1] = string.format("You currently have $%d to spend", G.GAME.dollars)
+    state_parts[#state_parts+1] = RunContext.get_jokers_text()
+    state_parts[#state_parts+1] = RunContext.get_consumeables_text()
+    state_parts[#state_parts+1] = string.format(
+                                    "Rerolling the shop costs $%d. You currently have %d free rerolls",
+                                    G.GAME.current_round.reroll_cost,
+                                    G.GAME.current_round.free_rerolls)
+    if #G.shop_jokers > 0 then
+        state_parts[#state_parts+1] = "These are the cards in the shop right now: " ..
+            table.table_to_string(GetRunText.get_hand_details(G.shop_jokers.cards,true, true, nil, true))
+    end
+    if #G.shop_booster.cards > 0 then
+        state_parts[#state_parts+1] = "These are the booster packs in the shop: " ..
+            table.table_to_string(GetRunText.get_hand_details(G.shop_booster.cards,true, true, "Other"))
+    end
+    if #G.shop_vouchers.cards > 0 then
+        state_parts[#state_parts+1] = "These are the vouchers in the shop: " ..
+            table.table_to_string(GetRunText.get_hand_details(G.shop_vouchers.cards,true, true))
+    end
+
+    local state = table.concat(state_parts, "\n")
+    return {query = query, state = state}
+end
+
 return RunContext

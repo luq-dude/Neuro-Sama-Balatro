@@ -12,11 +12,8 @@ local JsonUtils = NEURO.MOD_CACHE.load("game-sdk/utils/json_utils.lua")
 local UseConsumable = setmetatable({}, { __index = NeuroAction })
 UseConsumable.__index = UseConsumable
 
-function UseConsumable:new(actionWindow, state)
+function UseConsumable:new(actionWindow)
     local obj = NeuroAction.new(self, actionWindow)
-    obj.hook = state[1]
-    obj.actions = state[2]
-    obj.joker = state[3]
     return obj
 end
 
@@ -199,13 +196,14 @@ function UseConsumable:_execute_action(state)
 
     if button == nil then
         sendErrorMessage("Can't find the sell or use button")
-        self.hook.HookRan = false
         return true
     end
 
     G.E_MANAGER:add_event(Event({
         trigger = "after",
-        delay = 0.25 * G.SPEEDFACTOR, -- else tarot's that need a card to be selected wont work. The delay does not need to be this high but lower can look a bit jank
+         -- else tarot's that need a card to be selected wont work
+         -- the delay does not need to be this high but lower can look a bit jank
+        delay = 0.25 * G.SPEEDFACTOR,
         blocking = false,
         func = function()
             button:click()
@@ -219,21 +217,7 @@ function UseConsumable:_execute_action(state)
         blocking = false,
         func = function()
             G.FUNCS.sort_hand_value({})
-            local window = ActionWindow:new()
-            for _, action in ipairs(self.actions) do
-                window:add_action(action:new(window, { self.hook }))
-            end
-
-            if #G.jokers.cards > 0 then
-                window:add_action(self.joker:new(window, { self.hook, self.actions, UseConsumable }))
-            end
-
-            if #G.consumeables.cards > 0 then
-                window:add_action(UseConsumable:new(window, { self.hook, self.actions, self.joker }))
-            end
-            local query,state = RunHelper:get_query_string(start_state)
-            window:set_force(0.0, query, state, true)
-            window:register()
+            NEURO.DEC_STATE()
             return true
         end
     }))

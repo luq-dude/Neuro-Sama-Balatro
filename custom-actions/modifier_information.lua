@@ -8,9 +8,8 @@ local RunContext = NEURO.MOD_CACHE.load("run_context.lua")
 local ModifierInformation = setmetatable({}, { __index = NeuroAction })
 ModifierInformation.__index = ModifierInformation
 
-function ModifierInformation:new(actionWindow, state)
+function ModifierInformation:new(actionWindow)
     local obj = NeuroAction.new(self, actionWindow)
-	obj.hook = state[1]
     return obj
 end
 
@@ -31,14 +30,8 @@ function ModifierInformation:_validate_action(data, state)
 end
 
 function ModifierInformation:_execute_action(state)
-    local edi,enh,seal = GetRunText.get_all_modifiers()
     Context.send(RunContext.get_all_modifier_desc(), true)
-
-	if G.STATE == G.STATES.SHOP then
-        self.hook:register_store_actions(0)
-        return
-    end
-	self.hook:play_card(0)
+    NEURO.DEC_STATE()
 end
 
 return ModifierInformation

@@ -38,6 +38,8 @@ NEURO = {
     },
     STATE = 1,
     STATE_STATUS = 0,
+    -- stores the previous state whenever booster packs interrupt the current state
+    STATE_INTERRUPT = nil,
     INC_STATE = function (amt)
         amt = amt or 1
         NEURO.STATE_STATUS = NEURO.STATE_STATUS + amt

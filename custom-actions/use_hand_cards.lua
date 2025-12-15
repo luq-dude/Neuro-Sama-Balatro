@@ -11,7 +11,6 @@ UseHandCards.__index = UseHandCards
 
 function UseHandCards:new(actionWindow, state)
     local obj = NeuroAction.new(self, actionWindow)
-    obj.hook = state[1]
     return obj
 end
 
@@ -131,10 +130,11 @@ function UseHandCards:_execute_action(state)
         end
     end
 
-    self.hook.HookRan = false
     if selected_action == "Play" then
+        NEURO.INC_STATE()
         G.FUNCS.play_cards_from_highlighted()
     elseif selected_action == "Discard" then
+        NEURO.DEC_STATE()
         G.FUNCS.discard_cards_from_highlighted()
     end
     return true
