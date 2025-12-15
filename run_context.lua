@@ -104,7 +104,7 @@ end
 function RunContext.get_booster_context()
     local query, state
     local state_parts = {}
-    state = RunContext.booster()
+    state_parts[#state_parts+1] = RunContext.booster()
     if SMODS.OPENED_BOOSTER.config.center.draw_hand then
         query = "You have opened a booster pack containing consumables " ..
                 "and can now immediately pick consumables to use from the pack. " ..
