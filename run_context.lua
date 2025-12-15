@@ -175,4 +175,54 @@ function RunContext.get_shop_context()
     return {query = query, state = state}
 end
 
+local function get_run_stats()
+    -- TODO: check if its a new high score value
+    local best_hand = number_format(G.GAME.round_scores['hand'].amt) -- highest score in a single hand
+    local amt = 0
+    local most_played = nil                                          -- most played hand type
+    for k, v in pairs(G.GAME.hand_usage) do
+        if v.count > amt then
+            most_played = v.order
+            amt = v.count
+        end
+    end
+
+    local cards_played = G.GAME.round_scores['cards_played'].amt
+    local cards_discarded = G.GAME.round_scores['cards_discarded'].amt
+    local cards_bought = G.GAME.round_scores['cards_purchased'].amt
+    local rerolls = G.GAME.round_scores['times_rerolled'].amt
+
+    local ante = G.GAME.round_scores['furthest_ante'].amt
+    local round = G.GAME.round_scores['furthest_round'].amt
+
+    return string.format(
+        "Here's some stats about your run:\n" ..
+        "Highest scoring hand: %s\n" ..
+        "Most played hand type: %s (Played %d times)\n" ..
+        "Cards played: %d\n" ..
+        "Cards discarded: %d\n" ..
+        "Cards purchased: %d\n" ..
+        "Times rerolled: %d\n" ..
+        "Ante: %d\n" ..
+        "Round: %d\n",
+        best_hand,
+        most_played,
+        amt,
+        cards_played,
+        cards_discarded,
+        cards_bought,
+        rerolls,
+        ante,
+        round)
+end
+
+function RunContext.get_game_over_text(win)
+    if win then
+        return "YOU WIN! The game will now continue in Endless Mode. " ..
+            "Try to keep your run going for as long as possible!\n" ..
+            get_run_stats()
+    end
+    return "GAME OVER." .. (win and "You still won the game since you passed ante " .. G.GAME.win_ante or
+            "You lost.\n" .. get_run_stats())
+end
 return RunContext

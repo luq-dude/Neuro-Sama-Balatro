@@ -54,6 +54,8 @@ function RegisterActions.update()
         RegisterActions.in_shop()
     elseif NEURO.STATE == NEURO.STATES.IN_BOOSTER_PACK then
         RegisterActions.in_booster_pack()
+    elseif NEURO.STATE == NEURO.STATES.GAME_OVER then
+        RegisterActions.game_over()
     end
 end
 
@@ -193,7 +195,15 @@ function RegisterActions.in_blind()
 
         local chip_total = hand_chips * mult
         if G.GAME.chips + chip_total >= tonumber(G.GAME.blind.chips) then
-            -- NEURO.SET_STATE(nil, 10)
+            local _,disp_text,_,_ = G.FUNCS.get_poker_hand_info(G.play.cards)
+            Context.send(string.format(
+                "Congratulations! You just won the blind with the hand type: %s, " ..
+                "you scored %d chips out of a required %d chips to win.",
+                disp_text,
+                G.GAME.chips + chip_total,
+                G.GAME.blind.chips)
+            )
+
             return --  instead let the round eval hook do this
         end
 
@@ -212,15 +222,6 @@ function RegisterActions.in_blind()
         NEURO.SET_STATE(nil, 0)
     elseif NEURO.STATE_STATUS == 10 then
         -- blind won
-        local _,disp_text,_,_ = G.FUNCS.get_poker_hand_info(G.play.cards)
-        local chip_total = hand_chips * mult
-        Context.send(string.format(
-                "Congratulations! You just won the blind with the hand type: %s, " ..
-                "you scored %d chips out of a required %d chips to win.",
-                disp_text,
-                G.GAME.chips + chip_total,
-                G.GAME.blind.chips)
-            )
         G.E_MANAGER:add_event(Event({
             trigger = "after",
             delay = 5 * G.SPEEDFACTOR,
@@ -323,4 +324,27 @@ function RegisterActions.in_booster_pack()
     end
 end
 
+function RegisterActions.game_over()
+    if NEURO.STATE_STATUS == 0 then
+        -- we lost
+        Context.send(RunContext.get_game_over_text(false))
+        GamePrep.start_from_gameover()
+        NEURO.INC_STATE()
+    elseif NEURO.STATE_STATUS == 1 then
+        -- waiting
+    elseif NEURO.STATE_STATUS == 2 then
+        -- we won
+        Context.send(RunContext.get_game_over_text(true))
+        G.E_MANAGER:add_event(Event({
+            trigger = "after",
+            delay = 2,
+            pause_force = true,
+            func = function()
+                G.FUNCS.exit_overlay_menu()
+                return true
+            end
+        }))
+        NEURO.INC_STATE()
+    end
+end
 return RegisterActions
