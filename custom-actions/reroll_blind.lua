@@ -4,6 +4,7 @@ local PlayBlind = NEURO.MOD_CACHE.load("custom-actions/play_blind.lua")
 local ActionWindow = NEURO.MOD_CACHE.load("game-sdk/actions/action_window.lua")
 local JsonUtils = NEURO.MOD_CACHE.load("game-sdk/utils/json_utils.lua")
 local GetRunText = NEURO.MOD_CACHE.load("get_run_text.lua")
+
 local RerollBlind = setmetatable({}, { __index = NeuroAction })
 RerollBlind.__index = RerollBlind
 

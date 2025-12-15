@@ -1,9 +1,5 @@
 local GamePrep = {}
 
-local RunHelper = NEURO.MOD_CACHE.load("run_functions_helper.lua")
-local Context = NEURO.MOD_CACHE.load("game-sdk/messages/outgoing/context.lua")
-local RunContext = NEURO.MOD_CACHE.load("run_context.lua")
-
 local neuro_profile = NEURO.CONFIG["PROFILE_SLOT"]
 
 local function load_profile(delay)

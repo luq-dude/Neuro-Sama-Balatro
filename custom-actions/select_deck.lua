@@ -1,7 +1,6 @@
 local NeuroAction = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = NEURO.MOD_CACHE.load("game-sdk/websocket/execution_result.lua")
 local PreRunLoc = NEURO.MOD_CACHE.load("pre_run_loc.lua")
-local RunHelper = NEURO.MOD_CACHE.load("run_functions_helper.lua")
 
 local JsonUtils = NEURO.MOD_CACHE.load("game-sdk/utils/json_utils.lua")
 

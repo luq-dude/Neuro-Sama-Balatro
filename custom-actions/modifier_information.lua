@@ -2,7 +2,6 @@ local NeuroAction = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = NEURO.MOD_CACHE.load("game-sdk/websocket/execution_result.lua")
 local JsonUtils = NEURO.MOD_CACHE.load("game-sdk/utils/json_utils.lua")
 local Context = NEURO.MOD_CACHE.load("game-sdk/messages/outgoing/context.lua")
-local GetRunText = NEURO.MOD_CACHE.load("get_run_text.lua")
 local RunContext = NEURO.MOD_CACHE.load("run_context.lua")
 
 local ModifierInformation = setmetatable({}, { __index = NeuroAction })
