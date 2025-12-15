@@ -158,7 +158,7 @@ function RunContext.get_shop_context()
                                     "Rerolling the shop costs $%d. You currently have %d free rerolls",
                                     G.GAME.current_round.reroll_cost,
                                     G.GAME.current_round.free_rerolls)
-    if #G.shop_jokers > 0 then
+    if #G.shop_jokers.cards > 0 then
         state_parts[#state_parts+1] = "These are the cards in the shop right now: " ..
             table.table_to_string(GetRunText.get_hand_details(G.shop_jokers.cards,true, true, nil, true))
     end
