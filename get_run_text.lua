@@ -112,6 +112,12 @@ function GetRunText.get_card_description(card, include_debuff, add_cost, set_ove
             nodes = loc_nodes,
             vars = vars_override or loc_vars,
             AUT = not tag and card:generate_UIBox_ability_table()}
+
+        name_override = localize {
+            type = 'name_text',
+            key = key_override or key,
+            set = set}
+        if name_override == "ERROR" then name_override = nil end
     end
     local modifiers = not tag and get_card_modifiers(card) or {}
     if playing_card and modifiers.enhancement == "Stone Card" then
