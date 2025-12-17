@@ -20,10 +20,6 @@ end
 function SelectDeck:_get_description()
     local description = "Select a deck to start the game with."
 
-    for k, v in pairs(PreRunLoc:get_back_descriptions()) do
-        description = description .. "\n" .. v
-    end
-
     return description
 end
 

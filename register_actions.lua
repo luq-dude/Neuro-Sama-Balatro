@@ -96,9 +96,8 @@ function RegisterActions.deck_selection()
     if NEURO.STATE_STATUS == 0 then
         G.OVERLAY_MENU.definition.nodes[1].nodes[1].nodes[1].nodes[1].nodes[1].nodes[1].nodes[2].nodes[1].nodes[1].nodes[1].nodes[1].config.button_UIE:click() -- this clicks new run button... i'm so sorry.
         local window = ActionWindow:new()
-        window:set_force(0.0, "Pick a deck", "The game has yet to start. " ..
-            "To start a new run, first select a deck. " ..
-            "Each deck has a different effect that changes how the game is played.", false)
+        local context = RunContext.get_deck_context()
+        window:set_force(0.0, context.query, context.state, false)
         window:add_action(SelectDeck:new(window))
         window:register()
         NEURO.INC_STATE()
@@ -106,9 +105,9 @@ function RegisterActions.deck_selection()
         -- wait for select_deck execute
     elseif NEURO.STATE_STATUS == 2 then
         local window = ActionWindow:new()
+        local context = RunContext.get_stake_context()
         window:add_action(SelectStake:new(window, nil))
-        window:set_force(1.0, "Pick a stake", "Next you need to select a stake. The white stake is the default, with" ..
-        " every stake after making the game harder. Stakes are progressive, so a higher stake applies all previous effects.", false)
+        window:set_force(1.0, context.query, context.state, false)
         window:register()
         NEURO.INC_STATE()
     end
@@ -121,13 +120,9 @@ function RegisterActions.select_blind()
             delay = 1,
             blocking = false,
             func = function ()
-                local msg = "Entering blind selection. Completion of a blind gives money and an opportunity to shop, " ..
-                "while skipping a blind gives a tag instead. Failing a blind results in a game over. " ..
-                "You must at least play the Boss Blind, which has an additional special effect to make it harder.\n"
-                Context.send(msg)
+                local ctx = RunContext.get_select_blind_context()
                 local window = ActionWindow:new()
-                window:set_force(0.0, "Choose to select or skip the currently selected blind",
-                    table.table_to_string(GetRunText.get_blind_descriptions()))
+                window:set_force(0.0, ctx.query, ctx.state)
                 window:add_action(PlayBlind:new(window))
                 if G.GAME.blind_on_deck ~= "Boss" then
                     window:add_action(SkipBlind:new(window))
@@ -197,17 +192,9 @@ function RegisterActions.in_blind()
     elseif NEURO.STATE_STATUS == 3 then
         -- hand has scored
         NEURO.INC_STATE()
-
         local chip_total = hand_chips * mult
         if G.GAME.chips + chip_total >= tonumber(G.GAME.blind.chips) then
-            local _,disp_text,_,_ = G.FUNCS.get_poker_hand_info(G.play.cards)
-            Context.send(string.format(
-                "Congratulations! You just won the blind with the hand type: %s, " ..
-                "you scored %d chips out of a required %d chips to win.",
-                disp_text,
-                G.GAME.chips + chip_total,
-                G.GAME.blind.chips)
-            )
+            Context.send(RunContext.get_blind_win_text())
 
             return --  instead let the round eval hook do this
         end
@@ -215,15 +202,7 @@ function RegisterActions.in_blind()
         if G.GAME.current_round.hands_left < 1 then
             return -- context handled by losing run hook
         end
-
-        local _,disp_text,_,_ = G.FUNCS.get_poker_hand_info(G.play.cards)
-        Context.send(string.format(
-            "This hand, you scored %d chips with the hand type %s. You need to score %d total to win this blind.",
-            chip_total,
-            disp_text,
-            G.GAME.chips + chip_total,
-            G.GAME.blind.chips)
-        )
+        Context.send(RunContext.get_last_hand_text())
         NEURO.SET_STATE(nil, 0)
     elseif NEURO.STATE_STATUS == 10 then
         -- blind won

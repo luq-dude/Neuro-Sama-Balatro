@@ -17,11 +17,7 @@ function SelectStake:_get_name()
 end
 
 function SelectStake:_get_description()
-    local description = "Select a stake (dificulty) to start the game with."
-
-    for k, v in pairs(PreRunLoc:get_stake_descriptions()) do
-        description = description .. "\n" .. v
-    end
+    local description = "Select a stake (difficulty) to start the game with."
 
     return description
 end

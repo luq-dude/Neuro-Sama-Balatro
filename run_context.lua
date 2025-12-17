@@ -1,4 +1,5 @@
 local GetRunText = NEURO.MOD_CACHE.load("get_run_text.lua")
+local PreRunLoc = NEURO.MOD_CACHE.load("pre_run_loc.lua")
 
 local RunContext = {}
 
@@ -129,7 +130,7 @@ function RunContext.get_in_blind_context()
     state_parts[#state_parts+1] = string.format(
                                     "You have %d/%d hands left, and %d/%d discards left. " ..
                                     "Your deck has %d/%d cards left to draw. " ..
-                                    "These are the cards in your hand and their modifiers: ",
+                                    "These are the cards in your hand and their modifiers:",
                                     G.GAME.current_round.hands_left,
                                     G.GAME.current_round.hands_left + G.GAME.current_round.hands_played,
                                     G.GAME.current_round.discards_left,
@@ -137,7 +138,7 @@ function RunContext.get_in_blind_context()
                                     #G.deck.cards,
                                     G.deck.config.card_limit)
 
-    state_parts[#state_parts] = state_parts[#state_parts] .. "\n" .. table.table_to_string(GetRunText.get_hand_details(G.hand.cards, true))
+    state_parts[#state_parts] = state_parts[#state_parts] .. table.concat(GetRunText.get_hand_details(G.hand.cards, true), "")
     state_parts[#state_parts+1] = RunContext.get_jokers_text()
     state_parts[#state_parts+1] = RunContext.get_consumeables_text()
     local state = table.concat(state_parts, "\n")
@@ -224,5 +225,65 @@ function RunContext.get_game_over_text(win)
     end
     return "GAME OVER." .. (win and "You still won the game since you passed ante " .. G.GAME.win_ante or
             "You lost.\n" .. get_run_stats())
+end
+
+function RunContext.get_deck_context()
+    local query, state
+    query = "Pick a deck to start a run. Each deck has a different effect that changes how the game is played."
+    local state_parts = {}
+    state_parts[#state_parts+1] = "Here are the available decks:"
+    state_parts[#state_parts+1] = table.concat(PreRunLoc:get_back_descriptions(), "\n")
+    state = table.concat(state_parts, "\n")
+    return {query = query, state = state}
+end
+
+function RunContext.get_stake_context()
+    local query, state
+    query = "Next select a stake (difficulty). The white stake is the default, with " ..
+        "every stake after making the game harder. Stakes are progressive, " ..
+        "so a higher stake applies all previous effects"
+    local state_parts = {}
+    state_parts[#state_parts+1] = "Here are the available stakes:"
+    state_parts[#state_parts+1] = table.concat(PreRunLoc:get_stake_descriptions(), "\n")
+    state = table.concat(state_parts, "\n")
+    return {query = query, state = state}
+end
+
+function RunContext.get_select_blind_context()
+    local query, state
+    if G.GAME.blind_on_deck == "Boss" then
+        query = "Choose to play the current blind"
+    else
+        query = "Choose to play or skip the current blind"
+    end
+    local state_parts = {}
+    state_parts[#state_parts+1] = "Entering blind selection. Completion of a blind gives money and an opportunity to shop, " ..
+        "while skipping a blind gives a tag instead. Failing a blind results in a game over. " ..
+        "You must at least play the Boss Blind, which has an additional special effect to make it harder."
+    state_parts[#state_parts+1] = table.concat(GetRunText.get_blind_descriptions(), "")
+    state = table.concat(state_parts, "\n")
+    return {query = query, state = state}
+end
+
+function RunContext.get_blind_win_text()
+    local _,disp_text,_,_ = G.FUNCS.get_poker_hand_info(G.play.cards)
+    local chip_total = hand_chips * mult
+    return string.format(
+                "Congratulations! You just won the blind with the hand type: %s, " ..
+                "you scored %d chips out of a required %d chips to win.",
+                disp_text,
+                G.GAME.chips + chip_total,
+                G.GAME.blind.chips)
+end
+
+function RunContext.get_last_hand_text()
+    local _,disp_text,_,_ = G.FUNCS.get_poker_hand_info(G.play.cards)
+    local chip_total = hand_chips * mult
+    return string.format(
+            "This hand, you scored %d chips with the hand type %s. You need to score %d total to win this blind.",
+            chip_total,
+            disp_text,
+            G.GAME.chips + chip_total,
+            G.GAME.blind.chips)
 end
 return RunContext
