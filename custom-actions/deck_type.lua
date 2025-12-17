@@ -1,15 +1,12 @@
 local NeuroAction = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = NEURO.MOD_CACHE.load("game-sdk/websocket/execution_result.lua")
-local ActionWindow = NEURO.MOD_CACHE.load("game-sdk/actions/action_window.lua")
 local JsonUtils = NEURO.MOD_CACHE.load("game-sdk/utils/json_utils.lua")
 local Context = NEURO.MOD_CACHE.load("game-sdk/messages/outgoing/context.lua")
-local RunHelper = NEURO.MOD_CACHE.load("run_functions_helper.lua")
 local DeckInfo = setmetatable({}, { __index = NeuroAction })
 DeckInfo.__index = DeckInfo
 
 function DeckInfo:new(actionWindow, state)
     local obj = NeuroAction.new(self, actionWindow)
-	obj.hook = state[1]
     return obj
 end
 
@@ -82,12 +79,7 @@ function DeckInfo:_execute_action(state)
 	end
 	table.sort(type_strings)
 	Context.send(context_string .. table.concat(type_strings,"\n"))
-
-	if G.STATE == G.STATES.SHOP then
-        self.hook:register_store_actions(0)
-        return
-    end
-	self.hook:play_card(0)
+	NEURO.DEC_STATE()
 end
 
 return DeckInfo

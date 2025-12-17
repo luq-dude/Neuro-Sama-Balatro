@@ -1,49 +1,15 @@
-local ActionWindow = NEURO.MOD_CACHE.load("game-sdk/actions/action_window.lua")
-
 local NeuroAction = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = NEURO.MOD_CACHE.load("game-sdk/websocket/execution_result.lua")
 local RunHelper = NEURO.MOD_CACHE.load("run_functions_helper.lua")
 
-local NeuroActionHandler = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action_handler.lua")
-local SkipPack = NEURO.MOD_CACHE.load("custom-actions/skip_pack.lua")
-local JokerInteraction = NEURO.MOD_CACHE.load("custom-actions/joker_interaction.lua")
-local UseConsumable = NEURO.MOD_CACHE.load("custom-actions/use_consumables.lua")
-
 local JsonUtils = NEURO.MOD_CACHE.load("game-sdk/utils/json_utils.lua")
-local RunContext = NEURO.MOD_CACHE.load("run_context.lua")
 
 local PickHandPackCards = setmetatable({}, { __index = NeuroAction })
 PickHandPackCards.__index = PickHandPackCards
 
-local function pick_hand_pack_card(delay, hook)
-    G.E_MANAGER:add_event(Event({
-        trigger = "after",
-        delay = delay,
-        blocking = false,
-        func = function()
-            G.FUNCS.sort_hand_value({})
-            local window = ActionWindow:new()
-            window:add_action(PickHandPackCards:new(window, {hook}))
-            window:add_action(SkipPack:new(window, {hook}))
-            if #G.jokers.cards > 0 then
-                window:add_action(JokerInteraction:new(window, {hook,{PickHandPackCards,SkipPack},UseConsumable}))
-            end
-
-            if #G.consumeables.cards > 0 then
-                window:add_action(UseConsumable:new(window, {hook,{PickHandPackCards,SkipPack},JokerInteraction}))
-            end
-            local query,state = RunHelper:get_query_string()
-            window:set_force(0.0, query, state, true)
-            window:register()
-            return true
-        end
-    }
-    ))
-end
 
 function PickHandPackCards:new(actionWindow, state)
     local obj = NeuroAction.new(self, actionWindow)
-    obj.hook = state[1]
     return obj
 end
 
@@ -176,12 +142,21 @@ function PickHandPackCards:_execute_action(state)
     }))
 
 
-    if (G.GAME.pack_choices or 1) > 1 then
-        pick_hand_pack_card(5, self.hook)
-        return true
-    end
+    local can_pick_another = (G.GAME.pack_choices or 1) > 1
+    G.E_MANAGER:add_event(Event({
+        trigger = "after",
+        delay = 5 * G.SPEEDFACTOR,
+        blocking = false,
+        func = function ()
+            if can_pick_another then
+                NEURO.DEC_STATE()
+            else
+                NEURO.INC_STATE()
+            end
+            return true
+        end
+    }))
 
-    self.hook.HookRan = false
     return true
 end
 

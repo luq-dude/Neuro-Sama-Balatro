@@ -9,6 +9,12 @@ local function add_card_buy_cost(description,card)
     return description
 end
 
+local function add_card_sell_value(desc, card)
+    if not card.sell_cost then return end
+    desc = desc .. ". Sells for: " .. card.sell_cost
+    return desc
+end
+
 local function description_from_loc_nodes(loc_nodes)
     local description = ""
     for _, line in ipairs(loc_nodes) do
@@ -63,7 +69,7 @@ end
 
 -- Gets the description for any card object
 -- This includes playing cards, jokers, consumables and vouchers (and tags)
-function GetRunText.get_card_description(card, include_debuff, add_cost, set_override, add_blueprint)
+function GetRunText.get_card_description(card, include_debuff, add_cost, set_override, add_blueprint, add_sell)
     local set = set_override or card.ability.set
     local key = card.config.center_key or card.key
 
@@ -106,6 +112,12 @@ function GetRunText.get_card_description(card, include_debuff, add_cost, set_ove
             nodes = loc_nodes,
             vars = vars_override or loc_vars,
             AUT = not tag and card:generate_UIBox_ability_table()}
+
+        name_override = localize {
+            type = 'name_text',
+            key = key_override or key,
+            set = set}
+        if name_override == "ERROR" then name_override = nil end
     end
     local modifiers = not tag and get_card_modifiers(card) or {}
     if playing_card and modifiers.enhancement == "Stone Card" then
@@ -134,10 +146,11 @@ function GetRunText.get_card_description(card, include_debuff, add_cost, set_ove
     end
 
     if add_cost then desc = add_card_buy_cost(desc,card) end
+    if add_sell then desc = add_card_sell_value(desc,card) end
     return desc
 end
 
-function GetRunText.get_hand_details(hand, count, add_cost, set_override, check_blueprint)
+function GetRunText.get_hand_details(hand, count, add_cost, set_override, check_blueprint, add_sell)
     local details = {}
     local blueprint = false
     if check_blueprint then
@@ -150,7 +163,7 @@ function GetRunText.get_hand_details(hand, count, add_cost, set_override, check_
     end
 
     for _, card in ipairs(hand) do
-         details[#details+1] = (count and ("\n" .. "- " .. #details + 1 .. ": ") or "") .. GetRunText.get_card_description(card, true, add_cost, set_override, blueprint)
+        details[#details+1] = (count and ("\n" .. "- " .. #details + 1 .. ": ") or "") .. GetRunText.get_card_description(card, true, add_cost, set_override, blueprint, add_sell)
     end
     return details
 end
@@ -257,6 +270,26 @@ function GetRunText.get_blind_descriptions()
         descs[#descs+1] = desc
     end
     return descs
+end
+
+function GetRunText.get_round_info()
+    local context = "This is how much money you have made in the blind: "
+    table.reverse(NEURO.ROUND_EVAL)
+    for _, value in pairs(NEURO.ROUND_EVAL) do
+        local name = value[1]
+        local money = value[2]
+        if string.match(name,"blind") ~= nil then name = "Blind" end -- otherwise name would be 'blind1'
+        if string.match(name,"bottom") ~= nil then
+            context = context .. "\nIn total you have made $" .. money
+            goto continue
+        end
+        if string.match(name,"custom") ~= nil then name = NEURO.ROUND_EVAL.text end -- added by smods for modded rows
+
+        context = context .. "\nFrom " .. name .. " you have made $" .. money
+        ::continue::
+    end
+    NEURO.ROUND_EVAL = {}
+    return context
 end
 
 return GetRunText

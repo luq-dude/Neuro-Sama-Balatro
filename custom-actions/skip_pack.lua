@@ -2,15 +2,11 @@ local NeuroAction = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = NEURO.MOD_CACHE.load("game-sdk/websocket/execution_result.lua")
 local JsonUtils = NEURO.MOD_CACHE.load("game-sdk/utils/json_utils.lua")
 
-local NeuroActionHandler = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action_handler.lua")
-
 SkipPack = setmetatable({}, { __index = NeuroAction })
 SkipPack.__index = SkipPack
 
-function SkipPack:new(actionWindow, actions)
+function SkipPack:new(actionWindow)
     local obj = NeuroAction.new(self, actionWindow)
-	obj.actions = actions
-	obj.hook = actions[1]
     return obj
 end
 
@@ -38,8 +34,7 @@ end
 
 function SkipPack:_execute_action(state)
 	G.FUNCS.skip_booster(G.booster_pack)
-
-    self.hook.HookRan = false
+    NEURO.INC_STATE()
 	return true
 end
 

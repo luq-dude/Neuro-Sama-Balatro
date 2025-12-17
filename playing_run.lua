@@ -1,144 +1,38 @@
-local ActionWindow = NEURO.MOD_CACHE.load("game-sdk/actions/action_window.lua")
 local NeuroActionHandler = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action_handler.lua")
 
 local UseHandCards = NEURO.MOD_CACHE.load("custom-actions/use_hand_cards.lua")
 local JokerInteraction = NEURO.MOD_CACHE.load("custom-actions/joker_interaction.lua")
 local UseConsumable = NEURO.MOD_CACHE.load("custom-actions/use_consumables.lua")
-local PickCard = NEURO.MOD_CACHE.load("custom-actions/pick_pack_card.lua")
-local PickPackCard = NEURO.MOD_CACHE.load("custom-actions/pick_hand_pack_cards.lua")
 local GetRunText = NEURO.MOD_CACHE.load("get_run_text.lua")
-local SkipPack = NEURO.MOD_CACHE.load("custom-actions/skip_pack.lua")
-local DeckTypes = NEURO.MOD_CACHE.load("custom-actions/deck_type.lua")
-local PokerHandInfo = NEURO.MOD_CACHE.load("custom-actions/get_poker_hand_info.lua")
-local ModifierInformation = NEURO.MOD_CACHE.load("custom-actions/modifier_information.lua")
-
-local ExitShop = NEURO.MOD_CACHE.load("custom-actions/shop-actions/exit_shop.lua")
-local RerollShop = NEURO.MOD_CACHE.load("custom-actions/shop-actions/reroll_shop.lua")
-local BuyShopCard = NEURO.MOD_CACHE.load("custom-actions/shop-actions/buy_shop_card.lua")
-local BuyShopBooster = NEURO.MOD_CACHE.load("custom-actions/shop-actions/buy_shop_booster.lua")
-local BuyShopVoucher = NEURO.MOD_CACHE.load("custom-actions/shop-actions/buy_shop_voucher.lua")
 
 local Context = NEURO.MOD_CACHE.load("game-sdk/messages/outgoing/context.lua")
-local RunHelper = NEURO.MOD_CACHE.load("run_functions_helper.lua")
 local RunContext = NEURO.MOD_CACHE.load("run_context.lua")
 
 local PlayingRun = {}
 
-PlayingRun.HookRan = false
+function PlayingRun.hook_booster_open()
+    local open = Card.open
+    function Card:open()
+        local is_booster = self.ability.set == "Booster"
 
-local function extra_card_action_check(window,actions)
-    if #G.jokers.cards > 0 then
-        window:add_action(JokerInteraction:new(window, {PlayingRun,actions,UseConsumable}))
-    end
+        open(self)
 
-    if #G.consumeables.cards > 0 then
-        window:add_action(UseConsumable:new(window, {PlayingRun,actions,JokerInteraction}))
-    end
-end
-
-function PlayingRun:play_card(delay)
-    G.E_MANAGER:add_event(Event({
-        trigger = "after",
-        delay = delay * G.SPEEDFACTOR,
-        blocking = false,
-        func = function()
-            local window = ActionWindow:new()
-            local query,state = RunHelper:get_query_string()
-            window:set_force(0.0, query, state, true)
-            window:add_action(UseHandCards:new(window, {PlayingRun}))
-            window:add_action(DeckTypes:new(window,{PlayingRun}))
-            window:add_action(PokerHandInfo:new(window,{PlayingRun}))
-            window:add_action(ModifierInformation:new(window,{PlayingRun}))
-            extra_card_action_check(window,{UseHandCards,DeckTypes,PokerHandInfo,ModifierInformation})
-            window:register()
-            return true
+        if is_booster then
+            NEURO.STATE_INTERRUPT = NEURO.STATE
+            NEURO.SET_STATE(NEURO.STATES.IN_BOOSTER_PACK)
         end
-    }
-    ))
-end
-
-local function pick_pack_card(delay)
-    G.E_MANAGER:add_event(Event({
-        trigger = "after",
-        delay = delay * G.SPEEDFACTOR,
-        blocking = false,
-        func = function()
-            local window = ActionWindow:new()
-            local query,state = RunHelper:get_query_string()
-            window:set_force(0.0, query, state, true)
-            window:add_action(PickCard:new(window, {PlayingRun}))
-            window:add_action(SkipPack:new(window, {PlayingRun}))
-            extra_card_action_check(window,{PickCard,SkipPack})
-            window:register()
-            return true
-        end
-    }
-    ))
-end
-
--- use for tarot and spectral
-local function pick_hand_pack_card(delay)
-    G.E_MANAGER:add_event(Event({
-        trigger = "after",
-        delay = delay * G.SPEEDFACTOR,
-        blocking = false,
-        func = function()
-            local window = ActionWindow:new()
-            window:add_action(PickPackCard:new(window, {PlayingRun}))
-            window:add_action(SkipPack:new(window, {PlayingRun}))
-            extra_card_action_check(window,{PickPackCard,SkipPack})
-            local query,state = RunHelper:get_query_string()
-            window:set_force(0.0, query, state, true)
-            window:register()
-            return true
-        end
-    }
-    ))
-end
-
-function PlayingRun:hook_draw_card()
-    local original_draw_card = draw_card
-    function draw_card(from, to, percent, dir, sort, card, delay, mute, stay_flipped, vol, discarded_only)
-        original_draw_card(from, to, percent, dir, sort, card, delay, mute, stay_flipped, vol, discarded_only)
-        if G.STATE == G.STATES.HAND_PLAYED then return true end
-        if self.HookRan then sendDebugMessage("Blocked a hook call G.state was " .. G.STATE) return true end -- this stops actions or context being sent multiple times
-        self.HookRan = true -- this needs to be set back to false after in an actions execute_action
-        sendDebugMessage("draw_card called")
-
-        G.E_MANAGER:add_event(Event({
-            trigger = "after",
-            blocking = false,
-            delay = 2 * G.SPEEDFACTOR,
-            func = function ()
-                    if G.STATE == G.STATES.SELECTING_HAND or G.STATE == G.STATES.DRAW_TO_HAND then
-                        self:play_card(3)
-                        return true
-                    end
-
-                    local booster = SMODS.OPENED_BOOSTER
-                    if booster == nil then
-                        sendDebugMessage("booster is nil: " .. G.STATE)
-                        self.HookRan = false
-                        return true
-                    end
-
-                    if G.STATE == 999 then -- I'm pretty sure all boosters go through this then become the vanilla state so just using this should be fine
-                        if booster.config.center.draw_hand then
-                            pick_hand_pack_card(4)
-                            return true
-                        else
-                            pick_pack_card(4)
-                            return true
-                        end
-                    end
-
-                    sendDebugMessage(G.STATE .. " was not used as a state")
-                    self.HookRan = false
-                return true
-            end
-        }))
     end
-    return true
+end
+
+function PlayingRun.hook_draw_to_hand()
+    local deck_to_hand = Game.update_draw_to_hand
+    function Game:update_draw_to_hand(dt)
+        local complete = G.STATE_COMPLETE
+        deck_to_hand(self, dt)
+        if not complete and NEURO.STATE ~= NEURO.STATES.IN_BLIND then
+            NEURO.SET_STATE(NEURO.STATES.IN_BLIND)
+        end
+    end
 end
 
 local function unregister_run_action()
@@ -152,8 +46,9 @@ end
 function PlayingRun:hook_play_cards()
     local play_cards = G.FUNCS.play_cards_from_highlighted
     function G.FUNCS.play_cards_from_highlighted(e)
-        if PlayingRun.HookRan then
-            PlayingRun.HookRan = false
+        print("status on play " .. tostring(NEURO.STATE_STATUS))
+        if NEURO.STATE_STATUS == 1 then
+            NEURO.INC_STATE()
             unregister_run_action()
         end
 
@@ -164,8 +59,9 @@ end
 function PlayingRun:hook_discard_cards()
     local discard_cards = G.FUNCS.discard_cards_from_highlighted
     function G.FUNCS.discard_cards_from_highlighted(e, hook)
-        if PlayingRun.HookRan and not hook then
-            PlayingRun.HookRan = false
+        print("status on discard " .. tostring(NEURO.STATE_STATUS))
+        if NEURO.STATE_STATUS == 1 then
+            NEURO.DEC_STATE()
             unregister_run_action()
         end
 
@@ -173,44 +69,11 @@ function PlayingRun:hook_discard_cards()
     end
 end
 
-NEURO.ROUND_EVAL = {} -- we set this in round_eval.toml
-local function get_round_info(round_eval)
-    local context = "This is how much money you have made in the blind: "
-    table.reverse(round_eval)
-    for index, value in pairs(round_eval) do
-        local name = value[1]
-        local money = value[2]
-        if string.match(name,"blind") ~= nil then name = "Blind" end -- otherwise name would be 'blind1'
-        if string.match(name,"bottom") ~= nil then
-            context = context .. "\nIn total you have made $" .. money
-            goto continue
-        end
-        if string.match(name,"custom") ~= nil then name = round_eval.text end -- added by smods for modded rows
-
-        context = context .. "\nFrom " .. name .. " you have made $" .. money
-        ::continue::
-    end
-
-    NEURO.ROUND_EVAL = {}
-    return context
-end
-
 function PlayingRun:hook_evaluate_play()
     local eval = G.FUNCS.evaluate_play
     function G.FUNCS.evaluate_play(e)
-        local _,disp_text,_,_ = G.FUNCS.get_poker_hand_info(G.play.cards)
         eval(e)
-        local chip_total = hand_chips * mult
-        if G.GAME.chips + chip_total >= tonumber(G.GAME.blind.chips) then
-            Context.send("Congratulations! You just won the blind with the hand type: " .. disp_text .. ", you scored " .. G.GAME.chips + chip_total .. " chips this blind. You had to score " .. G.GAME.blind.chips .. " chips to win this blind.")
-            return
-        end
-
-        if G.GAME.current_round.hands_left < 1 then
-            return -- context handled by losing run hook
-        end
-
-        Context.send("This hand, you scored: " .. chip_total .. " chips, with the hand type: " .. disp_text .. ". This blind you have a total of: " .. G.GAME.chips + chip_total ..  " chips. You need to score a total of: " .. G.GAME.blind.chips .. " chips to win this blind")
+        NEURO.INC_STATE()
     end
 end
 
@@ -218,41 +81,9 @@ function PlayingRun:hook_round_eval()
     local update_round = add_round_eval_row
     function add_round_eval_row(config)
         update_round(config)
-        local round_eval = NEURO.ROUND_EVAL
-
         if config.name == "bottom" then -- bottom is the total
-            Context.send(get_round_info(round_eval))
-            G.E_MANAGER:add_event(Event({
-                trigger = "after",
-                delay = 5 * G.SPEEDFACTOR,
-                blocking = false,
-                func = function()
-                    G.FUNCS.cash_out({ config = {} })
-                    self:register_store_actions(2)
-                    return true
-                end
-            }
-            ))
+            NEURO.SET_STATE(NEURO.STATES.IN_BLIND, 10)
         end
-    end
-end
-
-function PlayingRun:hook_end_consumeable()
-    local end_consumeable = G.FUNCS.end_consumeable
-    function G.FUNCS.end_consumeable(e,s)
-        if G.shop and G.booster_pack then -- this is for boosters
-            PlayingRun:register_store_actions(2,PlayingRun)
-        end
-
-        end_consumeable(e,s)
-    end
-end
-
-function PlayingRun:hook_reroll_shop()
-    local reroll_shop = G.FUNCS.reroll_shop
-    function G.FUNCS.reroll_shop(e)
-        reroll_shop(e)
-        PlayingRun:register_store_actions(2,PlayingRun)
     end
 end
 
@@ -261,57 +92,11 @@ function PlayingRun:hook_new_round()
     function new_round()
         func()
         NEURO.PLAYED_BLINDS = NEURO.PLAYED_BLINDS + 1
-
         if NEURO.PLAYED_BLINDS >= NEURO.MAX_PLAYED_BLINDS then
             NEURO.PLAYED_BLINDS = 0
             Context.send(RunContext.get_all_modifier_desc() .. (#G.vouchers.cards > 0 and ("\n" .. "These are the vouchers you have gotten throughout this run " .. table.table_to_string(GetRunText.get_hand_details(G.vouchers.cards))) or ""), true)
         end
     end
-end
-
-function PlayingRun:register_store_actions(delay,hook)
-    G.E_MANAGER:add_event(Event({
-        trigger = "after",
-        delay = delay * G.SPEEDFACTOR,
-        blocking = false,
-        func = function()
-            local window = ActionWindow:new()
-            local query,state = RunHelper:get_query_string()
-
-            local actions = {ExitShop}
-            if (G.GAME.dollars-G.GAME.bankrupt_at) - G.GAME.current_round.reroll_cost < 0 and G.GAME.current_round.free_rerolls < 1 then
-            else
-                actions[#actions+1] = RerollShop
-                state = state .. "\nRerolling the shop costs $" .. G.GAME.current_round.reroll_cost .. ". You have " .. G.GAME.current_round.free_rerolls .. " free rerolls."
-            end
-            if #G.shop_jokers.cards > 0 then
-                actions[#actions+1] = BuyShopCard
-                state = state .. "\nThese are the cards in the shop right now: " .. table.table_to_string(GetRunText.get_hand_details(G.shop_jokers.cards,true, true, nil, true))
-            end
-            if #G.shop_booster.cards > 0 then
-                actions[#actions+1] = BuyShopBooster
-                state = state .. "\nThese are the booster packs in the shop: " .. table.table_to_string(GetRunText.get_hand_details(G.shop_booster.cards,true, true, "Other"))
-            end
-            if #G.shop_vouchers.cards > 0 then
-                actions[#actions+1] = BuyShopVoucher
-                state = state .. "\nThis is the voucher in the shop: " .. table.table_to_string(GetRunText.get_hand_details(G.shop_vouchers.cards,true, true))
-            end
-
-            actions[#actions+1] = DeckTypes
-            actions[#actions+1] = PokerHandInfo
-            actions[#actions+1] = ModifierInformation
-
-            extra_card_action_check(window,actions)
-
-            for index, action in ipairs(actions) do
-                window:add_action(action:new(window,{self}))
-            end
-            window:set_force(0.0, query, state, true)
-            window:register()
-            return true
-        end
-    }
-    ))
 end
 
 return PlayingRun

@@ -1,47 +1,15 @@
-local ActionWindow = NEURO.MOD_CACHE.load("game-sdk/actions/action_window.lua")
-
 local NeuroAction = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = NEURO.MOD_CACHE.load("game-sdk/websocket/execution_result.lua")
 local RunHelper = NEURO.MOD_CACHE.load("run_functions_helper.lua")
 local GetRunText = NEURO.MOD_CACHE.load("get_run_text.lua")
-
-local SkipPack = NEURO.MOD_CACHE.load("custom-actions/skip_pack.lua")
-local JokerInteraction = NEURO.MOD_CACHE.load("custom-actions/joker_interaction.lua")
-local UseConsumable = NEURO.MOD_CACHE.load("custom-actions/use_consumables.lua")
 
 local JsonUtils = NEURO.MOD_CACHE.load("game-sdk/utils/json_utils.lua")
 
 local PickCards = setmetatable({}, { __index = NeuroAction })
 PickCards.__index = PickCards
 
-local function pick_pack_card(delay,hook)
-    G.E_MANAGER:add_event(Event({
-        trigger = "after",
-        delay = delay,
-        blocking = false,
-        func = function()
-            local window = ActionWindow:new()
-            window:add_action(PickCards:new(window, {hook}))
-            window:add_action(SkipPack:new(window,{hook}))
-            if #G.jokers.cards > 0 then
-                window:add_action(JokerInteraction:new(window, {hook,{PickCards,SkipPack},UseConsumable}))
-            end
-
-            if #G.consumeables.cards > 0 then
-                window:add_action(UseConsumable:new(window, {hook,{PickCards,SkipPack},JokerInteraction}))
-            end
-            local query,state = RunHelper:get_query_string()
-            window:set_force(0.0, query, state, true)
-            window:register()
-            return true
-        end
-    }
-    ))
-end
-
 function PickCards:new(actionWindow, state)
     local obj = NeuroAction.new(self, actionWindow)
-    obj.hook = state[1]
     return obj
 end
 
@@ -108,11 +76,20 @@ function PickCards:_execute_action(state)
     end
     button:click()
 
-    if (G.GAME.pack_choices or 1) > 1 then
-        pick_pack_card(5,self.hook) -- call action again if more than one pack card can be picked. This is to reduce cooldown of action being registered
-        return true
-    end
-    self.hook.HookRan = false
+    local can_pick_another = (G.GAME.pack_choices or 1) > 1
+    G.E_MANAGER:add_event(Event({
+        trigger = "after",
+        delay = 5 * G.SPEEDFACTOR,
+        blocking = false,
+        func = function ()
+            if can_pick_another then
+                NEURO.DEC_STATE()
+            else
+                NEURO.INC_STATE()
+            end
+            return true
+        end
+    }))
     return true
 end
 

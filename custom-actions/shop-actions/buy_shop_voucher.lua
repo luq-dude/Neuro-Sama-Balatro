@@ -10,7 +10,6 @@ BuyVoucher.__index = BuyVoucher
 
 function BuyVoucher:new(actionWindow, state)
     local obj = NeuroAction.new(self, actionWindow)
-    obj.hook = state[1]
     return obj
 end
 
@@ -58,10 +57,8 @@ end
 function BuyVoucher:_execute_action(state)
     local selected_index = state["voucher_index"] or 1
 	local voucher = G.shop_vouchers.cards[selected_index]
-
 	voucher.children.buy_button.definition.nodes[1].config.button_UIE:click()
-
-	self.hook:register_store_actions(2,self.hook)
+    NEURO.DEC_STATE()
 end
 
 return BuyVoucher

@@ -1,7 +1,5 @@
-local Context = NEURO.MOD_CACHE.load("game-sdk/messages/outgoing/Context.lua")
 local NeuroAction = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = NEURO.MOD_CACHE.load("game-sdk/websocket/execution_result.lua")
-local GetRunText = NEURO.MOD_CACHE.load("get_run_text.lua")
 local RunHelper = NEURO.MOD_CACHE.load("run_functions_helper.lua")
 
 local JsonUtils = NEURO.MOD_CACHE.load("game-sdk/utils/json_utils.lua")
@@ -11,7 +9,6 @@ UseHandCards.__index = UseHandCards
 
 function UseHandCards:new(actionWindow, state)
     local obj = NeuroAction.new(self, actionWindow)
-    obj.hook = state[1]
     return obj
 end
 
@@ -131,10 +128,11 @@ function UseHandCards:_execute_action(state)
         end
     end
 
-    self.hook.HookRan = false
     if selected_action == "Play" then
+        NEURO.INC_STATE()
         G.FUNCS.play_cards_from_highlighted()
     elseif selected_action == "Discard" then
+        NEURO.DEC_STATE()
         G.FUNCS.discard_cards_from_highlighted()
     end
     return true

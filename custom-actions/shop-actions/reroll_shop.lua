@@ -5,9 +5,8 @@ local JsonUtils = NEURO.MOD_CACHE.load("game-sdk/utils/json_utils.lua")
 local RerollShop = setmetatable({}, { __index = NeuroAction })
 RerollShop.__index = RerollShop
 
-function RerollShop:new(actionWindow, state)
+function RerollShop:new(actionWindow)
     local obj = NeuroAction.new(self, actionWindow)
-    obj.hook = state[1]
     return obj
 end
 
@@ -35,6 +34,7 @@ end
 function RerollShop:_execute_action(state)
 	local reroll_button = G.shop.definition.nodes[1].nodes[1].nodes[1].nodes[1].nodes[1].nodes[1].nodes[2].nodes[1].config.button_UIE.children[1]
 	reroll_button:click()
+    NEURO.DEC_STATE()
 end
 
 return RerollShop

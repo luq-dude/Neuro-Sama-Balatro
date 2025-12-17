@@ -1,7 +1,6 @@
 local NeuroAction = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = NEURO.MOD_CACHE.load("game-sdk/websocket/execution_result.lua")
 local JsonUtils = NEURO.MOD_CACHE.load("game-sdk/utils/json_utils.lua")
-local RunHelper = NEURO.MOD_CACHE.load("run_functions_helper.lua")
 local RunContext = NEURO.MOD_CACHE.load("run_context.lua")
 local Context = NEURO.MOD_CACHE.load("game-sdk/messages/outgoing/context.lua")
 local PokerHandInfo = setmetatable({}, { __index = NeuroAction })
@@ -9,7 +8,6 @@ PokerHandInfo.__index = PokerHandInfo
 
 function PokerHandInfo:new(actionWindow, state)
     local obj = NeuroAction.new(self, actionWindow)
-	obj.hook = state[1]
     return obj
 end
 
@@ -31,11 +29,7 @@ end
 
 function PokerHandInfo:_execute_action(state)
 	Context.send(table.concat(RunContext:hand_type_information(),"\n"))
-    if G.STATE == G.STATES.SHOP then
-        self.hook:register_store_actions(0)
-        return
-    end
-	self.hook:play_card(0)
+	NEURO.DEC_STATE()
 end
 
 return PokerHandInfo

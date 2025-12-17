@@ -8,7 +8,6 @@ BuyBooster.__index = BuyBooster
 
 function BuyBooster:new(actionWindow, state)
     local obj = NeuroAction.new(self, actionWindow)
-    obj.hook = state[1]
     return obj
 end
 

@@ -1,17 +1,12 @@
 local NeuroAction = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action.lua")
 local ExecutionResult = NEURO.MOD_CACHE.load("game-sdk/websocket/execution_result.lua")
-local NeuroActionHandler = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action_handler.lua")
 local JsonUtils = NEURO.MOD_CACHE.load("game-sdk/utils/json_utils.lua")
-
-local JokerInteraction = NEURO.MOD_CACHE.load("custom-actions/joker_interaction.lua")
-local UseConsumables = NEURO.MOD_CACHE.load("custom-actions/use_consumables.lua")
 
 local ExitShop = setmetatable({}, { __index = NeuroAction })
 ExitShop.__index = ExitShop
 
 function ExitShop:new(actionWindow, state)
     local obj = NeuroAction.new(self, actionWindow)
-    obj.hook = state[1]
     return obj
 end
 

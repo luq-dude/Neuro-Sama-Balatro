@@ -1,10 +1,5 @@
 local GamePrep = {}
 
-local ActionWindow = NEURO.MOD_CACHE.load("game-sdk/actions/action_window.lua")
-local SelectDeck = NEURO.MOD_CACHE.load("custom-actions/select_deck.lua")
-local Context = NEURO.MOD_CACHE.load("game-sdk/messages/outgoing/context.lua")
-local RunContext = NEURO.MOD_CACHE.load("run_context.lua")
-
 local neuro_profile = NEURO.CONFIG["PROFILE_SLOT"]
 
 local function load_profile(delay)
@@ -59,13 +54,7 @@ local function select_deck(delay)
         trigger = "after",
         delay = delay,
         func = function()
-            G.OVERLAY_MENU.definition.nodes[1].nodes[1].nodes[1].nodes[1].nodes[1].nodes[1].nodes[2].nodes[1].nodes[1].nodes[1].nodes[1].config.button_UIE:click() -- this clicks new run button... i'm so sorry.
-            local window = ActionWindow:new()
-            window:set_force(0.0, "Pick a deck", "The game has yet to start. " ..
-                "To start a new run, first select a deck. " ..
-                "Each deck has a different effect that changes how the game is played.", false)
-            window:add_action(SelectDeck:new(window))
-            window:register()
+            NEURO.SET_STATE(NEURO.STATES.DECK_SELECTION)
             return true
         end
     }
@@ -80,7 +69,6 @@ function GamePrep.start_from_title()
         func = function()
             G.MAIN_MENU_UI:get_UIE_by_ID('main_menu_play'):click()
             select_deck(2)
-            Context.send(RunContext.get_all_modifier_desc(), true)
             return true
         end
     }))
@@ -97,6 +85,34 @@ function GamePrep.start_from_gameover()
             return true
         end
     }))
+end
+
+function GamePrep.unlock_all()
+    G.PROFILES[G.SETTINGS.profile].all_unlocked = true
+    for _, v in pairs(G.P_CENTERS) do
+        if not v.demo and not v.wip then
+            v.alerted = true
+            v.discovered = true
+            v.unlocked = true
+        end
+    end
+
+    for _, v in pairs(G.P_BLINDS) do
+        if not v.demo and not v.wip then
+            v.alerted = true
+            v.discovered = true
+            v.unlocked = true
+        end
+    end
+
+    for _, v in pairs(G.P_TAGS) do
+        if not v.demo and not v.wip then
+            v.alerted = true
+            v.discovered = true
+            v.unlocked = true
+        end
+    end
+    SMODS.SAVE_UNLOCKS()
 end
 
 return GamePrep
