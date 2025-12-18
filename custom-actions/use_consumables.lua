@@ -165,7 +165,7 @@ function UseConsumable:_execute_action(state)
         end
     }))
 
-    if NEURO.CARD_INFO.DESELECT_AFTER_USE[card.config.center_key] then
+    if NEURO.DESELECT_AFTER_USE[card.config.center_key] then
         -- for some reason, aura and cryptid dont unselect after use
         G.E_MANAGER:add_event(Event({
             trigger = "after",
