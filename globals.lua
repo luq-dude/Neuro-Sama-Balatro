@@ -18,12 +18,9 @@ NEURO = {
     -- whether or not we can restart after a crash
     CAN_RESTART = false,
     -- additional card info
-    CARD_INFO = {
-        ADD_JOKER_CONSUMABLE_OVERWRITE = {},
-        MODIFY_JOKER_CONSUMABLE_OVERWRITE = {}
-    },
     CONSUMABLE_VALIDATE_FUNCS = {},
     CONSUMABLE_OVERRIDES = {},
+    DESELECT_AFTER_USE = {},
     -- round evaluation data 
     ROUND_EVAL = {},
     -- strings used for SDK action failures

@@ -1,15 +1,3 @@
-NEURO.CARD_INFO.ADD_JOKER_CONSUMABLE_OVERWRITE = {
-	c_wraith = false,
-	c_soul = false,
-	c_judgement = false
-}
-
-NEURO.CARD_INFO.MODIFY_JOKER_CONSUMABLE_OVERWRITE = {
-	c_hex = false,
-	c_ectoplasm = false,
-	c_ankh = false,
-	c_wheel_of_fortune = false,
-}
 NEURO.CONSUMABLE_OVERRIDES["c_aura"] = {min_highlighted = 1, max_highlighted = 1}
 NEURO.CONSUMABLE_OVERRIDES["c_wraith"] = {jokers_created = 1}
 NEURO.CONSUMABLE_OVERRIDES["c_soul"] = {jokers_created = 1}
@@ -27,7 +15,7 @@ NEURO.CONSUMABLE_OVERRIDES["c_sigil"] = {require_hand = true}
 NEURO.CONSUMABLE_OVERRIDES["c_ouija"] = {require_hand = true}
 
 
-NEURO.CARD_INFO.DESELECT_AFTER_USE = {c_aura = true, c_cryptid = true}
+NEURO.DESELECT_AFTER_USE = {c_aura = true, c_cryptid = true}
 
 -- check if weve selected a valid number of cards
 NEURO.CONSUMABLE_VALIDATE_FUNCS[#NEURO.CONSUMABLE_VALIDATE_FUNCS + 1] = function (args)
