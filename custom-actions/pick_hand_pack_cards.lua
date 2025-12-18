@@ -71,6 +71,8 @@ function PickHandPackCards:_validate_action(data, state)
         return ExecutionResult.failure(
             "You have selected more cards from your hand then you are allowed too.")
     end
+    state["cards_index"] = selected_hand_index
+    state["pack_card_index"] = selected_pack_card
     local success, ret_string = RunHelper.validate_consumable(card, selected_hand_index, "Use")
     if success then
         return ExecutionResult.success(ret_string)
