@@ -1,5 +1,4 @@
 local GetRunText = NEURO.MOD_CACHE.load("get_run_text.lua")
-local RunContext = NEURO.MOD_CACHE.load("run_context.lua")
 
 local RunHelper = {}
 
@@ -155,6 +154,32 @@ function RunHelper:get_consumable_validation(card,selected_hand_index,selected_a
     end
 
     return nil, success_string
+end
+
+function RunHelper.validate_consumable(card, selected_indices, selected_action)
+    if selected_action == "Sell" then
+        if #selected_indices == 0 then
+            return true, "Selling the " .. card.config.center.name .. " for $" .. card.sell_cost
+        end
+        return false, "You cannot select cards while selling a consumeable"
+    end
+
+    local args = NEURO.CONSUMABLE_OVERRIDES[card.config.center_key] or {}
+    args.card = card
+    args.selected = selected_indices
+    local ret_parts = {}
+    for _, func in ipairs(NEURO.CONSUMABLE_VALIDATE_FUNCS) do
+        local res, string = func(args)
+        if not res then
+            return res, (string or "")
+        end
+        if string then ret_parts[#ret_parts+1] = string end
+    end
+    ret_parts[#ret_parts+1] = "Using " .. GetRunText.get_card_description(card)
+    if #ret_parts > 0 then
+        return true, table.concat(ret_parts, ". ")
+    end
+    return true, ""
 end
 
 function RunHelper.run_after(delay, func)

@@ -22,6 +22,8 @@ NEURO = {
         ADD_JOKER_CONSUMABLE_OVERWRITE = {},
         MODIFY_JOKER_CONSUMABLE_OVERWRITE = {}
     },
+    CONSUMABLE_VALIDATE_FUNCS = {},
+    CONSUMABLE_OVERRIDES = {},
     -- round evaluation data 
     ROUND_EVAL = {},
     -- strings used for SDK action failures
