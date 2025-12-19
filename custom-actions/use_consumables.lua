@@ -109,50 +109,11 @@ function UseConsumable:_validate_action(data, state)
     state["card_action"] = selected_action
     state["consumable_index"] = selected_consumable
     state["cards_index"] = selected_hand_index
-
-    local success, result_string = RunHelper:get_consumable_validation(card,selected_hand_index,selected_action,true)
+    local success, ret_string = RunHelper.validate_consumable(card, selected_hand_index, selected_action)
     if success then
-        return ExecutionResult.success(result_string)
-    elseif success == false then
-        return ExecutionResult.failure(result_string)
+        return ExecutionResult.success(ret_string)
     end
-
-    if G.STATE == G.STATES.SHOP and card_config.max_highlighted ~= nil then
-        return ExecutionResult.failure(
-            "You cannot use this card in the shop as selecting cards is needed for it to work.")
-    end
-
-    if #selected_hand_index > 0 and card_config.max_highlighted == nil then
-        return ExecutionResult.failure(
-            "The card you selected does not require cards to be highlighted")
-    end
-
-    if card_config.max_highlighted ~= nil then
-        if #selected_hand_index ~= card_config.max_highlighted and selected_action == "Use" then
-            return ExecutionResult.failure(
-                    "You have either selected too many cards or to little from your hand comparative to how many the tarot needs.")
-        end
-    end
-
-    if table.any(G.hand.cards,function (force_card)
-            return force_card.ability.forced_selection
-    end) == true and selected_action == "Use" and card_config.max_highlighted ~= nil then
-        local index = -1
-        for _, card_index in ipairs(selected_hand_index) do
-            if G.hand.cards[card_index].ability.forced_selection then
-                index = card_index
-            end
-        end
-
-        if index == -1 then
-            return ExecutionResult.failure("You must select the force selected card.")
-        end
-    end
-
-    if selected_action == "Use" then
-        return ExecutionResult.success("Using " .. card.config.center.name)
-    end
-    return ExecutionResult.success("Selling the " .. card.config.center.name .. " for " .. card.sell_cost)
+    return ExecutionResult.failure(ret_string)
 end
 
 function UseConsumable:_execute_action(state)
@@ -162,8 +123,6 @@ function UseConsumable:_execute_action(state)
 
     local consumable_hand = G.consumeables.cards
     local card = consumable_hand[selected_consumable]
-
-    local start_state = G.STATE
 
     G.consumeables:add_to_highlighted(card)
 
@@ -206,9 +165,22 @@ function UseConsumable:_execute_action(state)
         end
     }))
 
+    if NEURO.DESELECT_AFTER_USE[card.config.center_key] then
+        -- for some reason, aura and cryptid dont unselect after use
+        G.E_MANAGER:add_event(Event({
+            trigger = "after",
+            delay = 1 * G.SPEEDFACTOR,
+            blocking = false,
+            func = function ()
+                G.hand:remove_from_highlighted(G.hand.cards[1])
+                return true
+            end
+        }))
+    end
+
     G.E_MANAGER:add_event(Event({
         trigger = "after",
-        delay = 1 * G.SPEEDFACTOR,
+        delay = 2 * G.SPEEDFACTOR,
         blocking = false,
         func = function()
             G.FUNCS.sort_hand_value({})

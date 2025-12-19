@@ -71,29 +71,13 @@ function PickHandPackCards:_validate_action(data, state)
         return ExecutionResult.failure(
             "You have selected more cards from your hand then you are allowed too.")
     end
-
-    local success, result_string = RunHelper:get_consumable_validation(card,selected_hand_index)
-    if success then
-    elseif success == false then
-        return ExecutionResult.failure(result_string)
-    end
-
-    -- should fix issue with certain cards (mainly spectral) not needing highlighted cards (Do we still need this?)
-    if #selected_hand_index == 0 and card_config.max_highlighted ~= nil then
-        return ExecutionResult.failure(
-            "You should either take a card or skip the round.")
-    end
-
-    if card_config.max_highlighted ~= nil then
-        if #selected_hand_index ~= card_config.max_highlighted then
-            return ExecutionResult.failure(
-                "You have either selected too many cards or to little from your hand comparative to how many the tarot needs.")
-        end
-    end
-
     state["cards_index"] = selected_hand_index
     state["pack_card_index"] = selected_pack_card
-    return ExecutionResult.success(result_string)
+    local success, ret_string = RunHelper.validate_consumable(card, selected_hand_index, "Use")
+    if success then
+        return ExecutionResult.success(ret_string)
+    end
+    return ExecutionResult.failure(ret_string)
 end
 
 function PickHandPackCards:_execute_action(state)
@@ -140,6 +124,19 @@ function PickHandPackCards:_execute_action(state)
             return true
         end
     }))
+
+    if NEURO.DESELECT_AFTER_USE[consumable.config.center_key] then
+        -- for some reason, aura and cryptid dont unselect after use
+        G.E_MANAGER:add_event(Event({
+            trigger = "after",
+            delay = 1 * G.SPEEDFACTOR,
+            blocking = false,
+            func = function ()
+                G.hand:remove_from_highlighted(G.hand.cards[1])
+                return true
+            end
+        }))
+    end
 
 
     local can_pick_another = (G.GAME.pack_choices or 1) > 1

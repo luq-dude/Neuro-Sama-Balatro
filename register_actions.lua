@@ -272,7 +272,7 @@ function RegisterActions.in_booster_pack()
         G.E_MANAGER:add_event(Event({
             trigger = "after",
             blocking = false,
-            delay = 2 * G.SPEEDFACTOR,
+            delay = 3 * G.SPEEDFACTOR,
             func = function ()
                 local ctx = RunContext.get_booster_context()
                 local window = ActionWindow:new()
