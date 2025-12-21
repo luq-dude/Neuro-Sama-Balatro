@@ -26,6 +26,20 @@ return {
     -- Setting it to 0 or a negative value will cause the game to instantly restart.
     ["RESTART_DELAY"] = 3,
 
+    -- The default mode to boot the game in. Valid options:
+    -- "solo" for Neuro solo mode
+    -- "coop" for co-op mode
+    ["DEFAULT_MODE"] = "solo",
+
+    -- Key to press to switch to manual mode
+    -- You must press this before the splash screen animation finishes. This is approximately a 14 
+    -- second window after game boot. Pressing escape to skip the animation locks you into the 
+    -- current mode. 
+    ["SOLO_MODE_KEYBIND"] = "q",
+
+    -- Key to press to switch to co-op mode. Uses the same timing rules as above.
+    ["COOP_MODE_KEYBIND"] = "e",
+
     -- If true, Neuro will have all decks, jokers, vouchers, etc unlocked
     ["UNLOCK_ALL"] = true,
 

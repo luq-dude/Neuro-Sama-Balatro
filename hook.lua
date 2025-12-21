@@ -22,6 +22,7 @@ local function hook_main_menu()
         main_menu(self, change_context)
         if NEURO.STATE == NEURO.STATES.GAME_BOOT and NEURO.STATE_STATUS == 1 then
             NEURO.INC_STATE()
+            NEURO.CAN_SWITCH_MODES = false
         end
     end
 end
