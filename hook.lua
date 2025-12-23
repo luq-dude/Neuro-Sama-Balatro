@@ -20,8 +20,8 @@ local function hook_main_menu()
     local main_menu = Game.main_menu
     function Game:main_menu(change_context)
         main_menu(self, change_context)
-        if NEURO.STATE == NEURO.STATES.GAME_BOOT and NEURO.STATE_STATUS == 1 then
-            NEURO.INC_STATE()
+        if NEURO.STATE == NEURO.STATES.GAME_BOOT then
+            NEURO.SET_STATE(NEURO.STATES.MAIN_MENU)
             NEURO.CAN_SWITCH_MODES = false
         end
     end

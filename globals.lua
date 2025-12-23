@@ -28,12 +28,13 @@ NEURO = {
     -- FSM
     STATES = {
         GAME_BOOT = 1,
-        DECK_SELECTION = 2,
-        BLIND_SELECTION = 3,
-        IN_BLIND = 4,
-        IN_SHOP = 5,
-        IN_BOOSTER_PACK = 6,
-        GAME_OVER = 7
+        MAIN_MENU = 2,
+        DECK_SELECTION = 3,
+        BLIND_SELECTION = 4,
+        IN_BLIND = 5,
+        IN_SHOP = 6,
+        IN_BOOSTER_PACK = 7,
+        GAME_OVER = 8
     },
     STATE = 1,
     STATE_STATUS = 0,
