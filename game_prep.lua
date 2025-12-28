@@ -115,4 +115,31 @@ function GamePrep.unlock_all()
     SMODS.SAVE_UNLOCKS()
 end
 
+function GamePrep.set_profile_and_start_game()
+    G.E_MANAGER:add_event(Event({
+        delay = 1,
+        blocking = false,
+        func = function ()
+            local should_unlock = NEURO.CONFIG["UNLOCK_ALL"]
+            local profile_num = G.SETTINGS.profile
+            sendDebugMessage("Currently on profile " .. profile_num, "Neuro Integration")
+            sendDebugMessage("Should unlock: " .. tostring(should_unlock), "Neuro Integration")
+            sendDebugMessage("All unlocked: " .. tostring(G.PROFILES[G.SETTINGS.profile].all_unlocked),
+                "Neuro Integration")
+            -- if the profile isn't neuro's profile, we need to switch to it
+            if profile_num ~= neuro_profile then
+                GamePrep.select_profile(1)
+            else
+                -- it is neuros profile so lets unlock everything if we need to
+                if should_unlock and not G.PROFILES[neuro_profile].all_unlocked then
+                    GamePrep.unlock_all()
+                end
+                -- now we can start the game
+                GamePrep.start_from_title()
+            end
+            return true
+        end
+    }))
+end
+
 return GamePrep

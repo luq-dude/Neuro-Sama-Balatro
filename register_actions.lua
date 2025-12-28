@@ -1,4 +1,5 @@
 local SoloMode = NEURO.MOD_CACHE.load("modes/solo.lua")
+local CoopMode = NEURO.MOD_CACHE.load("modes/coop.lua")
 local Context = NEURO.MOD_CACHE.load("game-sdk/messages/outgoing/context.lua")
 local RunContext = NEURO.MOD_CACHE.load("run_context.lua")
 
@@ -7,35 +8,36 @@ local RegisterActions = {}
 
 local prev_state = -1
 local prev_progress = -1
-function RegisterActions.update()
+function RegisterActions:update()
     if prev_state ~= NEURO.STATE or prev_progress ~= NEURO.STATE_STATUS then
         print(string.format("Current state: %d (%d)", NEURO.STATE, NEURO.STATE_STATUS))
     end
-    local mode
-    if NEURO.MODE == "solo" then
-        mode = SoloMode:new()
-    elseif NEURO.MODE == "coop" then
-        -- not implemented
+    if not self.mode then
+        if NEURO.MODE == "solo" then
+            self.mode = SoloMode:new()
+        elseif NEURO.MODE == "coop" then
+            -- not implemented
+        end
     end
     local ret
-    if mode then
+    if self.mode then
         if NEURO.STATE == NEURO.STATES.GAME_BOOT then
             -- universal across all modes
             RegisterActions.game_boot()
         elseif NEURO.STATE == NEURO.STATES.MAIN_MENU then
-            ret = mode:main_menu()
+            ret = self.mode:main_menu()
         elseif NEURO.STATE == NEURO.STATES.DECK_SELECTION then
-            ret = mode:deck_selection()
+            ret = self.mode:deck_selection()
         elseif NEURO.STATE == NEURO.STATES.BLIND_SELECTION then
-            ret = mode:select_blind()
+            ret = self.mode:select_blind()
         elseif NEURO.STATE == NEURO.STATES.IN_BLIND then
-            ret = mode:in_blind()
+            ret = self.mode:in_blind()
         elseif NEURO.STATE == NEURO.STATES.IN_SHOP then
-            ret = mode:in_shop()
+            ret = self.mode:in_shop()
         elseif NEURO.STATE == NEURO.STATES.IN_BOOSTER_PACK then
-            ret = mode:in_booster_pack()
+            ret = self.mode:in_booster_pack()
         elseif NEURO.STATE == NEURO.STATES.GAME_OVER then
-            ret = mode:game_over()
+            ret = self.mode:game_over()
         end
     end
     -- cant do if not ret, have to do explicit false check 

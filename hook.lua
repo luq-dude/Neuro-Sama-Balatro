@@ -100,7 +100,7 @@ function Hook:hook_game()
     function Game:update(dt)
         update(self, dt)
         GameHooks.update(dt)
-        RegisterActions.update()
+        RegisterActions:update()
     end
 
     hook_main_menu()
