@@ -34,7 +34,8 @@ function ActionWindow:new()
         _context_message = "",
         _context_silent = false,
         _timer = 0.0,
-        _list_index = #ActionWindowsList
+        _list_index = #ActionWindowsList,
+        _perishable = true
     }
     setmetatable(obj, ActionWindow)
     table.insert(ActionWindowsList, obj)
@@ -106,12 +107,17 @@ function ActionWindow:result(execution_result)
         print("Cannot handle a result before registering.")
     elseif self._state == State.ENDED then
         print("Cannot handle a result after the ActionWindow has ended.")
-    elseif execution_result.successful then
+    elseif execution_result.successful and self._perishable then
         self:_end()
     elseif self._state == State.FORCED then
         -- Neuro is now responsible for retrying failed action forces
     end
     return execution_result;
+end
+
+-- should this window be unregistered whenever an action in it is completed
+function ActionWindow:set_perishable(perishable)
+    self._perishable = perishable
 end
 
 function ActionWindow:_validate_frozen()
