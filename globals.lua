@@ -51,6 +51,18 @@ NEURO = {
         amt = amt or 1
         NEURO.STATE_STATUS = NEURO.STATE_STATUS - amt
     end,
+    INC_STATE_IF_MODE = function (mode, amt)
+        amt = amt or 1
+        if NEURO.MODE == mode then
+            NEURO.STATE_STATUS = NEURO.STATE_STATUS + amt
+        end
+    end,
+    DEC_STATE_IF_MODE = function (mode, amt)
+        amt = amt or 1
+        if NEURO.MODE == mode then
+            NEURO.STATE_STATUS = NEURO.STATE_STATUS - amt
+        end
+    end,
     SET_STATE = function (state, progress)
         if state then NEURO.STATE = state end
         NEURO.STATE_STATUS = progress or 0

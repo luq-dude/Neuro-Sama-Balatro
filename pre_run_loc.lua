@@ -3,7 +3,43 @@ require "functions/misc_functions"
 local ALLOWED_DECKS = NEURO.CONFIG["ALLOWED_DECKS"]
 local ALLOWED_STAKES = NEURO.CONFIG["ALLOWED_STAKES"]
 
-local GetText = {}
+local PreRunLoc = {}
+
+
+local function get_lookup_tbl_description(obj, set, lookup_table)
+    local lookup = lookup_table[obj.key]
+    local args = {}
+    local nodes = {}
+    local desc = ""
+    local key_override = nil
+    if type(obj.loc_vars) == "function" then
+        -- the object is a modded object with its own custom loc_vars function
+        -- so call it to get the arguments and then call localize 
+        local res = obj:loc_vars() or {}
+        args = res.vars or {}
+        key_override = res.key
+    elseif type(lookup) == "table" then
+        -- not a modded one, so lets get the args from the localization table
+        -- in this case the localization table has a list of static strings as localization args
+        for _, v in ipairs(lookup) do
+            table.insert(args, obj.config[v])
+        end
+    elseif type(lookup) == "function" then
+        -- in this case the localization table has a function that returns a string
+        args = lookup(obj)
+    end
+    -- now just call localize
+    localize { type = "descriptions", key = key_override or obj.key, set = set, nodes = nodes, vars = args }
+    for _, line in ipairs(nodes) do
+        for _, v in ipairs(line) do
+            desc = desc .. v.config.text
+        end
+        desc = desc .. "   "
+    end
+
+    return desc
+end
+
 
 --- Returns the localized descriptions for objects in a center,
 --- localized through the given localization table 
@@ -19,39 +55,7 @@ local function get_lookup_tbl_descriptions(center, set, whitelist, lookup_table)
         if obj.set == set and obj.unlocked and (type(whitelist) == "nil" or table.any(whitelist, function (check)
             return check == name
         end)) then
-            local lookup = lookup_table[obj.key]
-            local args = {}
-            local nodes = {}
-            local desc = ""
-            local key_override = nil
-
-            if type(obj.loc_vars) == "function" then
-                -- the object is a modded object with its own custom loc_vars function
-                -- so call it to get the arguments and then call localize 
-                local res = obj:loc_vars() or {}
-                args = res.vars or {}
-                key_override = res.key
-            elseif type(lookup) == "table" then
-                -- not a modded one, so lets get the args from the localization table
-                -- in this case the localization table has a list of static strings as localization args
-                for _, v in ipairs(lookup) do
-                    table.insert(args, obj.config[v])
-                end
-            elseif type(lookup) == "function" then
-                -- in this case the localization table has a function that returns a string
-                args = lookup(obj)
-            end
-
-            -- now just call localize
-            localize { type = "descriptions", key = key_override or obj.key, set = set, nodes = nodes, vars = args }
-            for _, line in ipairs(nodes) do
-                for _, v in ipairs(line) do
-                    desc = desc .. v.config.text
-                end
-                desc = desc .. "   "
-            end
-
-            objs[#objs+1] = name .. ": " .. desc
+            objs[#objs+1] = name .. ": " .. get_lookup_tbl_description(obj, set, lookup_table)
         end
     end
     return objs
@@ -88,24 +92,32 @@ local function get_obj_names(center, set, key_indexed, whitelist)
     return objs
 end
 
-function GetText:get_back_descriptions()
+function PreRunLoc:get_back_descriptions()
     return get_lookup_tbl_descriptions(G.P_CENTER_POOLS.Back, "Back", ALLOWED_DECKS, NEURO.LOCS.BACK)
 end
 
-function GetText:get_back_names(keys, allDecks)
+function PreRunLoc.get_back_desc(key)
+    return get_lookup_tbl_description(G.P_CENTERS[key], "Back", NEURO.LOCS.BACK)
+end
+
+function PreRunLoc:get_back_names(keys, allDecks)
     local whitelist = ALLOWED_DECKS
     if allDecks then whitelist = nil end
     return get_obj_names(G.P_CENTER_POOLS.Back, "Back", keys, whitelist)
 end
 
-function GetText:get_stake_descriptions()
+function PreRunLoc:get_stake_descriptions()
     return get_lookup_tbl_descriptions(G.P_CENTER_POOLS.Stake, "Stake", ALLOWED_STAKES, NEURO.LOCS.STAKE)
 end
 
-function GetText:get_stake_names(keys, allStakes)
+function PreRunLoc.get_stake_desc(key)
+    return get_lookup_tbl_description(G.P_STAKES[key], "Stake", NEURO.LOCS.STAKE)
+end
+
+function PreRunLoc:get_stake_names(keys, allStakes)
     local whitelist = ALLOWED_STAKES
     if allStakes then whitelist = nil end
     return get_obj_names(G.P_CENTER_POOLS.Stake, "Stake", keys, whitelist)
 end
 
-return GetText
+return PreRunLoc

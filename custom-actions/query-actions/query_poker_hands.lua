@@ -12,7 +12,7 @@ function PokerHandInfo:new(actionWindow, state)
 end
 
 function PokerHandInfo:_get_name()
-    return "get_poker_hand_information"
+    return "query_poker_hands"
 end
 
 function PokerHandInfo:_get_description()
@@ -29,7 +29,7 @@ end
 
 function PokerHandInfo:_execute_action(state)
 	Context.send(table.concat(RunContext:hand_type_information(),"\n"))
-	NEURO.DEC_STATE()
+	NEURO.DEC_STATE_IF_MODE("solo")
 end
 
 return PokerHandInfo
