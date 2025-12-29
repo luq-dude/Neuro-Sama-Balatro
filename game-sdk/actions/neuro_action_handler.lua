@@ -93,7 +93,11 @@ function NeuroActionHandler.unregister_actions(actions)
     local unregister_actions = table.map(actions_to_remove, function(action)
         return action:get_ws_action()
     end)
-    WebsocketConnection.send(ActionsUnregister:new(unregister_actions))
+    if #unregister_actions > 0 then
+        WebsocketConnection.send(ActionsUnregister:new(unregister_actions))
+    else
+        print("Attempt to unregister no actions blocked.")
+    end
     _instance._dying_actions = table.filter(_instance._dying_actions, function(act)
         return table.any(actions_to_remove, function(act_to_remove)
             return act == act_to_remove
