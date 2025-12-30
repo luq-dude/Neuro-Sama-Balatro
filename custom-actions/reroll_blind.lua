@@ -26,7 +26,7 @@ function RerollBlind:_get_schema()
 end
 
 function RerollBlind:_validate_action()
-    return ExecutionResult.success("Rerolling the " .. G.GAME.blind_on_deck .. " Blind.")
+    return ExecutionResult.success("Rerolling the boss Blind.")
 end
 
 function RerollBlind:_execute_action(state)
