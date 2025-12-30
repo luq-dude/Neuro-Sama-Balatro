@@ -34,25 +34,7 @@ function RerollBlind:_execute_action(state)
         UIBox = G.blind_select_opts[string.lower(G.GAME.blind_on_deck)]
     }
     G.FUNCS.reroll_boss(e)
-
-    G.E_MANAGER:add_event(Event({
-        trigger = "after",
-        delay = 0.5 * G.SPEEDFACTOR,
-        blocking = false,
-        func = function()
-            local window = ActionWindow:new()
-            window:set_force(0.0, "Choose to select or reroll the current blind.", table.table_to_string(GetRunText.get_blind_descriptions()))
-            window:add_action(PlayBlind:new(window))
-
-            if (G.GAME.dollars - G.GAME.bankrupt_at) - 10 >= 0 and
-                G.GAME.blind_on_deck == "Boss" and (G.GAME.used_vouchers["v_retcon"] or
-                    (G.GAME.used_vouchers["v_directors_cut"] and not G.GAME.round_resets.boss_rerolled)) then
-                window:add_action(RerollBlind:new(window))
-            end
-            window:register()
-            return true
-        end
-    }))
+    NEURO.DEC_STATE()
     return true
 end
 
