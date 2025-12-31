@@ -280,10 +280,10 @@ function RunContext.get_last_hand_text()
     local _,disp_text,_,_ = G.FUNCS.get_poker_hand_info(G.play.cards)
     local chip_total = hand_chips * mult
     return string.format(
-            "This hand, you scored %d chips with the hand type %s. You need to score %d total to win this blind.",
+            "This hand, you scored %d chips with the hand type %s. " ..
+            "You need to score %d total to win this blind.",
             chip_total,
             disp_text,
-            G.GAME.chips + chip_total,
             G.GAME.blind.chips)
 end
 return RunContext
