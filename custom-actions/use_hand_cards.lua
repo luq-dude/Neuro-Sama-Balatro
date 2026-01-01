@@ -130,10 +130,10 @@ function UseHandCards:_execute_action(state)
 
     if selected_action == "Play" then
         NEURO.INC_STATE()
-        G.FUNCS.play_cards_from_highlighted()
+        G.FUNCS.play_cards_from_highlighted({neuro = true})
     elseif selected_action == "Discard" then
         NEURO.DEC_STATE()
-        G.FUNCS.discard_cards_from_highlighted()
+        G.FUNCS.discard_cards_from_highlighted({neuro = true})
     end
     return true
 end

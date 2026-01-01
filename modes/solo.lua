@@ -2,7 +2,6 @@ local Mode = NEURO.MOD_CACHE.load("modes/mode.lua")
 
 local Context = NEURO.MOD_CACHE.load("game-sdk/messages/outgoing/context.lua")
 local RunContext = NEURO.MOD_CACHE.load("run_context.lua")
-local RunHelper = NEURO.MOD_CACHE.load("run_functions_helper.lua")
 local GamePrep = NEURO.MOD_CACHE.load("game_prep.lua")
 local ActionWindow = NEURO.MOD_CACHE.load("game-sdk/actions/action_window.lua")
 local GetRunText = NEURO.MOD_CACHE.load("get_run_text.lua")
@@ -34,8 +33,6 @@ local SkipPack = NEURO.MOD_CACHE.load("custom-actions/skip_pack.lua")
 local SoloMode = setmetatable({}, { __index = Mode })
 SoloMode.__index = SoloMode
 
-local should_unlock = NEURO.CONFIG["UNLOCK_ALL"]
-local neuro_profile = NEURO.CONFIG["PROFILE_SLOT"]
 
 function SoloMode:new()
    return Mode.new(self)
@@ -43,27 +40,7 @@ end
 
 function SoloMode:main_menu()
     if NEURO.STATE_STATUS == 0 then
-        RunHelper.run_after(1, function ()
-            local profile_num = G.SETTINGS.profile
-                sendDebugMessage("Currently on profile " .. profile_num, "Neuro Integration")
-                sendDebugMessage("Should unlock: " .. tostring(should_unlock), "Neuro Integration")
-                sendDebugMessage("All unlocked: " .. tostring(G.PROFILES[G.SETTINGS.profile].all_unlocked),
-                    "Neuro Integration")
-                -- if the profile isn't neuro's profile, we need to switch to it
-                if profile_num ~= neuro_profile then
-                    GamePrep.select_profile(1)
-                else
-                    -- it is neuros profile so lets unlock everything if we need to
-                    if should_unlock and not G.PROFILES[neuro_profile].all_unlocked then
-                        sendDebugMessage("On neuro's profile AND we should unlock everything AND we haven't yet",
-                            "Neuro Integration")
-                        GamePrep.unlock_all()
-                    end
-                    -- now we can start the game
-                    GamePrep.start_from_title()
-                end
-                return true
-        end)
+        GamePrep.set_profile_and_start_game()
         NEURO.INC_STATE()
     end
 end
@@ -188,7 +165,7 @@ function SoloMode:in_blind()
             delay = 5 * G.SPEEDFACTOR,
             blocking = false,
             func = function()
-                G.FUNCS.cash_out({ config = {} })
+                G.FUNCS.cash_out({ neuro = true, config = {} })
                 Context.send(GetRunText.get_round_info())
                 NEURO.SET_STATE(NEURO.STATES.IN_SHOP)
                 return true

@@ -16,7 +16,7 @@ function RegisterActions:update()
         if NEURO.MODE == "solo" then
             self.mode = SoloMode:new()
         elseif NEURO.MODE == "coop" then
-            -- not implemented
+            self.mode = CoopMode:new()
         end
     end
     local ret

@@ -1,8 +1,3 @@
-local NeuroActionHandler = NEURO.MOD_CACHE.load("game-sdk/actions/neuro_action_handler.lua")
-
-local UseHandCards = NEURO.MOD_CACHE.load("custom-actions/use_hand_cards.lua")
-local JokerInteraction = NEURO.MOD_CACHE.load("custom-actions/joker_interaction.lua")
-local UseConsumable = NEURO.MOD_CACHE.load("custom-actions/use_consumables.lua")
 local GetRunText = NEURO.MOD_CACHE.load("get_run_text.lua")
 
 local Context = NEURO.MOD_CACHE.load("game-sdk/messages/outgoing/context.lua")
@@ -32,40 +27,6 @@ function PlayingRun.hook_draw_to_hand()
         if not complete and NEURO.STATE ~= NEURO.STATES.IN_BLIND then
             NEURO.SET_STATE(NEURO.STATES.IN_BLIND)
         end
-    end
-end
-
-local function unregister_run_action()
-    local unregister_actions = {UseHandCards}
-    if #G.jokers.cards > 0 then unregister_actions[#unregister_actions+1] = JokerInteraction end
-    if #G.consumeables.cards > 0 then unregister_actions[#unregister_actions+1] = UseConsumable end
-    NeuroActionHandler.unregister_actions(unregister_actions)
-end
-
--- these two are for testing
-function PlayingRun:hook_play_cards()
-    local play_cards = G.FUNCS.play_cards_from_highlighted
-    function G.FUNCS.play_cards_from_highlighted(e)
-        print("status on play " .. tostring(NEURO.STATE_STATUS))
-        if NEURO.STATE_STATUS == 1 then
-            NEURO.INC_STATE()
-            unregister_run_action()
-        end
-
-        play_cards(e)
-    end
-end
-
-function PlayingRun:hook_discard_cards()
-    local discard_cards = G.FUNCS.discard_cards_from_highlighted
-    function G.FUNCS.discard_cards_from_highlighted(e, hook)
-        print("status on discard " .. tostring(NEURO.STATE_STATUS))
-        if NEURO.STATE_STATUS == 1 then
-            NEURO.DEC_STATE()
-            unregister_run_action()
-        end
-
-        discard_cards(e, hook)
     end
 end
 

@@ -5,6 +5,7 @@ local PlayingRun = NEURO.MOD_CACHE.load("playing_run.lua")
 local RunContext = NEURO.MOD_CACHE.load("run_context.lua")
 
 local RegisterActions = NEURO.MOD_CACHE.load("register_actions.lua")
+local ManualHooks = NEURO.MOD_CACHE.load("manual_action_hooks.lua")
 
 local Hook = {}
 Hook.__index = Hook
@@ -108,13 +109,12 @@ function Hook:hook_game()
     hook_win()
     hook_start_run()
     PlayingRun:hook_round_eval()
-    PlayingRun:hook_play_cards()
-    PlayingRun:hook_discard_cards()
     PlayingRun:hook_evaluate_play()
     PlayingRun:hook_new_round()
     PlayingRun.hook_draw_to_hand()
     PlayingRun.hook_booster_open()
     hook_blind_select()
+    ManualHooks.hook_all()
 end
 
 return Hook

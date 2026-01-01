@@ -30,7 +30,8 @@ end
 function PlayBlind:_execute_action(state)
     local e = {
         config = { ref_table = G.P_BLINDS[G.GAME.round_resets.blind_choices[G.GAME.blind_on_deck]] },
-        UIBox = G.blind_select_opts[string.lower(G.GAME.blind_on_deck)]
+        UIBox = G.blind_select_opts[string.lower(G.GAME.blind_on_deck)],
+        neuro = true
     }
     NEURO.SET_STATE(nil, 10)  -- inc by some amt > 2
     G.FUNCS.select_blind(e)

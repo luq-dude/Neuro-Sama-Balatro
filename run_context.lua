@@ -270,10 +270,10 @@ function RunContext.get_blind_win_text()
     local chip_total = hand_chips * mult
     return string.format(
                 "Congratulations! You just won the blind with the hand type: %s, " ..
-                "you scored %d chips out of a required %d chips to win.",
+                "you scored %s chips out of a required %s chips to win.",
                 disp_text,
-                G.GAME.chips + chip_total,
-                G.GAME.blind.chips)
+                number_format(G.GAME.chips + chip_total),
+                number_format(G.GAME.blind.chips))
 end
 
 function RunContext.get_last_hand_text()
@@ -282,8 +282,8 @@ function RunContext.get_last_hand_text()
     return string.format(
             "This hand, you scored %d chips with the hand type %s. " ..
             "You need to score %d total to win this blind.",
-            chip_total,
+            number_format(chip_total),
             disp_text,
-            G.GAME.blind.chips)
+            number_format(G.GAME.blind.chips))
 end
 return RunContext

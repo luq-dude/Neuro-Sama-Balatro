@@ -27,7 +27,8 @@ end
 
 function SkipBlind:_execute_action(state)
     local e = {
-        UIBox = G.blind_select_opts[string.lower(G.GAME.blind_on_deck)]
+        UIBox = G.blind_select_opts[string.lower(G.GAME.blind_on_deck)],
+        neuro = true
     }
     G.FUNCS.skip_blind(e)
     NEURO.INC_STATE()

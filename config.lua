@@ -80,4 +80,35 @@ return {
         -- "Orange Stake", -- 30% chance for Jokers in shops or booster packs to have a Perishable sticker
         -- "Gold Stake",   -- 30% chance for Jokers in shops or booster packs to have a Rental sticker
     },
+
+    -- What Neuro can do during co-op mode. Has no effect in solo mode.
+    -- If something is enabled here, it should not be done manually. Doing so may cause the game
+    -- to crash.
+    -- Note: Enabling all of these is NOT equivalent to solo mode. Use solo mode if Neuro should be
+    -- playing the whole game. 
+    ["COOP_ACTIONS"] = {
+        PICK_DECK = false,      -- Lets Neuro pick a deck and stake on game boot and on game over
+        SELECT_BLIND = false,   -- Lets Neuro handle picking/skipping a blind in blind selection
+        PLAY_CARDS = false,     -- Lets Neuro play/discard cards 
+        BUY_CARDS = true,       -- Lets Neuro buy cards from the shop
+        REROLL_SHOP = true,     -- Lets Neuro reroll the shop
+        BUY_BOOSTERS = true,    -- Lets Neuro buy booster packs from the shop
+        BUY_VOUCHERS = true,    -- Lets Neuro buy vouchers in the shop
+        EXIT_SHOP = true,       -- Lets Neuro exit the shop
+        USE_CONSUMABLES = true, -- Lets Neuro use and sell consumables
+        MODIFY_JOKERS = true,   -- Lets Neuro re-order and sell jokers
+        PICK_PACK_CARDS = true  -- Lets Neuro pick cards in a booster pack
+    },
+
+    -- Should Neuro receive context automatically when the game enters a new state.
+    -- Example: Will determine if Neuro receives context about cards in shop when entering the shop.
+    -- This option does not apply for deck/stake selection and blind selection.
+    -- If this is off, Neuro will still be able to query game state information using query actions.
+    -- Has no effect in solo mode.
+    ["COOP_STATE_CONTEXT"] = true,
+
+    -- Should Neuro receive context for actions performed manually (by the human player).
+    -- Example: Will determine if Neuro receives context for when a joker is bought manually
+    -- Has no effect in solo mode.
+    ["COOP_MANUAL_ACTION_CONTEXT"] = true,
 }

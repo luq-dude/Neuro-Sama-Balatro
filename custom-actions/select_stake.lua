@@ -64,11 +64,12 @@ function SelectStake:_execute_action(state)
         trigger = "after",
         delay = 5,
         func = function()
-            G.FUNCS.start_run()
+            G.FUNCS.start_run(nil, {neuro=true})
             -- return false as otherwise crashes
             return false
         end,
     }))
+    NEURO.INC_STATE_IF_MODE("coop")
 end
 
 return SelectStake
