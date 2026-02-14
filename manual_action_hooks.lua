@@ -17,8 +17,13 @@ function ManualHooks.hook_all()
     ManualHooks.hook_discard_cards()
     ManualHooks.hook_play_blind()
     ManualHooks.hook_skip_blind()
+    ManualHooks.hook_reroll_shop()
     ManualHooks.hook_reroll_blind()
     ManualHooks.hook_win_blind()
+    ManualHooks.hook_sell_card()
+    ManualHooks.hook_buy_card()
+    ManualHooks.hook_use_card()
+    ManualHooks.hook_skip_booster()
 end
 
 function ManualHooks.hook_start_game()
@@ -137,6 +142,122 @@ function ManualHooks.hook_win_blind()
             end
             NEURO.SET_STATE(NEURO.STATES.IN_SHOP)
         end
+    end
+end
+
+function ManualHooks.hook_buy_card()
+    local orig = G.FUNCS.buy_from_shop
+    G.FUNCS.buy_from_shop = function (e)
+        local ret = orig(e)
+        local card = e.config.ref_table
+        if not card then return end
+        if not e.neuro then
+            if NEURO.CONFIG["COOP_MANUAL_ACTION_CONTEXT"] then
+                if e.config.id == 'buy_and_use' then
+                    Context.send("Bought and used " .. GetRunText.get_card_description(card), true)
+                else
+                    Context.send("Bought " .. GetRunText.get_card_description(card), true)
+                end
+            end
+            NEURO.DEC_STATE()
+        end
+        return ret
+    end
+end
+
+function ManualHooks.hook_sell_card()
+    local orig = G.FUNCS.sell_card
+    G.FUNCS.sell_card = function (e)
+        orig(e)
+        if e.neuro then return end
+        local card = e.config.ref_table
+        if NEURO.CONFIG["COOP_MANUAL_ACTION_CONTEXT"] then
+            Context.send("Sold " .. GetRunText.get_card_description(card), true)
+        end
+    end
+end
+
+function ManualHooks.hook_reroll_shop()
+    local orig = G.FUNCS.reroll_shop
+    G.FUNCS.reroll_shop = function (e)
+        if e.neuro then return end
+        if NEURO.CONFIG["COOP_MANUAL_ACTION_CONTEXT"] then
+            Context.send("Rerolled shop for $" .. G.GAME.current_round.reroll_cost, true)
+        end
+        orig(e)
+    end
+end
+
+local function on_consumable_use(card)
+    if NEURO.CONFIG["COOP_MANUAL_ACTION_CONTEXT"] then
+        Context.send("Using " .. GetRunText.get_card_description(card), true)
+    end
+    NEURO.DEC_STATE()
+end
+
+local function on_voucher_redeem(card)
+    if NEURO.CONFIG["COOP_MANUAL_ACTION_CONTEXT"] then
+        Context.send("Bought " .. GetRunText.get_card_description(card), true)
+    end
+    NEURO.DEC_STATE()
+end
+
+
+local function on_booster_open(card)
+    if NEURO.CONFIG["COOP_MANUAL_ACTION_CONTEXT"] then
+        Context.send("Opening " .. GetRunText.get_card_description(card, false, false, "Other"), true)
+    end
+end
+
+local function on_booster_pick(card)
+    if NEURO.CONFIG["COOP_MANUAL_ACTION_CONTEXT"] then
+        if card.ability.consumeable then
+            Context.send("Using " .. GetRunText.get_card_description(card), true)
+        else
+            Context.send("Taking " .. GetRunText.get_card_description(card), true)
+        end
+    end
+
+    print(G.GAME.pack_choices)
+    if (G.GAME.pack_choices or 1) > 1 then
+        NEURO.DEC_STATE()
+    else
+        NEURO.INC_STATE()
+    end
+end
+
+function ManualHooks.hook_use_card()
+    local orig = G.FUNCS.use_card
+    G.FUNCS.use_card = function (e)
+        local card = e.config.ref_table
+        if e.neuro then orig(e); return end
+        if card.ability.consumeable and card.area ~= G.pack_cards then
+            print('consumeable used')
+            on_consumable_use(card)
+        elseif card.ability.set == 'Voucher' then
+            print('voucher redeemed')
+            on_voucher_redeem(card)
+        elseif card.ability.set == 'Booster' then
+            print('booster opened')
+            on_booster_open(card)
+        elseif card.area == G.pack_cards then
+            print('used booster card')
+            on_booster_pick(card)
+        end
+
+        orig(e)
+    end
+end
+
+function ManualHooks.hook_skip_booster()
+    local orig = G.FUNCS.skip_booster
+    G.FUNCS.skip_booster = function (e)
+        orig(e)
+        if e.neuro then return end
+        if NEURO.CONFIG["COOP_MANUAL_ACTION_CONTEXT"] then
+            Context.send("Skipping the current pack", true)
+        end
+        NEURO.INC_STATE()
     end
 end
 

@@ -112,6 +112,7 @@ function JokerInteraction:_execute_action(state)
                 func = function()
                     G.jokers:add_to_highlighted(G.jokers.cards[1])
                     local button = G.jokers.cards[1].children.use_button.UIRoot.children[1].children[1].children[1].children[1]
+                    button.neuro = true
                     button:click()
                     return true
                 end

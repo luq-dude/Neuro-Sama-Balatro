@@ -152,7 +152,7 @@ function UseConsumable:_execute_action(state)
         sendErrorMessage("Can't find the sell or use button")
         return true
     end
-
+    button.neuro = true
     G.E_MANAGER:add_event(Event({
         trigger = "after",
          -- else tarot's that need a card to be selected wont work

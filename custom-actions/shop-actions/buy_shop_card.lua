@@ -93,12 +93,13 @@ function BuyShopCard:_execute_action(state)
     local selected_index = state["selected_index"]
 
     local card = G.shop_jokers.cards[selected_index]
-
+    local button
     if selected_action == "buy" then
-        card.children.buy_button.definition.nodes[1].config.button_UIE:click()
+        button = card.children.buy_button.definition.nodes[1].config.button_UIE
     else
-        card.children.buy_and_use_button.definition.nodes[1].config.button_UIE:click()
+        button = card.children.buy_and_use_button.definition.nodes[1].config.button_UIE
     end
+    button:click({neuro = true})
     NEURO.DEC_STATE()
 end
 

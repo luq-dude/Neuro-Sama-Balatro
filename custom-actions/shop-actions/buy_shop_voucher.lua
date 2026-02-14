@@ -57,7 +57,8 @@ end
 function BuyVoucher:_execute_action(state)
     local selected_index = state["voucher_index"] or 1
 	local voucher = G.shop_vouchers.cards[selected_index]
-	voucher.children.buy_button.definition.nodes[1].config.button_UIE:click()
+	local button = voucher.children.buy_button.definition.nodes[1].config.button_UIE
+    button:click({neuro = true})
     NEURO.DEC_STATE()
 end
 

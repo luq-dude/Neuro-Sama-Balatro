@@ -28,7 +28,7 @@ end
 
 function ExitShop:_execute_action(state)
 	local exit_shop_button = G.shop.definition.nodes[1].nodes[1].nodes[1].nodes[1].nodes[1].nodes[1].nodes[1].nodes[1].nodes[1].config.button_UIE.children[1]
-	exit_shop_button:click()
+	exit_shop_button:click({neuro = true})
 end
 
 return ExitShop

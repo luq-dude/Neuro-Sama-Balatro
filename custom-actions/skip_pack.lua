@@ -33,7 +33,7 @@ function SkipPack:_validate_action(data, state)
 end
 
 function SkipPack:_execute_action(state)
-	G.FUNCS.skip_booster(G.booster_pack)
+	G.FUNCS.skip_booster({neuro = true})
     NEURO.INC_STATE()
 	return true
 end

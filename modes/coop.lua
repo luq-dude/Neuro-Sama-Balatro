@@ -47,6 +47,7 @@ function CoopMode:new()
     obj.non_perishable_window = nil
     obj.hand_window = nil
     obj.shop_window = nil
+    obj.booster_window = nil
     return obj
 end
 
@@ -186,7 +187,7 @@ function CoopMode:in_blind()
                 register_joker_consumables(window)
                 if NEURO.CONFIG["COOP_STATE_CONTEXT"] then
                     local ctx = RunContext.get_in_blind_context()
-                    window:set_context(ctx.state, true)
+                    Context.send(ctx.state, true)
                 end
                 window:register()
                 self.hand_window = window
@@ -260,7 +261,7 @@ function CoopMode:in_shop()
                 register_shop_actions(window)
                 register_joker_consumables(window)
                 if NEURO.CONFIG["COOP_STATE_CONTEXT"] then
-                    window:set_context(ctx.state, true)
+                    Context.send(ctx.state, true)
                 end
                 window:register()
                 self.shop_window = window
@@ -280,11 +281,16 @@ function CoopMode:in_booster_pack()
             self.shop_window:_end()
             self.shop_window = nil
         end
+        if self.booster_window then
+            self.booster_window:_end()
+            self.booster_window = nil
+        end
         G.E_MANAGER:add_event(Event({
             trigger = "after",
             blocking = false,
             delay = 3 * G.SPEEDFACTOR,
             func = function ()
+                if NEURO.STATE ~= NEURO.STATES.IN_SHOP then return true end
                 local ctx = RunContext.get_booster_context()
                 local window = ActionWindow:new()
                 local booster = SMODS.OPENED_BOOSTER
@@ -298,9 +304,10 @@ function CoopMode:in_booster_pack()
                 end
                 register_joker_consumables(window)
                 if NEURO.CONFIG["COOP_STATE_CONTEXT"] then
-                    window:set_context(ctx.state, true)
+                    Context.send(ctx.state, true)
                 end
                 window:register()
+                self.booster_window = window
                 return true
             end
         }))
