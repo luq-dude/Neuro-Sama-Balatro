@@ -155,6 +155,7 @@ function ManualHooks.hook_buy_card()
             if NEURO.CONFIG["COOP_MANUAL_ACTION_CONTEXT"] then
                 if e.config.id == 'buy_and_use' then
                     Context.send("Bought and used " .. GetRunText.get_card_description(card), true)
+                    e.neuro = true -- hacky trick to stop hook_use_card sending duplicate context
                 else
                     Context.send("Bought " .. GetRunText.get_card_description(card), true)
                 end
