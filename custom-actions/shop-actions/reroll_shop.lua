@@ -33,7 +33,8 @@ end
 
 function RerollShop:_execute_action(state)
 	local reroll_button = G.shop.definition.nodes[1].nodes[1].nodes[1].nodes[1].nodes[1].nodes[1].nodes[2].nodes[1].config.button_UIE.children[1]
-	reroll_button:click({neuro = true})
+    reroll_button.neuro = true
+	reroll_button:click()
     NEURO.DEC_STATE()
 end
 

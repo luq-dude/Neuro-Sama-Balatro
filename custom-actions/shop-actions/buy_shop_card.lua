@@ -99,7 +99,8 @@ function BuyShopCard:_execute_action(state)
     else
         button = card.children.buy_and_use_button.definition.nodes[1].config.button_UIE
     end
-    button:click({neuro = true})
+    button.neuro = true
+    button:click()
     NEURO.DEC_STATE()
 end
 

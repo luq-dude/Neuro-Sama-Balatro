@@ -55,7 +55,8 @@ function BuyBooster:_execute_action(state)
 	sendDebugMessage(type(selected_index))
 	local booster = G.shop_booster.cards[selected_index]
     local button = booster.children.buy_button.definition.nodes[1].config.button_UIE
-	button:click({neuro=true})
+    button.neuro = true
+	button:click()
 end
 
 return BuyBooster

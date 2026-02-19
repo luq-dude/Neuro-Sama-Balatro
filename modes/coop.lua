@@ -293,7 +293,7 @@ function CoopMode:in_booster_pack()
             blocking = false,
             delay = 3 * G.SPEEDFACTOR,
             func = function ()
-                if NEURO.STATE ~= NEURO.STATES.IN_SHOP then return true end
+                if NEURO.STATE ~= NEURO.STATES.IN_BOOSTER_PACK then return true end
                 local ctx = RunContext.get_booster_context()
                 local window = ActionWindow:new()
                 local booster = SMODS.OPENED_BOOSTER
