@@ -116,6 +116,7 @@ function CoopMode:select_blind()
             func = function ()
                 local ctx = RunContext.get_select_blind_context()
                 if NEURO.CONFIG["COOP_ACTIONS"]["SELECT_BLIND"] then
+                    if NEURO.STATE ~= NEURO.STATES.BLIND_SELECTION then return true end
                     local window = ActionWindow:new()
                     window:add_action(PlayBlind:new(window))
                     if G.GAME.blind_on_deck ~= "Boss" then
