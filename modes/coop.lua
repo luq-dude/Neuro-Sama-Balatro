@@ -255,7 +255,7 @@ function CoopMode:in_shop()
             delay = 2 * G.SPEEDFACTOR,
             blocking = false,
             func = function()
-                if NEURO.STATE ~= NEURO.STATES.IN_SHOP or G.STATE ~= G.STATES.IN_SHOP then
+                if NEURO.STATE ~= NEURO.STATES.IN_SHOP or G.STATE ~= G.STATES.SHOP then
                     return true
                 end
                 local ctx = RunContext.get_shop_context()
